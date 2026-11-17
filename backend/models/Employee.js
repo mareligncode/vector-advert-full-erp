@@ -11,6 +11,8 @@ const employeeSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+      unique: true,
+      sparse: true,
       required: false
     },
     name: {
@@ -43,8 +45,14 @@ const employeeSchema = new mongoose.Schema(
       finNumber: { type: String, trim: true },
       frontImageUrl: { type: String },
       backImageUrl: { type: String },
+      status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+      },
       approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-      approvedAt: { type: Date }
+      approvedAt: { type: Date },
+      rejectionReason: { type: String, trim: true }
     },
     gender: {
       type: String,
@@ -77,8 +85,14 @@ const employeeSchema = new mongoose.Schema(
           finNumber: { type: String },
           frontImageUrl: { type: String },
           backImageUrl: { type: String },
+          status: {
+            type: String,
+            enum: ['pending', 'approved', 'rejected'],
+            default: 'pending'
+          },
           approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-          approvedAt: { type: Date }
+          approvedAt: { type: Date },
+          rejectionReason: { type: String, trim: true }
         }
       }
     ],
@@ -138,16 +152,29 @@ const employeeSchema = new mongoose.Schema(
         type: { type: String },
         fileUrl: { type: String, required: true },
         uploadedAt: { type: Date, default: Date.now },
+        status: {
+          type: String,
+          enum: ['pending', 'approved', 'rejected'],
+          default: 'pending'
+        },
         approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        approvedAt: { type: Date }
+        approvedAt: { type: Date },
+        rejectionReason: { type: String, trim: true }
       }
     ]
   },
   {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
   }
 );
 
+// Virtual for full name
+employeeSchema.virtual('fullName').get(function () {
+  if (!this.name) return '';
+  return [this.name.first, this.name.middle, this.name.last].filter(Boolean).join(' ');
+});
+
 const Employee = mongoose.model('Employee', employeeSchema);
 export default Employee;
-
