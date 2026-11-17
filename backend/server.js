@@ -4,6 +4,9 @@ import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import employeeRoutes from './routes/employeeRoutes.js';
+import attendanceRoutes from './routes/attendanceRoutes.js';
+import overtimeRoutes from './routes/overtimeRoutes.js';
+import fieldVisitRoutes from './routes/fieldVisitRoutes.js';
 
 dotenv.config();
 
@@ -24,6 +27,9 @@ app.use(
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/overtime', overtimeRoutes);
+app.use('/api/field-visits', fieldVisitRoutes);
 
 app.get('/', (req, res) => {
   res.json({
