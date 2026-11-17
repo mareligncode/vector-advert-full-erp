@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "test": "node tests/employeeApi.test.js && node tests/attendanceApi.test.js",
-    "test:attendance": "node tests/attendanceApi.test.js"
+    "test": "node tests/employeeApi.test.js && node tests/attendanceApi.test.js && node tests/leaveApi.test.js",
+    "test:attendance": "node tests/attendanceApi.test.js",
+    "test:leave": "node tests/leaveApi.test.js"
   },
   "keywords": [],
   "author": "",

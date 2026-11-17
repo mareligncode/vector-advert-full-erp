@@ -7,6 +7,7 @@ import employeeRoutes from './routes/employeeRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import overtimeRoutes from './routes/overtimeRoutes.js';
 import fieldVisitRoutes from './routes/fieldVisitRoutes.js';
+import leaveRoutes from './routes/leaveRoutes.js';
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ app.use('/api/employees', employeeRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/overtime', overtimeRoutes);
 app.use('/api/field-visits', fieldVisitRoutes);
+app.use('/api/leave', leaveRoutes);
 
 app.get('/', (req, res) => {
   res.json({
