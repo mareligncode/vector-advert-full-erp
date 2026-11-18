@@ -27,6 +27,7 @@ import {
 } from '../controllers/interviewController.js';
 import { protect, optionalProtect, authorizeRoles } from '../middleware/authMiddleware.js';
 import { HR_ADMIN_ROLES, MANAGEMENT_ROLES, EXECUTIVE_ROLES } from '../constants/roles.js';
+import { upload, setUploadCategory } from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
@@ -84,7 +85,12 @@ router.patch(
 // Multiple attachments endpoints (Add one file after another via Add button)
 router
   .route('/applications/:id/attachments')
-  .post(optionalProtect, addApplicationAttachment);
+  .post(
+    optionalProtect,
+    setUploadCategory('recruitment'),
+    upload.single('file'),
+    addApplicationAttachment
+  );
 
 router
   .route('/applications/:id/attachments/:attachmentId')
@@ -123,6 +129,8 @@ router.post(
   '/applications/:applicationId/interviews/:interviewId/attachments',
   protect,
   authorizeRoles(...MANAGEMENT_ROLES),
+  setUploadCategory('interviews'),
+  upload.single('file'),
   addInterviewAttachment
 );
 

@@ -2,6 +2,7 @@ import Internship from '../models/Internship.js';
 import User from '../models/User.js';
 import Employee from '../models/Employee.js';
 import { ROLES } from '../constants/roles.js';
+import { deleteLocalFile, formatFileUrl } from '../utils/fileUtils.js';
 
 // Helper to auto-generate internship number (e.g., INT-2026-0001)
 const generateInternshipNumber = async () => {
@@ -248,12 +249,21 @@ export const updateInternship = async (req, res) => {
 export const addInternshipDocument = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fileName, originalName, fileUrl, fileType, fileSize, description } = req.body;
+    let { fileName, originalName, fileUrl, fileType, fileSize, description } = req.body;
+
+    if (req.file) {
+      const category = req.uploadCategory || 'internships';
+      fileUrl = formatFileUrl(category, req.file.filename);
+      fileName = req.file.filename;
+      originalName = req.file.originalname;
+      fileType = req.file.mimetype;
+      fileSize = req.file.size;
+    }
 
     if (!fileName || !fileUrl) {
       return res.status(400).json({
         success: false,
-        message: 'fileName and fileUrl are required'
+        message: 'File or (fileName and fileUrl) are required'
       });
     }
 
@@ -315,6 +325,10 @@ export const removeInternshipDocument = async (req, res) => {
         success: false,
         message: 'Document attachment not found'
       });
+    }
+
+    if (doc.fileUrl) {
+      deleteLocalFile(doc.fileUrl);
     }
 
     doc.deleteOne();

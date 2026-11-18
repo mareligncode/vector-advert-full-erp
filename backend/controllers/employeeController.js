@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Employee from '../models/Employee.js';
 import User from '../models/User.js';
 import { ALL_ROLES, ROLES, HR_ADMIN_ROLES } from '../constants/roles.js';
+import { deleteLocalFile, formatFileUrl } from '../utils/fileUtils.js';
 
 /**
  * Helper: Generate next sequential employee number (e.g., EMP-0001)
@@ -670,6 +671,173 @@ export const unlinkUserAccount = async (req, res) => {
 };
 
 /**
+ * @desc    Upload or update employee profile photo
+ * @route   POST /api/employees/:id/profile-photo
+ * @access  Private (HR/Admin or Self)
+ */
+export const uploadProfilePhoto = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const employee = await Employee.findById(id);
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: 'Employee not found'
+      });
+    }
+
+    const isSelf = employee.user && employee.user.toString() === req.user._id.toString();
+    if (!isHrOrAdmin(req.user) && !isSelf) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to update this employee profile photo'
+      });
+    }
+
+    let fileUrl = req.body.fileUrl;
+    if (req.file) {
+      const category = req.uploadCategory || 'employees';
+      fileUrl = formatFileUrl(category, req.file.filename);
+    }
+
+    if (!fileUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'Photo file or fileUrl is required'
+      });
+    }
+
+    // Delete existing old profile photo if local
+    if (employee.profilePhoto && employee.profilePhoto.startsWith('/uploads/')) {
+      deleteLocalFile(employee.profilePhoto);
+    }
+
+    employee.profilePhoto = fileUrl;
+    await employee.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile photo updated successfully',
+      data: {
+        profilePhoto: employee.profilePhoto
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Remove employee profile photo
+ * @route   DELETE /api/employees/:id/profile-photo
+ * @access  Private (HR/Admin or Self)
+ */
+export const removeProfilePhoto = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const employee = await Employee.findById(id);
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: 'Employee not found'
+      });
+    }
+
+    const isSelf = employee.user && employee.user.toString() === req.user._id.toString();
+    if (!isHrOrAdmin(req.user) && !isSelf) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to delete this employee profile photo'
+      });
+    }
+
+    if (employee.profilePhoto) {
+      deleteLocalFile(employee.profilePhoto);
+      employee.profilePhoto = undefined;
+      await employee.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile photo removed successfully'
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Upload front & back photos for Employee National ID
+ * @route   POST /api/employees/:id/national-id/photos
+ * @access  Private (HR/Admin or Self)
+ */
+export const uploadNationalIdPhotos = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const employee = await Employee.findById(id);
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: 'Employee not found'
+      });
+    }
+
+    const isSelf = employee.user && employee.user.toString() === req.user._id.toString();
+    if (!isHrOrAdmin(req.user) && !isSelf) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to upload National ID for this employee'
+      });
+    }
+
+    if (!employee.nationalId) {
+      employee.nationalId = {};
+    }
+
+    if (req.files) {
+      if (req.files.frontImage && req.files.frontImage[0]) {
+        if (employee.nationalId.frontImageUrl) deleteLocalFile(employee.nationalId.frontImageUrl);
+        employee.nationalId.frontImageUrl = formatFileUrl('national-ids', req.files.frontImage[0].filename);
+      }
+      if (req.files.backImage && req.files.backImage[0]) {
+        if (employee.nationalId.backImageUrl) deleteLocalFile(employee.nationalId.backImageUrl);
+        employee.nationalId.backImageUrl = formatFileUrl('national-ids', req.files.backImage[0].filename);
+      }
+    }
+
+    if (req.body.frontImageUrl) employee.nationalId.frontImageUrl = req.body.frontImageUrl;
+    if (req.body.backImageUrl) employee.nationalId.backImageUrl = req.body.backImageUrl;
+    if (req.body.fanNumber) employee.nationalId.fanNumber = req.body.fanNumber;
+    if (req.body.finNumber) employee.nationalId.finNumber = req.body.finNumber;
+
+    employee.nationalId.status = 'pending';
+    employee.nationalId.approvedBy = undefined;
+    employee.nationalId.approvedAt = undefined;
+
+    await employee.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'National ID photos uploaded successfully and awaiting review',
+      data: employee.nationalId
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+/**
  * @desc    Add a document to employee profile
  * @route   POST /api/employees/:id/documents
  * @access  Private (HR/Admin or Self)
@@ -677,12 +845,18 @@ export const unlinkUserAccount = async (req, res) => {
 export const addDocument = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, type, fileUrl } = req.body;
+    const { title, type } = req.body;
+
+    let fileUrl = req.body.fileUrl;
+    if (req.file) {
+      const category = req.uploadCategory || 'employees';
+      fileUrl = formatFileUrl(category, req.file.filename);
+    }
 
     if (!title || !fileUrl) {
       return res.status(400).json({
         success: false,
-        message: 'Title and fileUrl are required'
+        message: 'Title and file (or fileUrl) are required'
       });
     }
 
@@ -755,6 +929,11 @@ export const removeDocument = async (req, res) => {
         success: false,
         message: 'Document not found'
       });
+    }
+
+    const doc = employee.employeeDocuments[docIndex];
+    if (doc && doc.fileUrl) {
+      deleteLocalFile(doc.fileUrl);
     }
 
     employee.employeeDocuments.splice(docIndex, 1);

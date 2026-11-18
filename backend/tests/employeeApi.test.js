@@ -1,11 +1,17 @@
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import authRoutes from '../routes/authRoutes.js';
 import employeeRoutes from '../routes/employeeRoutes.js';
 import User from '../models/User.js';
 import Employee from '../models/Employee.js';
 import { ROLES } from '../constants/roles.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsDir = path.resolve(__dirname, '../uploads');
 
 const PORT = 5099;
 const BASE_URL = `http://localhost:${PORT}`;
@@ -22,6 +28,8 @@ async function runTests() {
   const app = express();
   app.use(cors());
   app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use('/uploads', express.static(uploadsDir));
   app.use('/api/auth', authRoutes);
   app.use('/api/employees', employeeRoutes);
 
@@ -303,8 +311,79 @@ async function runTests() {
     if (!relinkData.success || !relinkData.data.user) throw new Error('Re-link user failed');
     console.log('✅ User re-linked successfully.');
 
-    // 16. Delete Employee
-    console.log('\nTest 16: Delete Employee');
+    // 16. Upload Employee Profile Photo (Multipart Local Upload)
+    console.log('\nTest 16: Upload Employee Profile Photo');
+    const photoForm = new FormData();
+    const photoBlob = new Blob(['Simulated PNG image bytes for profile photo'], { type: 'image/png' });
+    photoForm.append('photo', photoBlob, 'avatar.png');
+
+    const photoRes = await fetch(`${BASE_URL}/api/employees/${testEmployeeId}/profile-photo`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${employeeToken}` },
+      body: photoForm
+    });
+    const photoData = await photoRes.json();
+    if (!photoData.success || !photoData.data.profilePhoto.startsWith('/uploads/employees/')) {
+      throw new Error(`Profile photo upload failed: ${photoData.message}`);
+    }
+    console.log(`✅ Profile photo uploaded: ${photoData.data.profilePhoto}`);
+
+    // Verify static serving of profile photo
+    const getPhotoRes = await fetch(`${BASE_URL}${photoData.data.profilePhoto}`);
+    if (!getPhotoRes.ok) throw new Error('Failed to retrieve static profile photo file');
+    console.log('✅ Static profile photo served successfully.');
+
+    // 17. Upload National ID Photos (front and back)
+    console.log('\nTest 17: Upload National ID Photos (Front & Back)');
+    const nidForm = new FormData();
+    const frontBlob = new Blob(['Front National ID Image'], { type: 'image/png' });
+    const backBlob = new Blob(['Back National ID Image'], { type: 'image/png' });
+    nidForm.append('frontImage', frontBlob, 'nid_front.png');
+    nidForm.append('backImage', backBlob, 'nid_back.png');
+    nidForm.append('fanNumber', 'FAN-987654321');
+
+    const nidRes = await fetch(`${BASE_URL}/api/employees/${testEmployeeId}/national-id/photos`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${employeeToken}` },
+      body: nidForm
+    });
+    const nidData = await nidRes.json();
+    if (!nidData.success || !nidData.data.frontImageUrl || !nidData.data.backImageUrl) {
+      throw new Error(`National ID photo upload failed: ${nidData.message}`);
+    }
+    console.log(`✅ National ID photos uploaded: Front=${nidData.data.frontImageUrl}, Back=${nidData.data.backImageUrl}`);
+
+    // 18. Upload Document with file (Multipart Local Upload)
+    console.log('\nTest 18: Upload Employee Document with Multipart File');
+    const docUploadForm = new FormData();
+    docUploadForm.append('title', 'Academic Degree Certificate');
+    docUploadForm.append('type', 'certificate');
+    const certBlob = new Blob(['Degree Certificate Content'], { type: 'application/pdf' });
+    docUploadForm.append('file', certBlob, 'degree_certificate.pdf');
+
+    const docUploadRes = await fetch(`${BASE_URL}/api/employees/${testEmployeeId}/documents`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${employeeToken}` },
+      body: docUploadForm
+    });
+    const docUploadData = await docUploadRes.json();
+    if (!docUploadData.success || !docUploadData.data.fileUrl.startsWith('/uploads/employees/')) {
+      throw new Error(`Multipart document upload failed: ${docUploadData.message}`);
+    }
+    console.log(`✅ Document uploaded via multipart: ${docUploadData.data.fileUrl}`);
+
+    // 19. Remove Profile Photo
+    console.log('\nTest 19: Remove Profile Photo');
+    const delPhotoRes = await fetch(`${BASE_URL}/api/employees/${testEmployeeId}/profile-photo`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${employeeToken}` }
+    });
+    const delPhotoData = await delPhotoRes.json();
+    if (!delPhotoData.success) throw new Error('Remove profile photo failed');
+    console.log('✅ Profile photo removed successfully.');
+
+    // 20. Delete Employee
+    console.log('\nTest 20: Delete Employee');
     const delRes = await fetch(`${BASE_URL}/api/employees/${testEmployeeId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${hrToken}` }
@@ -317,7 +396,7 @@ async function runTests() {
     await User.deleteMany({ email: { $regex: /@test\.vector/ } });
     await Employee.deleteMany({ email: { $regex: /@test\.vector/ } });
 
-    console.log('\n🎉 ALL 16 INTEGRATION TESTS PASSED SUCCESSFULLY! 🎉\n');
+    console.log('\n🎉 ALL 20 INTEGRATION TESTS PASSED SUCCESSFULLY! 🎉\n');
   } finally {
     server.close();
     await mongoose.disconnect();

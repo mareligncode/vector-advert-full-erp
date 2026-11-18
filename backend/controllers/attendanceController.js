@@ -4,6 +4,7 @@ import AttendanceConfig from '../models/AttendanceConfig.js';
 import Employee from '../models/Employee.js';
 import { checkOfficeProximity } from '../utils/geoUtils.js';
 import { HR_ADMIN_ROLES, MANAGEMENT_ROLES } from '../constants/roles.js';
+import { formatFileUrl } from '../utils/fileUtils.js';
 
 /**
  * Helper to get normalized midnight Date
@@ -83,7 +84,12 @@ export const updateAttendanceConfig = async (req, res) => {
  */
 export const checkIn = async (req, res) => {
   try {
-    const { lat, long, selfie, shift, employeeId, notes } = req.body;
+    const { lat, long, shift, employeeId, notes } = req.body;
+    let selfie = req.body.selfie;
+    if (req.file) {
+      const category = req.uploadCategory || 'attendance';
+      selfie = formatFileUrl(category, req.file.filename);
+    }
 
     // Resolve target employee
     let targetEmployeeId = null;
@@ -236,7 +242,12 @@ export const checkIn = async (req, res) => {
  */
 export const checkOut = async (req, res) => {
   try {
-    const { lat, long, selfie, shift, employeeId, notes } = req.body;
+    const { lat, long, shift, employeeId, notes } = req.body;
+    let selfie = req.body.selfie;
+    if (req.file) {
+      const category = req.uploadCategory || 'attendance';
+      selfie = formatFileUrl(category, req.file.filename);
+    }
 
     // Resolve target employee
     let targetEmployeeId = null;

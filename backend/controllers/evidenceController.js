@@ -1,13 +1,7 @@
 import mongoose from 'mongoose';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import Evidence from '../models/Evidence.js';
 import { MANAGEMENT_ROLES } from '../constants/roles.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const uploadRootDir = path.resolve(__dirname, '../uploads');
+import { deleteLocalFile, formatFileUrl } from '../utils/fileUtils.js';
 
 /**
  * Check if user has management privileges
@@ -15,23 +9,6 @@ const uploadRootDir = path.resolve(__dirname, '../uploads');
 const isPrivileged = (user, allowedRoles = MANAGEMENT_ROLES) => {
   if (!user || !Array.isArray(user.roles)) return false;
   return user.roles.some((r) => allowedRoles.includes(r));
-};
-
-/**
- * Helper to safely delete file from local storage
- */
-const deleteLocalFile = (fileUrl) => {
-  if (!fileUrl || typeof fileUrl !== 'string') return;
-  try {
-    // fileUrl is like /uploads/evidence/filename.jpg
-    const relativePart = fileUrl.replace(/^\/uploads\//, '');
-    const fullPath = path.join(uploadRootDir, relativePart);
-    if (fs.existsSync(fullPath)) {
-      fs.unlinkSync(fullPath);
-    }
-  } catch (err) {
-    console.error('Failed to delete local file:', err.message);
-  }
 };
 
 /**

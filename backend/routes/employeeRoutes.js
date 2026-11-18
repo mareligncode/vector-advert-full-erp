@@ -10,6 +10,9 @@ import {
   linkUserAccount,
   createAndLinkUserAccount,
   unlinkUserAccount,
+  uploadProfilePhoto,
+  removeProfilePhoto,
+  uploadNationalIdPhotos,
   addDocument,
   removeDocument,
   approveDocument,
@@ -18,6 +21,7 @@ import {
 } from '../controllers/employeeController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 import { HR_ADMIN_ROLES, EXECUTIVE_ROLES } from '../constants/roles.js';
+import { upload, setUploadCategory } from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
@@ -40,6 +44,26 @@ router
   .put(authorizeRoles(...HR_ADMIN_ROLES), updateEmployee)
   .delete(authorizeRoles(...EXECUTIVE_ROLES), deleteEmployee);
 
+// Profile photo upload & removal
+router.post(
+  '/:id/profile-photo',
+  setUploadCategory('employees'),
+  upload.single('photo'),
+  uploadProfilePhoto
+);
+router.delete('/:id/profile-photo', removeProfilePhoto);
+
+// Fayda National ID photos upload
+router.post(
+  '/:id/national-id/photos',
+  setUploadCategory('national-ids'),
+  upload.fields([
+    { name: 'frontImage', maxCount: 1 },
+    { name: 'backImage', maxCount: 1 }
+  ]),
+  uploadNationalIdPhotos
+);
+
 // Employment Status updates
 router.patch('/:id/status', authorizeRoles(...HR_ADMIN_ROLES), updateEmploymentStatus);
 
@@ -49,7 +73,12 @@ router.post('/:id/create-user', authorizeRoles(...HR_ADMIN_ROLES), createAndLink
 router.post('/:id/unlink-user', authorizeRoles(...HR_ADMIN_ROLES), unlinkUserAccount);
 
 // Employee Documents
-router.post('/:id/documents', addDocument);
+router.post(
+  '/:id/documents',
+  setUploadCategory('employees'),
+  upload.single('file'),
+  addDocument
+);
 router.delete('/:id/documents/:documentId', authorizeRoles(...HR_ADMIN_ROLES), removeDocument);
 
 // Approvals: Documents & Fayda National IDs
