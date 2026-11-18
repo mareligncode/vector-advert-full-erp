@@ -9,6 +9,7 @@ import {
 } from '../controllers/fieldVisitController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 import { MANAGEMENT_ROLES } from '../constants/roles.js';
+import { upload, setUploadCategory } from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
@@ -31,6 +32,11 @@ router
   .patch(updateFieldVisit);
 
 // On-site check-in
-router.post('/:id/check-in', checkInFieldVisit);
+router.post(
+  '/:id/check-in',
+  setUploadCategory('field-visits'),
+  upload.single('selfie'),
+  checkInFieldVisit
+);
 
 export default router;

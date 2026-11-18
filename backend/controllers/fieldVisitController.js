@@ -2,6 +2,7 @@ import FieldVisit from '../models/FieldVisit.js';
 import Employee from '../models/Employee.js';
 import { calculateDistanceMeters } from '../utils/geoUtils.js';
 import { MANAGEMENT_ROLES, HR_ADMIN_ROLES } from '../constants/roles.js';
+import { formatFileUrl } from '../utils/fileUtils.js';
 
 /**
  * Helper to check role
@@ -251,7 +252,12 @@ export const updateFieldVisit = async (req, res) => {
 export const checkInFieldVisit = async (req, res) => {
   try {
     const { id } = req.params;
-    const { lat, long, selfie, notes } = req.body;
+    const { lat, long, notes } = req.body;
+    let selfie = req.body.selfie;
+    if (req.file) {
+      const category = req.uploadCategory || 'field-visits';
+      selfie = formatFileUrl(category, req.file.filename);
+    }
 
     if (lat === undefined || long === undefined) {
       return res.status(400).json({

@@ -1,5 +1,6 @@
 import JobApplication from '../models/JobApplication.js';
 import Employee from '../models/Employee.js';
+import { deleteLocalFile, formatFileUrl } from '../utils/fileUtils.js';
 
 // @desc    Schedule an interview for an applicant
 // @route   POST /api/recruitment/applications/:id/interviews
@@ -276,7 +277,16 @@ export const submitInterviewFeedback = async (req, res) => {
 export const addInterviewAttachment = async (req, res) => {
   try {
     const { applicationId, interviewId } = req.params;
-    const { fileName, originalName, fileUrl, fileType, fileSize, description } = req.body;
+    let { fileName, originalName, fileUrl, fileType, fileSize, description } = req.body;
+
+    if (req.file) {
+      const category = req.uploadCategory || 'interviews';
+      fileUrl = formatFileUrl(category, req.file.filename);
+      fileName = req.file.filename;
+      originalName = req.file.originalname;
+      fileType = req.file.mimetype;
+      fileSize = req.file.size;
+    }
 
     const application = await JobApplication.findById(applicationId);
     if (!application) {
@@ -295,8 +305,8 @@ export const addInterviewAttachment = async (req, res) => {
     }
 
     interview.interviewAttachments.push({
-      fileName,
-      originalName: originalName || fileName,
+      fileName: fileName || 'attachment',
+      originalName: originalName || fileName || 'attachment',
       fileUrl,
       fileType,
       fileSize,

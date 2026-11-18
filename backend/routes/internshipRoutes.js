@@ -13,6 +13,7 @@ import {
 } from '../controllers/internshipController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 import { HR_ADMIN_ROLES, MANAGEMENT_ROLES } from '../constants/roles.js';
+import { upload, setUploadCategory } from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
@@ -37,7 +38,13 @@ router.patch(
 // Multiple documents endpoints (Add one file after another via Add button)
 router
   .route('/:id/documents')
-  .post(protect, authorizeRoles(...MANAGEMENT_ROLES), addInternshipDocument);
+  .post(
+    protect,
+    authorizeRoles(...MANAGEMENT_ROLES),
+    setUploadCategory('internships'),
+    upload.single('file'),
+    addInternshipDocument
+  );
 
 router
   .route('/:id/documents/:documentId')

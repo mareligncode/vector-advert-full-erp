@@ -12,6 +12,7 @@ import {
 } from '../controllers/attendanceController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 import { HR_ADMIN_ROLES, MANAGEMENT_ROLES } from '../constants/roles.js';
+import { upload, setUploadCategory } from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
@@ -25,8 +26,8 @@ router
   .put(authorizeRoles(...HR_ADMIN_ROLES), updateAttendanceConfig);
 
 // Employee Check-In / Check-Out
-router.post('/check-in', checkIn);
-router.post('/check-out', checkOut);
+router.post('/check-in', setUploadCategory('attendance'), upload.single('selfie'), checkIn);
+router.post('/check-out', setUploadCategory('attendance'), upload.single('selfie'), checkOut);
 
 // Self-Service Queries
 router.get('/today', getTodayAttendance);

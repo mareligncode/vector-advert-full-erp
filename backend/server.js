@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import employeeRoutes from './routes/employeeRoutes.js';
@@ -12,8 +14,17 @@ import leaveRoutes from './routes/leaveRoutes.js';
 import recruitmentRoutes from './routes/recruitmentRoutes.js';
 import internshipRoutes from './routes/internshipRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import evidenceRoutes from './routes/evidenceRoutes.js';
+import clearanceRoutes from './routes/clearanceRoutes.js';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsDir = path.resolve(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Connect to MongoDB
 connectDB();
@@ -29,8 +40,8 @@ app.use(
   })
 );
 
-// Serve static uploaded files
-app.use('/uploads', express.static(path.resolve('uploads')));
+// Serve static uploaded files from backend/uploads
+app.use('/uploads', express.static(uploadsDir));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -42,6 +53,8 @@ app.use('/api/leave', leaveRoutes);
 app.use('/api/recruitment', recruitmentRoutes);
 app.use('/api/internships', internshipRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/evidence', evidenceRoutes);
+app.use('/api/clearances', clearanceRoutes);
 
 app.get('/', (req, res) => {
   res.json({
