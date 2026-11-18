@@ -476,10 +476,14 @@ export const convertInternToEmployee = async (req, res) => {
     // If intern has linked user account, upgrade roles
     let linkedUserId = internship.user;
     if (linkedUserId) {
-      await User.findByIdAndUpdate(linkedUserId, {
-        $addToSet: { roles: ROLES.EMPLOYEE },
-        $pull: { roles: ROLES.INTERN }
-      });
+      const linkedUser = await User.findById(linkedUserId);
+      if (linkedUser) {
+        linkedUser.roles = linkedUser.roles.filter((r) => r !== ROLES.INTERN);
+        if (!linkedUser.roles.includes(ROLES.EMPLOYEE)) {
+          linkedUser.roles.push(ROLES.EMPLOYEE);
+        }
+        await linkedUser.save();
+      }
     }
 
     const employee = await Employee.create({

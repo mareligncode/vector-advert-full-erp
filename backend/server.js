@@ -15,6 +15,7 @@ import recruitmentRoutes from './routes/recruitmentRoutes.js';
 import internshipRoutes from './routes/internshipRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import evidenceRoutes from './routes/evidenceRoutes.js';
+import clearanceRoutes from './routes/clearanceRoutes.js';
 
 dotenv.config();
 
@@ -53,6 +54,7 @@ app.use('/api/recruitment', recruitmentRoutes);
 app.use('/api/internships', internshipRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/evidence', evidenceRoutes);
+app.use('/api/clearances', clearanceRoutes);
 
 app.get('/', (req, res) => {
   res.json({

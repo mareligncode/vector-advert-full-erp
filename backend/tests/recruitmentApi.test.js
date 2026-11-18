@@ -320,7 +320,7 @@ async function runTests() {
       }
     );
     const convertInternData = await convertInternRes.json();
-    if (!convertInternData.success) throw new Error(`Intern conversion failed: ${convertInternData.message}`);
+    if (!convertInternData.success) throw new Error(`Intern conversion failed: ${convertInternData.message} - ${convertInternData.error}`);
     console.log(`✅ Intern converted to Employee: ${convertInternData.data.employeeNumber} (${convertInternData.data.fullName})`);
 
     console.log('\n🎉 ALL RECRUITMENT, INTERVIEWS, APPLICATIONS & INTERNSHIP TESTS PASSED PERFECTLY!\n');
