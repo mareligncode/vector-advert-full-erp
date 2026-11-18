@@ -1,0 +1,250 @@
+/* ==========================================================================
+   VECTOR BRAND SYSTEM - CSS DESIGN TOKENS & BASE STYLES
+   Extracted from: Vector_Brand_Guideline_Final copy (2).pdf
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Outfit:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@500;700&display=swap');
+
+:root {
+  /* -------------------------------------------------------------------------
+     1. PRIMARY BRAND COLOR (Dominant Turquoise Core)
+     ------------------------------------------------------------------------- */
+  --brand-primary: #00ced1;                  /* Dark Turquoise / Core Brand Color */
+  --brand-primary-rgb: 0, 206, 209;
+  --brand-primary-hover: #00b5b8;
+  --brand-primary-active: #009ca0;
+  --brand-primary-subtle: rgba(0, 206, 209, 0.12);
+  --brand-primary-glow: rgba(0, 206, 209, 0.35);
+
+  /* Dominant Brand Accent Gradient */
+  --brand-gradient: linear-gradient(135deg, #00ced1 0%, #0090ff 50%, #004da6 100%);
+  --brand-gradient-hover: linear-gradient(135deg, #00e0e3 0%, #0077e6 50%, #003d85 100%);
+  --brand-gradient-surface: linear-gradient(180deg, rgba(0, 206, 209, 0.08) 0%, rgba(0, 77, 166, 0.02) 100%);
+
+  /* -------------------------------------------------------------------------
+     2. SECONDARY BRAND COLORS
+     ------------------------------------------------------------------------- */
+  --brand-secondary-blue: #0066d1;           /* Vibrant Corporate Blue */
+  --brand-secondary-blue-rgb: 0, 102, 209;
+  --brand-secondary-neutral: #e0e0e0;        /* Light Gray Neutral */
+  --brand-secondary-neutral-rgb: 224, 224, 224;
+  --brand-secondary-dark: #000000;           /* Pure Brand Black */
+
+  /* -------------------------------------------------------------------------
+     3. BRAND FAMILY COLORS (Turquoise & Teal Spectrum)
+     ------------------------------------------------------------------------- */
+  --color-turquoise: #38ded0;               /* Base Turquoise */
+  --color-pale-turquoise: #abeded;          /* Pale Turquoise */
+  --color-bright-turquoise: #00e7dd;        /* Bright Turquoise */
+  --color-dark-turquoise: #00ced1;          /* Dark Turquoise (Core) */
+  --color-aqua: #00fdff;                    /* Aqua */
+  --color-aquamarine: #7affd1;              /* Aquamarine */
+  --color-tela: #008182;                    /* Deep Tela Teal */
+
+  /* -------------------------------------------------------------------------
+     4. MONOCHROMATIC PALETTE - TURQUOISE SHADES (Primary Dominance)
+     ------------------------------------------------------------------------- */
+  --brand-turquoise-50: #e6faf9;
+  --brand-turquoise-100: #c0f4f2;
+  --brand-turquoise-200: #93ebe8;
+  --brand-turquoise-300: #62dfdc;
+  --brand-turquoise-400: #33d4cf;
+  --brand-turquoise-500: #00ced1;            /* Standard Base */
+  --brand-turquoise-600: #00b4b7;
+  --brand-turquoise-700: #009699;
+  --brand-turquoise-800: #007577;
+  --brand-turquoise-900: #004d4f;
+
+  /* -------------------------------------------------------------------------
+     5. MONOCHROMATIC PALETTE - SECONDARY BLUE SHADES
+     ------------------------------------------------------------------------- */
+  --brand-blue-50: #edf5ff;
+  --brand-blue-100: #cce4ff;
+  --brand-blue-200: #99c8ff;
+  --brand-blue-300: #66acff;
+  --brand-blue-400: #3390ff;
+  --brand-blue-500: #0066d1;
+  --brand-blue-600: #0052a7;
+  --brand-blue-700: #003d7c;
+  --brand-blue-800: #002953;
+  --brand-blue-900: #001429;
+
+  /* -------------------------------------------------------------------------
+     6. NEUTRAL & SURFACE TOKENS (Light/Dark Surface Ratios)
+     ------------------------------------------------------------------------- */
+  --bg-primary: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #f1f5f9;
+
+  --border-subtle: #e2e8f0;
+  --border-medium: #cbd5e1;
+  --border-brand: var(--brand-primary);
+
+  --text-main: #1d1d1b;                     /* Vector Charcoal Text */
+  --text-muted: #566767;                    /* Slate Teal Muted */
+  --text-secondary: #64748b;
+  --text-on-brand: #ffffff;
+
+  /* -------------------------------------------------------------------------
+     7. TYPOGRAPHY SYSTEM (Brand Guideline Specified)
+     Headline: GoodTimesRg, Azonix, Space Grotesk, sans-serif
+     Body: Century Gothic, Montserrat, system-ui, sans-serif
+     Accent/Editorial: Times New Roman, serif
+     ------------------------------------------------------------------------- */
+  --font-brand-display: 'GoodTimesRg', 'Azonix', 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-brand-body: 'Century Gothic', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-brand-editorial: 'Times New Roman', 'Playfair Display', serif;
+
+  /* -------------------------------------------------------------------------
+     8. SHADOWS & BRAND GLOWS
+     ------------------------------------------------------------------------- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+  --shadow-brand-glow: 0 0 20px rgba(0, 206, 209, 0.35);
+
+  /* Component standard radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+}
+
+/* -------------------------------------------------------------------------
+   GLOBAL RESET & DOMINANT THEME DEFAULTS
+   ------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  font-family: var(--font-brand-body);
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dominant Selection Color */
+::selection {
+  background-color: var(--brand-primary);
+  color: #ffffff;
+}
+
+/* -------------------------------------------------------------------------
+   BRAND ACCENT & DOMINANCE UTILITIES
+   ------------------------------------------------------------------------- */
+
+/* Headings with Brand Emphasis */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-main);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Links with Primary Brand Dominance */
+a {
+  color: var(--brand-secondary-blue);
+  text-decoration: none;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+a:hover {
+  color: var(--brand-primary);
+}
+
+/* Buttons */
+.btn-brand-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-brand-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-on-brand);
+  background: var(--brand-gradient);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 206, 209, 0.3);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.btn-brand-primary:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 6px 20px rgba(0, 206, 209, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-brand-primary:active {
+  transform: translateY(0);
+}
+
+.btn-brand-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-brand-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--brand-primary);
+  background-color: transparent;
+  border: 2px solid var(--brand-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-brand-outline:hover {
+  background-color: var(--brand-primary);
+  color: #ffffff;
+  box-shadow: var(--shadow-brand-glow);
+}
+
+/* Inputs & Form Controls with Brand Focus */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--brand-primary) !important;
+  box-shadow: 0 0 0 3px var(--brand-primary-glow) !important;
+}
+
+/* Brand dominant badges & accents */
+.badge-brand {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  background-color: var(--brand-primary-subtle);
+  color: var(--color-tela);
+  border: 1px solid rgba(0, 206, 209, 0.3);
+}
+
+.brand-gradient-text {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.brand-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.brand-card:hover {
+  border-color: var(--brand-primary);
+  box-shadow: 0 10px 25px -5px rgba(0, 206, 209, 0.15);
+}
