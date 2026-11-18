@@ -56,6 +56,21 @@ export const protect = async (req, res, next) => {
 };
 
 /**
+ * Optional protection middleware:
+ * If Bearer token is provided, verify and attach req.user.
+ * If not provided, continue without error (req.user remains undefined).
+ */
+export const optionalProtect = async (req, res, next) => {
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    return protect(req, res, next);
+  }
+  next();
+};
+
+/**
  * Role-based authorization middleware
  * Accepts any number of allowed roles.
  * Supports checking if user's roles array contains any of the required roles.

@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import employeeRoutes from './routes/employeeRoutes.js';
@@ -8,6 +9,9 @@ import attendanceRoutes from './routes/attendanceRoutes.js';
 import overtimeRoutes from './routes/overtimeRoutes.js';
 import fieldVisitRoutes from './routes/fieldVisitRoutes.js';
 import leaveRoutes from './routes/leaveRoutes.js';
+import recruitmentRoutes from './routes/recruitmentRoutes.js';
+import internshipRoutes from './routes/internshipRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 
 dotenv.config();
 
@@ -25,6 +29,9 @@ app.use(
   })
 );
 
+// Serve static uploaded files
+app.use('/uploads', express.static(path.resolve('uploads')));
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
@@ -32,6 +39,9 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/overtime', overtimeRoutes);
 app.use('/api/field-visits', fieldVisitRoutes);
 app.use('/api/leave', leaveRoutes);
+app.use('/api/recruitment', recruitmentRoutes);
+app.use('/api/internships', internshipRoutes);
+app.use('/api/upload', uploadRoutes);
 
 app.get('/', (req, res) => {
   res.json({
