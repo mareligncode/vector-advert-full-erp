@@ -2,6 +2,8 @@ import crypto from 'crypto';
 import User from '../models/User.js';
 import { generateToken } from '../middleware/authMiddleware.js';
 import { ALL_ROLES, ROLES } from '../constants/roles.js';
+import { sendPasswordResetEmail } from '../utils/emailService.js';
+import { sendTelegramMessage } from '../utils/telegramService.js';
 
 /**
  * @desc    Register a new user
@@ -176,10 +178,23 @@ export const forgotPassword = async (req, res) => {
     user.passwordResetCodeExpiry = Date.now() + 15 * 60 * 1000; // 15 mins
     await user.save();
 
-    // In production, send via Email / SMS
+    // Send reset code via Email (Nodemailer)
+    const emailResult = await sendPasswordResetEmail(user.email, resetCode);
+
+    // If user has linked Telegram, also send code to Telegram Bot
+    let telegramResult = null;
+    if (user.telegramChatId) {
+      telegramResult = await sendTelegramMessage(
+        user.telegramChatId,
+        `🔐 <b>Password Reset Request</b>\n\nYour Vector Advert ERP verification code is: <code>${resetCode}</code>\n\nThis code will expire in 15 minutes. If you did not request this, please secure your account immediately.`
+      );
+    }
+
     return res.status(200).json({
       success: true,
-      message: 'Password reset code generated and sent',
+      message: 'Password reset code generated and sent via email' + (user.telegramChatId ? ' and Telegram' : ''),
+      emailDelivered: emailResult.success,
+      telegramDelivered: !!(telegramResult && telegramResult.success),
       // For development/testing convenience:
       resetCode: process.env.NODE_ENV === 'production' ? undefined : resetCode
     });
@@ -226,6 +241,68 @@ export const resetPassword = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Password has been reset successfully'
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Generate Telegram bot link / connection code for the authenticated user
+ * @route   POST /api/auth/telegram/link-code
+ * @access  Private
+ */
+export const getTelegramLinkCode = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Generate random code for deep linking
+    const connectCode = crypto.randomBytes(6).toString('hex');
+    user.telegramConnectCode = connectCode;
+    await user.save();
+
+    const botUsername = process.env.TELEGRAM_BOT_USERNAME || '';
+    const deepLink = botUsername
+      ? `https://t.me/${botUsername}?start=link_${connectCode}`
+      : null;
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        connectCode,
+        deepLink,
+        isLinked: !!user.telegramChatId,
+        telegramUsername: user.telegramUsername || null
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Unlink Telegram bot from user profile
+ * @route   POST /api/auth/telegram/unlink
+ * @access  Private
+ */
+export const unlinkTelegram = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    user.telegramChatId = null;
+    user.telegramUsername = null;
+    user.telegramConnectCode = undefined;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Telegram account unlinked successfully'
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

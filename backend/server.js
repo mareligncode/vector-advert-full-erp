@@ -16,6 +16,7 @@ import internshipRoutes from './routes/internshipRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import evidenceRoutes from './routes/evidenceRoutes.js';
 import clearanceRoutes from './routes/clearanceRoutes.js';
+import { initTelegramBot } from './utils/telegramService.js';
 
 dotenv.config();
 
@@ -75,4 +76,6 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+  // Initialize Telegram Bot if configured
+  initTelegramBot();
 });

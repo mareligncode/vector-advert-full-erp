@@ -5,7 +5,9 @@ import {
   getMe,
   forgotPassword,
   resetPassword,
-  updateUserRoles
+  updateUserRoles,
+  getTelegramLinkCode,
+  unlinkTelegram
 } from '../controllers/authController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 import { ROLES } from '../constants/roles.js';
@@ -20,6 +22,8 @@ router.post('/reset-password', resetPassword);
 
 // Protected routes
 router.get('/me', protect, getMe);
+router.post('/telegram/link-code', protect, getTelegramLinkCode);
+router.post('/telegram/unlink', protect, unlinkTelegram);
 
 // Role management route (CEO, CAO, COO, Super Admin, HR Manager)
 router.patch(
