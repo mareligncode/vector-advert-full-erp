@@ -390,3 +390,30 @@ The lists below show the information stored in each part of the system.
     - Url
     - Uploaded by
     - Uploaded at
+
+### Evidences
+
+- `entityType`: String (registered model name)
+- `entityId`: ObjectId (refPath to entityType)
+- `entityOwner`: ObjectId (ref to User)
+- `attachments`: []
+    - `title`: String
+    - `description`: String
+    - `fileUrl`: String
+    - `fileName`: String
+    - `mimeType`: String
+    - `fileSize`: Number
+    - `uploadedBy`: ObjectId (ref to User)
+    - `status`: String (pending, verified, rejected)
+    - `reviewedBy`: ObjectId (ref to User)
+    - `reviewedAt`: Date
+    - `rejectionReason`: String
+    - `createdAt`: Date
+    - `updatedAt`: Date
+- `notes`: []
+    - `content`: String
+    - `author`: ObjectId (ref to User)
+    - `createdAt`: Date
+    - `updatedAt`: Date
+- `createdAt`: Date
+- `updatedAt`: Date

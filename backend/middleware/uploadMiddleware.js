@@ -1,9 +1,13 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 
-// Ensure base upload directory exists
-const uploadRootDir = path.resolve('uploads');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Ensure base upload directory exists relative to backend
+const uploadRootDir = path.resolve(__dirname, '../uploads');
 if (!fs.existsSync(uploadRootDir)) {
   fs.mkdirSync(uploadRootDir, { recursive: true });
 }
