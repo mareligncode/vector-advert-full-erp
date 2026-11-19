@@ -7,6 +7,11 @@ const approvalHistorySchema = new mongoose.Schema(
       ref: 'User',
       required: true
     },
+    stage: {
+      type: String,
+      enum: ['manager', 'hr', 'executive', 'general'],
+      default: 'general'
+    },
     action: {
       type: String,
       enum: ['approved', 'rejected', 'escalated'],
@@ -77,8 +82,44 @@ const leaveRequestSchema = new mongoose.Schema(
     ],
     requestStatus: {
       type: String,
-      enum: ['pending', 'approved', 'rejected', 'cancelled'],
-      default: 'pending'
+      enum: ['pending', 'pending_manager', 'pending_hr', 'approved', 'rejected', 'cancelled'],
+      default: 'pending_manager'
+    },
+    managerApproval: {
+      status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+      },
+      approvedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      approvedAt: {
+        type: Date
+      },
+      comments: {
+        type: String,
+        trim: true
+      }
+    },
+    hrApproval: {
+      status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+      },
+      approvedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      approvedAt: {
+        type: Date
+      },
+      comments: {
+        type: String,
+        trim: true
+      }
     },
     reviewer: {
       type: mongoose.Schema.Types.ObjectId,

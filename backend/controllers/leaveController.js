@@ -2,7 +2,8 @@ import mongoose from 'mongoose';
 import LeaveBalance from '../models/LeaveBalance.js';
 import LeaveRequest from '../models/LeaveRequest.js';
 import Employee from '../models/Employee.js';
-import { HR_ADMIN_ROLES, MANAGEMENT_ROLES } from '../constants/roles.js';
+import { HR_ADMIN_ROLES, MANAGEMENT_ROLES, EXECUTIVE_ROLES } from '../constants/roles.js';
+import { canApproveAsManager, canApproveAsHR } from '../utils/approvalUtils.js';
 
 /**
  * Helper to check role privileges
@@ -264,7 +265,7 @@ export const createLeaveRequest = async (req, res) => {
     // Check for overlapping active requests
     const overlapping = await LeaveRequest.findOne({
       employee: targetEmployeeId,
-      requestStatus: { $in: ['pending', 'approved'] },
+      requestStatus: { $in: ['pending', 'pending_manager', 'pending_hr', 'approved'] },
       $or: [
         { startDate: { $lte: end }, endDate: { $gte: start } }
       ]
@@ -332,12 +333,16 @@ export const createLeaveRequest = async (req, res) => {
       totalLeaveDays: daysRequested,
       requestReason,
       supportingAttachments: supportingAttachments || [],
-      requestStatus: 'pending'
+      requestStatus: 'pending_manager',
+      managerApproval: { status: 'pending' },
+      hrApproval: { status: 'pending' }
     });
 
     const populated = await LeaveRequest.findById(leaveRequest._id)
       .populate('employee', 'name employeeNumber jobTitle department email')
-      .populate('leaveBalance');
+      .populate('leaveBalance')
+      .populate('managerApproval.approvedBy', 'email roles')
+      .populate('hrApproval.approvedBy', 'email roles');
 
     return res.status(201).json({
       success: true,
@@ -367,7 +372,13 @@ export const getMyLeaveRequests = async (req, res) => {
     const { status, leaveType, page = 1, limit = 20 } = req.query;
     const query = { employee: employee._id };
 
-    if (status) query.requestStatus = status;
+    if (status) {
+      if (status === 'pending') {
+        query.requestStatus = { $in: ['pending', 'pending_manager', 'pending_hr'] };
+      } else {
+        query.requestStatus = status;
+      }
+    }
     if (leaveType) query.leaveType = leaveType;
 
     const pageNum = Math.max(1, parseInt(page, 10));
@@ -378,6 +389,8 @@ export const getMyLeaveRequests = async (req, res) => {
       LeaveRequest.countDocuments(query),
       LeaveRequest.find(query)
         .populate('reviewer', 'email roles')
+        .populate('managerApproval.approvedBy', 'email roles')
+        .populate('hrApproval.approvedBy', 'email roles')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum)
@@ -406,7 +419,13 @@ export const getAllLeaveRequests = async (req, res) => {
     const { status, leaveType, department, employeeId, startDate, endDate, page = 1, limit = 20 } = req.query;
     const query = {};
 
-    if (status) query.requestStatus = status;
+    if (status) {
+      if (status === 'pending') {
+        query.requestStatus = { $in: ['pending', 'pending_manager', 'pending_hr'] };
+      } else {
+        query.requestStatus = status;
+      }
+    }
     if (leaveType) query.leaveType = leaveType;
     if (employeeId) query.employee = employeeId;
 
@@ -432,6 +451,8 @@ export const getAllLeaveRequests = async (req, res) => {
       LeaveRequest.find(query)
         .populate('employee', 'name employeeNumber jobTitle department email')
         .populate('reviewer', 'email roles')
+        .populate('managerApproval.approvedBy', 'email roles')
+        .populate('hrApproval.approvedBy', 'email roles')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum)
@@ -462,6 +483,8 @@ export const getLeaveRequestById = async (req, res) => {
       .populate('employee', 'name employeeNumber jobTitle department email primaryPhone')
       .populate('leaveBalance')
       .populate('reviewer', 'email roles')
+      .populate('managerApproval.approvedBy', 'email roles')
+      .populate('hrApproval.approvedBy', 'email roles')
       .populate('approvalHistory.reviewer', 'email roles');
 
     if (!request) {
@@ -481,14 +504,14 @@ export const getLeaveRequestById = async (req, res) => {
 };
 
 /**
- * @desc    Review and approve/reject leave request (deducts balance if approved)
+ * @desc    Review leave request with sequential double approval (Manager -> HR Officer)
  * @route   PATCH /api/leave/requests/:id/review
  * @access  Private (Management/HR)
  */
 export const reviewLeaveRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const { action, comments } = req.body;
+    const { action, comments, stage, bypassDoubleApproval } = req.body;
 
     if (!['approved', 'rejected'].includes(action)) {
       return res.status(400).json({
@@ -497,7 +520,7 @@ export const reviewLeaveRequest = async (req, res) => {
       });
     }
 
-    const leaveRequest = await LeaveRequest.findById(id);
+    const leaveRequest = await LeaveRequest.findById(id).populate('employee');
     if (!leaveRequest) {
       return res.status(404).json({
         success: false,
@@ -505,71 +528,251 @@ export const reviewLeaveRequest = async (req, res) => {
       });
     }
 
-    if (leaveRequest.requestStatus !== 'pending') {
+    if (['approved', 'rejected', 'cancelled'].includes(leaveRequest.requestStatus)) {
       return res.status(400).json({
         success: false,
         message: `Cannot review request that is already ${leaveRequest.requestStatus}`
       });
     }
 
-    // Process balance deduction if approved
-    if (action === 'approved') {
-      const balance = await LeaveBalance.findById(leaveRequest.leaveBalance);
-      if (!balance) {
-        return res.status(404).json({
+    // Optional executive bypass if explicitly requested
+    const isExecutive = req.user.roles.some((r) => EXECUTIVE_ROLES.includes(r));
+    if (bypassDoubleApproval && isExecutive) {
+      if (action === 'approved') {
+        const balance = await LeaveBalance.findById(leaveRequest.leaveBalance);
+        if (!balance) {
+          return res.status(404).json({
+            success: false,
+            message: 'Associated leave balance not found'
+          });
+        }
+        const days = leaveRequest.totalLeaveDays;
+        switch (leaveRequest.leaveType) {
+          case 'annual':
+            balance.annualLeave.annualUsedDays = (balance.annualLeave.annualUsedDays || 0) + days;
+            break;
+          case 'sick':
+            balance.sickLeave.sickUsedDays = (balance.sickLeave.sickUsedDays || 0) + days;
+            break;
+          case 'casual':
+            balance.casualLeave.casualUsedDays = (balance.casualLeave.casualUsedDays || 0) + days;
+            break;
+          case 'maternity':
+            balance.maternityLeave.maternityUsedDays = (balance.maternityLeave.maternityUsedDays || 0) + days;
+            break;
+          case 'paternity':
+            balance.paternityLeave.paternityUsedDays = (balance.paternityLeave.paternityUsedDays || 0) + days;
+            break;
+          default:
+            break;
+        }
+        balance.recalculateBalances();
+        await balance.save();
+      }
+
+      leaveRequest.managerApproval = {
+        status: action,
+        approvedBy: req.user._id,
+        approvedAt: new Date(),
+        comments: comments || 'Executive override approval'
+      };
+      leaveRequest.hrApproval = {
+        status: action,
+        approvedBy: req.user._id,
+        approvedAt: new Date(),
+        comments: comments || 'Executive override approval'
+      };
+      leaveRequest.requestStatus = action;
+      leaveRequest.reviewer = req.user._id;
+      leaveRequest.reviewComments = comments || 'Executive override';
+      leaveRequest.reviewDate = new Date();
+      leaveRequest.approvalHistory.push({
+        reviewer: req.user._id,
+        stage: 'executive',
+        action,
+        comments: comments || 'Executive override',
+        decidedAt: new Date()
+      });
+      await leaveRequest.save();
+
+      const populated = await LeaveRequest.findById(leaveRequest._id)
+        .populate('employee', 'name employeeNumber jobTitle department email')
+        .populate('leaveBalance')
+        .populate('reviewer', 'email roles')
+        .populate('managerApproval.approvedBy', 'email roles')
+        .populate('hrApproval.approvedBy', 'email roles');
+
+      return res.status(200).json({
+        success: true,
+        message: `Leave request has been ${action} via executive decision`,
+        data: populated
+      });
+    }
+
+    // Determine current approval stage
+    const isAtManagerStage =
+      leaveRequest.requestStatus === 'pending_manager' ||
+      (leaveRequest.requestStatus === 'pending' && leaveRequest.managerApproval?.status !== 'approved');
+
+    // Stage 1: Direct Manager Review
+    if (stage === 'manager' || (!stage && isAtManagerStage)) {
+      const check = await canApproveAsManager(req.user, leaveRequest.employee);
+      if (!check.allowed) {
+        return res.status(403).json({
           success: false,
-          message: 'Associated leave balance not found'
+          message: check.message || 'You are not authorized to approve the manager stage'
         });
       }
 
-      const days = leaveRequest.totalLeaveDays;
-      switch (leaveRequest.leaveType) {
-        case 'annual':
-          balance.annualLeave.annualUsedDays = (balance.annualLeave.annualUsedDays || 0) + days;
-          break;
-        case 'sick':
-          balance.sickLeave.sickUsedDays = (balance.sickLeave.sickUsedDays || 0) + days;
-          break;
-        case 'casual':
-          balance.casualLeave.casualUsedDays = (balance.casualLeave.casualUsedDays || 0) + days;
-          break;
-        case 'maternity':
-          balance.maternityLeave.maternityUsedDays = (balance.maternityLeave.maternityUsedDays || 0) + days;
-          break;
-        case 'paternity':
-          balance.paternityLeave.paternityUsedDays = (balance.paternityLeave.paternityUsedDays || 0) + days;
-          break;
-        default:
-          break;
+      leaveRequest.managerApproval = {
+        status: action,
+        approvedBy: req.user._id,
+        approvedAt: new Date(),
+        comments: comments || ''
+      };
+
+      if (action === 'rejected') {
+        leaveRequest.requestStatus = 'rejected';
+      } else {
+        leaveRequest.requestStatus = 'pending_hr';
       }
 
-      balance.recalculateBalances();
-      await balance.save();
+      leaveRequest.reviewer = req.user._id;
+      leaveRequest.reviewComments = comments || '';
+      leaveRequest.reviewDate = new Date();
+
+      leaveRequest.approvalHistory.push({
+        reviewer: req.user._id,
+        stage: 'manager',
+        action,
+        comments: comments || '',
+        decidedAt: new Date()
+      });
+
+      await leaveRequest.save();
+
+      const populated = await LeaveRequest.findById(leaveRequest._id)
+        .populate('employee', 'name employeeNumber jobTitle department email')
+        .populate('leaveBalance')
+        .populate('reviewer', 'email roles')
+        .populate('managerApproval.approvedBy', 'email roles')
+        .populate('hrApproval.approvedBy', 'email roles');
+
+      const message =
+        action === 'approved'
+          ? 'Manager approval granted. Leave request is now pending HR approval.'
+          : 'Leave request has been rejected by the manager.';
+
+      return res.status(200).json({
+        success: true,
+        message,
+        data: populated
+      });
     }
 
-    leaveRequest.requestStatus = action;
-    leaveRequest.reviewer = req.user._id;
-    leaveRequest.reviewComments = comments || '';
-    leaveRequest.reviewDate = new Date();
+    // Stage 2: HR Officer Review
+    const isAtHRStage =
+      leaveRequest.requestStatus === 'pending_hr' ||
+      (leaveRequest.managerApproval?.status === 'approved' && leaveRequest.hrApproval?.status === 'pending');
 
-    leaveRequest.approvalHistory.push({
-      reviewer: req.user._id,
-      action,
-      comments: comments || '',
-      decidedAt: new Date()
-    });
+    if (stage === 'hr' || (!stage && isAtHRStage)) {
+      if (leaveRequest.managerApproval?.status !== 'approved') {
+        return res.status(400).json({
+          success: false,
+          message: 'Direct manager approval must be granted before HR review'
+        });
+      }
 
-    await leaveRequest.save();
+      const check = canApproveAsHR(req.user, leaveRequest.employee);
+      if (!check.allowed) {
+        return res.status(403).json({
+          success: false,
+          message: check.message || 'Only an HR Officer, HR Manager, or Executive can approve the HR stage'
+        });
+      }
 
-    const populated = await LeaveRequest.findById(leaveRequest._id)
-      .populate('employee', 'name employeeNumber jobTitle department')
-      .populate('leaveBalance')
-      .populate('reviewer', 'email roles');
+      leaveRequest.hrApproval = {
+        status: action,
+        approvedBy: req.user._id,
+        approvedAt: new Date(),
+        comments: comments || ''
+      };
 
-    return res.status(200).json({
-      success: true,
-      message: `Leave request has been ${action}`,
-      data: populated
+      if (action === 'rejected') {
+        leaveRequest.requestStatus = 'rejected';
+      } else {
+        leaveRequest.requestStatus = 'approved';
+
+        // Deduct leave balance upon final HR approval
+        const balance = await LeaveBalance.findById(leaveRequest.leaveBalance);
+        if (!balance) {
+          return res.status(404).json({
+            success: false,
+            message: 'Associated leave balance not found'
+          });
+        }
+
+        const days = leaveRequest.totalLeaveDays;
+        switch (leaveRequest.leaveType) {
+          case 'annual':
+            balance.annualLeave.annualUsedDays = (balance.annualLeave.annualUsedDays || 0) + days;
+            break;
+          case 'sick':
+            balance.sickLeave.sickUsedDays = (balance.sickLeave.sickUsedDays || 0) + days;
+            break;
+          case 'casual':
+            balance.casualLeave.casualUsedDays = (balance.casualLeave.casualUsedDays || 0) + days;
+            break;
+          case 'maternity':
+            balance.maternityLeave.maternityUsedDays = (balance.maternityLeave.maternityUsedDays || 0) + days;
+            break;
+          case 'paternity':
+            balance.paternityLeave.paternityUsedDays = (balance.paternityLeave.paternityUsedDays || 0) + days;
+            break;
+          default:
+            break;
+        }
+
+        balance.recalculateBalances();
+        await balance.save();
+      }
+
+      leaveRequest.reviewer = req.user._id;
+      leaveRequest.reviewComments = comments || '';
+      leaveRequest.reviewDate = new Date();
+
+      leaveRequest.approvalHistory.push({
+        reviewer: req.user._id,
+        stage: 'hr',
+        action,
+        comments: comments || '',
+        decidedAt: new Date()
+      });
+
+      await leaveRequest.save();
+
+      const populated = await LeaveRequest.findById(leaveRequest._id)
+        .populate('employee', 'name employeeNumber jobTitle department email')
+        .populate('leaveBalance')
+        .populate('reviewer', 'email roles')
+        .populate('managerApproval.approvedBy', 'email roles')
+        .populate('hrApproval.approvedBy', 'email roles');
+
+      const message =
+        action === 'approved'
+          ? 'Leave request fully approved by HR and balance deducted.'
+          : 'Leave request has been rejected by HR.';
+
+      return res.status(200).json({
+        success: true,
+        message,
+        data: populated
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: `Invalid review stage or request state (current status: ${leaveRequest.requestStatus})`
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

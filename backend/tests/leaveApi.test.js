@@ -224,9 +224,9 @@ async function runLeaveTests() {
     if (!allReqData.success || allReqData.count < 1) throw new Error('HR query requests failed');
     console.log(`✅ HR retrieved ${allReqData.count} pending request(s) matching department filter.`);
 
-    // 11. Review & Approve Leave Request as HR (Automatic Balance Deduction)
-    console.log('\nTest 11: Approve Leave Request (/api/leave/requests/:id/review)');
-    const reviewRes = await fetch(`${BASE_URL}/api/leave/requests/${leaveRequestId}/review`, {
+    // 11. Sequential Double Approval Workflow (Manager -> HR Officer)
+    console.log('\nTest 11a: Stage 1 - Manager Approval (/api/leave/requests/:id/review)');
+    const mgrReviewRes = await fetch(`${BASE_URL}/api/leave/requests/${leaveRequestId}/review`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -234,16 +234,51 @@ async function runLeaveTests() {
       },
       body: JSON.stringify({
         action: 'approved',
-        comments: 'Approved by HR Director'
+        comments: 'Endorsed by Department Head / Acting Manager'
       })
     });
-    const reviewData = await reviewRes.json();
-    if (!reviewData.success || reviewData.data.requestStatus !== 'approved') {
-      throw new Error('Approve leave request failed');
+    const mgrReviewData = await mgrReviewRes.json();
+    if (!mgrReviewData.success || mgrReviewData.data.requestStatus !== 'pending_hr') {
+      throw new Error(`Manager approval failed: ${mgrReviewData.message}`);
     }
-    console.log(`✅ Leave request approved. Status: '${reviewData.data.requestStatus}'`);
+    if (mgrReviewData.data.managerApproval.status !== 'approved') {
+      throw new Error('Manager approval status was not marked approved');
+    }
+    console.log(`✅ Stage 1 passed: Status is '${mgrReviewData.data.requestStatus}', waiting for HR approval.`);
 
-    // Verify balance deduction
+    // Verify balance is NOT deducted yet after manager approval
+    const midBalRes = await fetch(`${BASE_URL}/api/leave/balances/me`, {
+      headers: { Authorization: `Bearer ${employeeToken}` }
+    });
+    const midBalData = await midBalRes.json();
+    if (midBalData.data.annualLeave.annualUsedDays !== 0) {
+      throw new Error('Leave balance should not be deducted before HR approval!');
+    }
+    console.log('✅ Verified: Leave balance unchanged during pending_hr state (0 used).');
+
+    // Stage 2: Final HR Approval
+    console.log('\nTest 11b: Stage 2 - Final HR Approval (/api/leave/requests/:id/review)');
+    const hrReviewRes = await fetch(`${BASE_URL}/api/leave/requests/${leaveRequestId}/review`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${hrToken}`
+      },
+      body: JSON.stringify({
+        action: 'approved',
+        comments: 'Final policy approval granted by HR Officer'
+      })
+    });
+    const hrReviewData = await hrReviewRes.json();
+    if (!hrReviewData.success || hrReviewData.data.requestStatus !== 'approved') {
+      throw new Error(`Final HR approval failed: ${hrReviewData.message}`);
+    }
+    if (hrReviewData.data.hrApproval.status !== 'approved') {
+      throw new Error('HR approval status was not marked approved');
+    }
+    console.log(`✅ Stage 2 passed: Request fully approved. Status: '${hrReviewData.data.requestStatus}'`);
+
+    // Verify balance deduction after HR approval
     const checkBalRes = await fetch(`${BASE_URL}/api/leave/balances/me`, {
       headers: { Authorization: `Bearer ${employeeToken}` }
     });

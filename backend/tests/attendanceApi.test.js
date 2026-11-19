@@ -336,9 +336,9 @@ async function runAttendanceTests() {
     overtimeId = otData.data._id;
     console.log(`✅ Overtime request submitted: ID ${overtimeId}, Hours: ${otData.data.totalHours}, Status: ${otData.data.requestStatus}`);
 
-    // 16. Decide Overtime Request as HR / Management
-    console.log('\nTest 16: Approve Overtime Request (/api/overtime/:id/decision)');
-    const otDecRes = await fetch(`${BASE_URL}/api/overtime/${overtimeId}/decision`, {
+    // 16. Sequential Double Approval on Overtime Request (Manager -> HR Officer)
+    console.log('\nTest 16a: Stage 1 - Manager Approval (/api/overtime/:id/decision)');
+    const otMgrRes = await fetch(`${BASE_URL}/api/overtime/${overtimeId}/decision`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -346,14 +346,38 @@ async function runAttendanceTests() {
       },
       body: JSON.stringify({
         decision: 'approved',
-        comments: 'Verified with site supervisor'
+        comments: 'Verified by Field Operations Manager'
       })
     });
-    const otDecData = await otDecRes.json();
-    if (!otDecData.success || otDecData.data.requestStatus !== 'approved') {
-      throw new Error('Overtime decision failed');
+    const otMgrData = await otMgrRes.json();
+    if (!otMgrData.success || otMgrData.data.requestStatus !== 'pending_hr') {
+      throw new Error(`Manager overtime decision failed: ${otMgrData.message}`);
     }
-    console.log(`✅ Overtime request approved. Decisions logged: ${otDecData.data.approveDecisions.length}`);
+    if (otMgrData.data.managerApproval.status !== 'approved') {
+      throw new Error('Manager approval status was not marked approved');
+    }
+    console.log(`✅ Stage 1 passed: Status is '${otMgrData.data.requestStatus}', waiting for HR approval.`);
+
+    console.log('\nTest 16b: Stage 2 - Final HR Approval (/api/overtime/:id/decision)');
+    const otHrRes = await fetch(`${BASE_URL}/api/overtime/${overtimeId}/decision`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${hrToken}`
+      },
+      body: JSON.stringify({
+        decision: 'approved',
+        comments: 'Confirmed compliance with labor policies by HR Officer'
+      })
+    });
+    const otHrData = await otHrRes.json();
+    if (!otHrData.success || otHrData.data.requestStatus !== 'approved') {
+      throw new Error(`HR overtime decision failed: ${otHrData.message}`);
+    }
+    if (otHrData.data.hrApproval.status !== 'approved') {
+      throw new Error('HR approval status was not marked approved');
+    }
+    console.log(`✅ Stage 2 passed: Overtime request fully approved. Decisions logged: ${otHrData.data.approveDecisions.length}`);
 
     // 17. Create Field Visit
     console.log('\nTest 17: Schedule Field Visit (/api/field-visits)');

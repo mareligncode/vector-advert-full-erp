@@ -69,8 +69,44 @@ const overtimeRequestSchema = new mongoose.Schema(
     },
     requestStatus: {
       type: String,
-      enum: ['pending', 'approved', 'rejected'],
-      default: 'pending'
+      enum: ['pending', 'pending_manager', 'pending_hr', 'approved', 'rejected', 'cancelled'],
+      default: 'pending_manager'
+    },
+    managerApproval: {
+      status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+      },
+      approvedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      approvedAt: {
+        type: Date
+      },
+      comments: {
+        type: String,
+        trim: true
+      }
+    },
+    hrApproval: {
+      status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+      },
+      approvedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      approvedAt: {
+        type: Date
+      },
+      comments: {
+        type: String,
+        trim: true
+      }
     },
     approveDecisions: [approveDecisionSchema]
   },

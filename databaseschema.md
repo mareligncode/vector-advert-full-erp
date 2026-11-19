@@ -113,20 +113,36 @@ The lists below show the information stored in each part of the system.
 
 ### Leave Requests
 
-- Employee
-- Associated leave balance
-- Leave type
-- Start date
-- Start day period: Morning, Afternoon
-- End date
-- End day period: Morning, Afternoon
-- Total leave days
-- Request reason
-- Supporting attachments: [string, urls]
-- Request status
-- Reviewer
-- Review comments
-- Review date
+- Employee: ObjectId (ref to Employee)
+- Associated leave balance: ObjectId (ref to LeaveBalance)
+- Leave type: String ('annual', 'sick', 'casual', 'maternity', 'paternity', 'unpaid', 'other')
+- Start date: Date
+- Start day period: String ('morning', 'afternoon', 'full_day')
+- End date: Date
+- End day period: String ('morning', 'afternoon', 'full_day')
+- Total leave days: Number
+- Request reason: String
+- Supporting attachments: [String, urls]
+- Request status: String ('pending_manager', 'pending_hr', 'approved', 'rejected', 'cancelled')
+- Manager approval:
+    - Status: String ('pending', 'approved', 'rejected')
+    - Approved by: ObjectId (ref to User)
+    - Approved at: Date
+    - Comments: String
+- HR approval:
+    - Status: String ('pending', 'approved', 'rejected')
+    - Approved by: ObjectId (ref to User)
+    - Approved at: Date
+    - Comments: String
+- Reviewer: ObjectId (ref to User)
+- Review comments: String
+- Review date: Date
+- Approval history: []
+    - Reviewer: ObjectId (ref to User)
+    - Stage: String ('manager', 'hr', 'executive', 'general')
+    - Action: String ('approved', 'rejected', 'escalated')
+    - Comments: String
+    - Decided at: Date
 
 ### Professional Upgrades
 
@@ -241,19 +257,31 @@ The lists below show the information stored in each part of the system.
 
 ### Overtime Requests
 
-- Employee
-- Attendance: null
-- Request date
-- Start time
-- End time
-- Total hours
-- Request reason
-- Advance approval required
-- Request status
+- Employee: ObjectId (ref to Employee)
+- Attendance: ObjectId (ref to Attendance, nullable)
+- Request date: Date
+- Start time: String (HH:mm)
+- End time: String (HH:mm)
+- Total hours: Number
+- Request reason: String
+- Advance approval required: Boolean
+- Request status: String ('pending_manager', 'pending_hr', 'approved', 'rejected', 'cancelled')
+- Manager approval:
+    - Status: String ('pending', 'approved', 'rejected')
+    - Approved by: ObjectId (ref to User)
+    - Approved at: Date
+    - Comments: String
+- HR approval:
+    - Status: String ('pending', 'approved', 'rejected')
+    - Approved by: ObjectId (ref to User)
+    - Approved at: Date
+    - Comments: String
 - Approve decisions: []
-    - approver type: Manager, HR Officer
-    - Decision
-    - Comments
+    - Approver type: String ('Manager', 'HR Officer', 'HR Manager', 'Executive')
+    - Approver: ObjectId (ref to User)
+    - Decision: String ('approved', 'rejected')
+    - Comments: String
+    - Decided at: Date
 
 ### Employee Clearances
 
