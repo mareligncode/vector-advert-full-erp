@@ -222,9 +222,10 @@ export default function Register() {
           <div className="mt-6">
             <button
               onClick={() => navigate('/dashboard')}
-              className="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-slate-950 bg-[#00ced1] hover:bg-[#00b5b8] shadow-md transition-all cursor-pointer"
+              className="w-full py-2.5 px-4 rounded-xl text-xs font-bold hover:brightness-95 shadow-md transition-all cursor-pointer"
+              style={{ backgroundColor: '#00ced1', color: '#020617' }}
             >
-              Return to Dashboard
+              <span style={{ color: '#020617' }}>Return to Dashboard</span>
             </button>
           </div>
         </div>
@@ -324,9 +325,10 @@ export default function Register() {
                 <button
                   type="button"
                   onClick={handleResetForm}
-                  className="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold text-slate-950 bg-[#00ced1] hover:bg-[#00b5b8] shadow-md transition-all cursor-pointer text-center"
+                  className="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold hover:brightness-95 shadow-md transition-all cursor-pointer text-center"
+                  style={{ backgroundColor: '#00ced1', color: '#020617' }}
                 >
-                  Register Another Account
+                  <span style={{ color: '#020617' }}>Register Another Account</span>
                 </button>
                 <button
                   type="button"
@@ -504,21 +506,22 @@ export default function Register() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 py-3 px-4 rounded-xl font-bold text-sm text-slate-950 flex items-center justify-center gap-2 shadow-lg hover:brightness-105 active:scale-[0.99] transition-all duration-200 disabled:opacity-60 cursor-pointer"
+                className="w-full mt-2 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg hover:brightness-95 active:scale-[0.99] transition-all duration-200 disabled:opacity-60 cursor-pointer"
                 style={{
                   backgroundColor: '#00ced1',
+                  color: '#020617',
                   boxShadow: '0 4px 16px rgba(0, 206, 209, 0.4)'
                 }}
               >
                 {loading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
-                    <span>Provisioning Account...</span>
+                    <span style={{ color: '#020617' }}>Provisioning Account...</span>
                   </>
                 ) : (
                   <>
-                    <UserPlus className="w-4 h-4" />
-                    <span>Create User & Generate Temporary Password</span>
+                    <UserPlus className="w-4 h-4" style={{ color: '#020617' }} />
+                    <span style={{ color: '#020617' }}>Create User & Generate Temporary Password</span>
                   </>
                 )}
               </button>

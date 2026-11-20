@@ -287,10 +287,11 @@ export default function Dashboard() {
             {user?.roles?.some((r) => ['superadmin', 'ceo', 'cao', 'coo', 'hrmanager', 'hrofficer'].includes(r)) && (
               <Link
                 to="/register"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-950 bg-[#00ced1] hover:bg-[#00b5b8] shadow-sm transition-all"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold hover:brightness-95 shadow-sm transition-all"
+                style={{ backgroundColor: '#00ced1', color: '#020617' }}
               >
-                <UserPlus className="w-3.5 h-3.5" />
-                <span>Register Staff / User</span>
+                <UserPlus className="w-3.5 h-3.5" style={{ color: '#020617' }} />
+                <span style={{ color: '#020617' }}>Register Staff / User</span>
               </Link>
             )}
           </div>

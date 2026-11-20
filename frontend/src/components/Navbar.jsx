@@ -70,11 +70,12 @@ export default function Navbar() {
               {isAuthorizedToRegister && (
                 <Link
                   to="/register"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-950 bg-[#00ced1] hover:bg-[#00b5b8] shadow-sm shadow-[#00ced1]/30 transition-all cursor-pointer whitespace-nowrap"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm shadow-[#00ced1]/30 hover:brightness-95 transition-all cursor-pointer whitespace-nowrap"
+                  style={{ backgroundColor: '#00ced1', color: '#020617' }}
                   title="Provision users & staff accounts"
                 >
-                  <UserPlus className="w-3.5 h-3.5" />
-                  <span>Register Staff</span>
+                  <UserPlus className="w-3.5 h-3.5" style={{ color: '#020617' }} />
+                  <span style={{ color: '#020617' }}>Register Staff</span>
                 </Link>
               )}
 
@@ -102,9 +103,10 @@ export default function Navbar() {
             <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
               <Link
                 to="/login"
-                className="text-xs font-bold px-3.5 py-1.5 rounded-xl text-slate-950 bg-[#00ced1] hover:bg-[#00b5b8] shadow-sm shadow-[#00ced1]/30 transition-all whitespace-nowrap cursor-pointer"
+                className="text-xs font-bold px-3.5 py-1.5 rounded-xl shadow-sm shadow-[#00ced1]/30 hover:brightness-95 transition-all whitespace-nowrap cursor-pointer"
+                style={{ backgroundColor: '#00ced1', color: '#020617' }}
               >
-                {t('nav.login')}
+                <span style={{ color: '#020617' }}>{t('nav.login')}</span>
               </Link>
             </div>
           )}
@@ -175,13 +177,17 @@ export default function Navbar() {
                     <Link
                       to="/register"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-slate-950 bg-[#00ced1] hover:bg-[#00b5b8] shadow-sm transition-all"
+                      className="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold shadow-sm hover:brightness-95 transition-all"
+                      style={{ backgroundColor: '#00ced1', color: '#020617' }}
                     >
-                      <div className="flex items-center gap-2.5">
-                        <UserPlus className="w-4 h-4" />
-                        <span>Register Staff / User</span>
+                      <div className="flex items-center gap-2.5" style={{ color: '#020617' }}>
+                        <UserPlus className="w-4 h-4" style={{ color: '#020617' }} />
+                        <span style={{ color: '#020617' }}>Register Staff / User</span>
                       </div>
-                      <span className="text-[10px] uppercase font-black tracking-wider bg-black/10 px-1.5 py-0.5 rounded">
+                      <span
+                        className="text-[10px] uppercase font-black tracking-wider bg-black/10 px-1.5 py-0.5 rounded"
+                        style={{ color: '#020617' }}
+                      >
                         Admin
                       </span>
                     </Link>
@@ -215,9 +221,10 @@ export default function Navbar() {
                   <Link
                     to="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center justify-center py-2.5 px-4 rounded-xl text-xs font-bold text-slate-950 bg-[#00ced1] hover:bg-[#00b5b8] shadow-sm transition-all"
+                    className="w-full flex items-center justify-center py-2.5 px-4 rounded-xl text-xs font-bold shadow-sm hover:brightness-95 transition-all"
+                    style={{ backgroundColor: '#00ced1', color: '#020617' }}
                   >
-                    {t('nav.login')}
+                    <span style={{ color: '#020617' }}>{t('nav.login')}</span>
                   </Link>
 
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
