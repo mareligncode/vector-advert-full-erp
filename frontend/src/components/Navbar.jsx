@@ -65,7 +65,7 @@ export default function Navbar() {
               </Link>
               <Link
                 to="/register"
-                className="text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-xl text-white bg-[#00ced1] hover:bg-[#00b5b8] shadow-sm shadow-[#00ced1]/30 transition-all whitespace-nowrap cursor-pointer"
+                className="text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-xl text-slate-950 bg-[#00ced1] hover:bg-[#00b5b8] shadow-sm shadow-[#00ced1]/30 transition-all whitespace-nowrap cursor-pointer"
               >
                 {t('nav.register')}
               </Link>

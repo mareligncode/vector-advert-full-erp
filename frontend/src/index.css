@@ -87,7 +87,7 @@
   --text-main: #1d1d1b;                     /* Vector Charcoal Text */
   --text-muted: #566767;                    /* Slate Teal Muted */
   --text-secondary: #64748b;
-  --text-on-brand: #ffffff;
+  --text-on-brand: #020617;                 /* High-contrast dark on #00ced1 */
 
   /* -------------------------------------------------------------------------
      7. TYPOGRAPHY SYSTEM
@@ -126,7 +126,7 @@
   --text-main: #f1f5f9;
   --text-muted: #8fa0ba;
   --text-secondary: #cbd5e1;
-  --text-on-brand: #ffffff;
+  --text-on-brand: #020617;                 /* High-contrast dark on #00ced1 */
 
   --brand-primary-subtle: rgba(0, 206, 209, 0.18);
   --brand-primary-glow: rgba(0, 206, 209, 0.45);
@@ -196,7 +196,7 @@ html, body {
 /* Dominant Selection Color */
 ::selection {
   background-color: var(--brand-primary);
-  color: #ffffff;
+  color: #020617;
 }
 
 /* -------------------------------------------------------------------------
@@ -244,9 +244,9 @@ a:hover {
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   font-family: var(--font-brand-body);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.95rem;
-  color: #ffffff;
+  color: var(--text-on-brand);
   background-color: #00ced1;
   border: none;
   border-radius: var(--radius-md);

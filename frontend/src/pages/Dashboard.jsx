@@ -250,7 +250,7 @@ export default function Dashboard() {
                       href={telegramData.deepLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full mt-2 py-2 px-3 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 shadow-sm transition-all hover:bg-[#00b5b8]"
+                      className="w-full mt-2 py-2 px-3 rounded-xl text-xs font-bold text-slate-950 flex items-center justify-center gap-2 shadow-sm transition-all hover:bg-[#00b5b8]"
                       style={{
                         backgroundColor: '#00ced1'
                       }}
@@ -263,7 +263,7 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={fetchTelegramInfo}
-                    className="w-full py-2 px-3 rounded-xl text-xs font-bold text-white shadow-sm hover:brightness-105 transition-all cursor-pointer"
+                    className="w-full py-2 px-3 rounded-xl text-xs font-bold text-slate-950 shadow-sm hover:brightness-105 transition-all cursor-pointer"
                     style={{
                       backgroundColor: '#00ced1'
                     }}
