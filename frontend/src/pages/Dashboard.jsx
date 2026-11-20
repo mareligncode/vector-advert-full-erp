@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Shield,
@@ -15,7 +16,8 @@ import {
   Check,
   RefreshCw,
   LogOut,
-  Sparkles
+  Sparkles,
+  UserPlus
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/authService';
@@ -278,10 +280,19 @@ export default function Dashboard() {
 
         {/* Quick ERP Modules Grid */}
         <div className="lg:col-span-2">
-          <div className="mb-3 sm:mb-4">
+          <div className="mb-3 sm:mb-4 flex items-center justify-between">
             <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
               {t('dashboard.quickActions')}
             </h2>
+            {user?.roles?.some((r) => ['superadmin', 'ceo', 'cao', 'coo', 'hrmanager', 'hrofficer'].includes(r)) && (
+              <Link
+                to="/register"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-950 bg-[#00ced1] hover:bg-[#00b5b8] shadow-sm transition-all"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Register Staff / User</span>
+              </Link>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">

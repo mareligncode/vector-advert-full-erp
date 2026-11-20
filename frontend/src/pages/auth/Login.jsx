@@ -44,10 +44,17 @@ export default function Login() {
       setLoading(true);
       const res = await login(formData.email.trim(), formData.password);
       if (res.success) {
-        setSuccessMsg(t('auth.loginSuccess'));
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 600);
+        if (res.data?.mustChangePassword) {
+          setSuccessMsg('Temporary password detected. Redirecting to password change...');
+          setTimeout(() => {
+            navigate('/change-password');
+          }, 600);
+        } else {
+          setSuccessMsg(t('auth.loginSuccess'));
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 600);
+        }
       }
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Failed to authenticate';
@@ -191,16 +198,10 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Footer Card */}
+          {/* Footer Notice */}
           <div className="mt-8 pt-6 border-t border-slate-200/80 dark:border-slate-800 text-center">
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {t('auth.noAccount')}{' '}
-              <Link
-                to="/register"
-                className="font-bold text-[#00ced1] hover:text-[#00b5b8] hover:underline transition-colors"
-              >
-                {t('nav.register')}
-              </Link>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Self-registration is restricted. Accounts and temporary passwords are provisioned exclusively by executive administration (CEO, CAO, COO, or HR Manager).
             </p>
           </div>
         </div>

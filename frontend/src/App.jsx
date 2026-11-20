@@ -9,6 +9,7 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
+import ChangePassword from './pages/auth/ChangePassword';
 import Dashboard from './pages/Dashboard';
 
 export default function App() {
@@ -22,11 +23,30 @@ export default function App() {
               <Routes>
                 {/* Public Auth Routes */}
                 <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
 
-                {/* Protected Routes */}
+                {/* Forced password change route for users with temporary password */}
+                <Route
+                  path="/change-password"
+                  element={
+                    <ProtectedRoute>
+                      <ChangePassword />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Executive / HR User Registration Portal (Only authorized roles) */}
+                <Route
+                  path="/register"
+                  element={
+                    <ProtectedRoute>
+                      <Register />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Protected Dashboard Route */}
                 <Route
                   path="/dashboard"
                   element={

@@ -1,23 +1,52 @@
 import crypto from 'crypto';
 import User from '../models/User.js';
 import { generateToken } from '../middleware/authMiddleware.js';
-import { ALL_ROLES, ROLES } from '../constants/roles.js';
+import { ALL_ROLES, ROLES, getAllowedRegistrationRoles } from '../constants/roles.js';
 import { sendPasswordResetEmail } from '../utils/emailService.js';
 import { sendTelegramMessage } from '../utils/telegramService.js';
 
 /**
- * @desc    Register a new user
+ * Generate a cryptographically random, readable temporary password
+ */
+export const generateRandomTemporaryPassword = () => {
+  const uppers = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lowers = 'abcdefghijkmnpqrstuvwxyz';
+  const digits = '23456789';
+  const specials = '!@#$%&*';
+  const allChars = uppers + lowers + digits + specials;
+
+  const pwd = [
+    uppers[crypto.randomInt(0, uppers.length)],
+    lowers[crypto.randomInt(0, lowers.length)],
+    digits[crypto.randomInt(0, digits.length)],
+    specials[crypto.randomInt(0, specials.length)]
+  ];
+
+  for (let i = 0; i < 6; i++) {
+    pwd.push(allChars[crypto.randomInt(0, allChars.length)]);
+  }
+
+  return pwd.sort(() => 0.5 - Math.random()).join('');
+};
+
+/**
+ * @desc    Register a new user (Hierarchical flow)
+ *          - CEO can register: CEO, CAO, COO
+ *          - CAO can register: HR Manager, Purchaser, Storekeeper, Finance, etc.
+ *          - COO can register: Department Head, Manager, Designer
+ *          - HR Manager can register: Employee, Intern
+ *          - Generates random temporary password and enforces password change on first login
  * @route   POST /api/auth/register
- * @access  Public (or protected by HR/Admin depending on config)
+ * @access  Protected (except bootstrap initial user when 0 users exist)
  */
 export const register = async (req, res) => {
   try {
     const { email, password, roles } = req.body;
 
-    if (!email || !password) {
+    if (!email) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide both email and password'
+        message: 'Please provide an email address'
       });
     }
 
@@ -29,36 +58,96 @@ export const register = async (req, res) => {
       });
     }
 
-    // Validate roles if provided, otherwise default to employee
-    let userRoles = [ROLES.EMPLOYEE];
-    if (roles && Array.isArray(roles) && roles.length > 0) {
+    const totalUsers = await User.countDocuments();
+    const isFirstUser = totalUsers === 0;
+
+    // Public registration check:
+    // Only the very first user (initial system bootstrap) can register without auth.
+    if (!isFirstUser && !req.user) {
+      return res.status(403).json({
+        success: false,
+        message: 'Public self-registration is disabled. Accounts must be registered by authorized executive leadership (CEO, CAO, COO, or HR Manager).'
+      });
+    }
+
+    let userRoles = [];
+    if (isFirstUser) {
+      // First root user defaults to CEO or Super Admin
+      userRoles = roles && roles.length > 0 ? roles : [ROLES.CEO];
+    } else {
+      // Check hierarchical permissions
+      const callerRoles = req.user.roles || [];
+      const allowedRoles = getAllowedRegistrationRoles(callerRoles);
+
+      if (allowedRoles.length === 0) {
+        return res.status(403).json({
+          success: false,
+          message: `Your role (${callerRoles.join(', ')}) is not authorized to register users.`
+        });
+      }
+
+      if (!roles || !Array.isArray(roles) || roles.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Please specify user role(s). Allowed for you: ${allowedRoles.join(', ')}`
+        });
+      }
+
       const invalidRoles = roles.filter((r) => !ALL_ROLES.includes(r));
       if (invalidRoles.length > 0) {
         return res.status(400).json({
           success: false,
-          message: `Invalid role(s): ${invalidRoles.join(', ')}. Available roles: ${ALL_ROLES.join(', ')}`
+          message: `Invalid role(s): ${invalidRoles.join(', ')}`
         });
       }
+
+      const unauthorizedRoles = roles.filter((r) => !allowedRoles.includes(r));
+      if (unauthorizedRoles.length > 0) {
+        return res.status(403).json({
+          success: false,
+          message: `Unauthorized role(s): [${unauthorizedRoles.join(', ')}]. As ${callerRoles.join(', ')}, you are only permitted to register: [${allowedRoles.join(', ')}]`
+        });
+      }
+
       userRoles = roles;
+    }
+
+    // Temporary password generation
+    let finalPassword = password;
+    let isTemporary = false;
+
+    if (!finalPassword || finalPassword.trim() === '') {
+      finalPassword = generateRandomTemporaryPassword();
+      isTemporary = true;
+    } else if (!isFirstUser) {
+      // When registered by another user, enforce first-login password change
+      isTemporary = true;
     }
 
     const user = await User.create({
       email: email.toLowerCase(),
-      password,
-      roles: userRoles
+      password: finalPassword,
+      roles: userRoles,
+      mustChangePassword: isTemporary,
+      isTemporaryPassword: isTemporary,
+      createdBy: req.user ? req.user._id : null
     });
 
     const token = generateToken(user._id);
 
     return res.status(201).json({
       success: true,
-      message: 'User registered successfully',
+      message: isTemporary
+        ? 'User registered successfully with a temporary password'
+        : 'User registered successfully',
       data: {
         _id: user._id,
         email: user.email,
         roles: user.roles,
         accountStatus: user.accountStatus,
-        token
+        mustChangePassword: user.mustChangePassword,
+        temporaryPassword: isTemporary ? finalPassword : undefined,
+        token: isFirstUser ? token : undefined
       }
     });
   } catch (error) {
@@ -115,14 +204,120 @@ export const login = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Logged in successfully',
+      message: user.mustChangePassword
+        ? 'Temporary password detected. You must change your password to continue.'
+        : 'Logged in successfully',
       data: {
         _id: user._id,
         email: user.email,
         roles: user.roles,
         accountStatus: user.accountStatus,
+        mustChangePassword: !!user.mustChangePassword,
         lastLoginTime: user.lastLoginTime,
         token
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Enforce changing password (e.g. on first login with temporary password)
+ * @route   POST /api/auth/change-password
+ * @access  Private
+ */
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide both current and new password'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters long'
+      });
+    }
+
+    if (confirmPassword && newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password and confirmation do not match'
+      });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password cannot be identical to your temporary password'
+      });
+    }
+
+    const user = await User.findById(req.user._id).select('+password');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current/temporary password is incorrect'
+      });
+    }
+
+    user.password = newPassword;
+    user.mustChangePassword = false;
+    user.isTemporaryPassword = false;
+    await user.save();
+
+    const token = generateToken(user._id);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password changed successfully. You may now access the platform.',
+      data: {
+        _id: user._id,
+        email: user.email,
+        roles: user.roles,
+        accountStatus: user.accountStatus,
+        mustChangePassword: false,
+        token
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Get registration permissions for current authenticated user
+ * @route   GET /api/auth/registration-permissions
+ * @access  Private
+ */
+export const getRegistrationPermissions = async (req, res) => {
+  try {
+    const callerRoles = req.user.roles || [];
+    const allowedRoles = getAllowedRegistrationRoles(callerRoles);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        canRegister: allowedRoles.length > 0,
+        callerRoles,
+        allowedRoles
       }
     });
   } catch (error) {

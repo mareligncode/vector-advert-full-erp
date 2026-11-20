@@ -1,11 +1,12 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 
 export default function ProtectedRoute({ children }) {
-  const { isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
   const { t } = useTranslation();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -24,7 +25,16 @@ export default function ProtectedRoute({ children }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  // Enforce password change on first login when user has a temporary password
+  if (user?.mustChangePassword) {
+    if (location.pathname !== '/change-password') {
+      return <Navigate to="/change-password" replace />;
+    }
+  } else if (location.pathname === '/change-password') {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children ? children : <Outlet />;

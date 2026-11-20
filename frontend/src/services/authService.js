@@ -35,6 +35,22 @@ export const authService = {
     return res.data;
   },
 
+  // Change password (mandatory first login with temporary password or self-service)
+  changePassword: async (currentPassword, newPassword, confirmPassword) => {
+    const res = await api.post('/auth/change-password', {
+      currentPassword,
+      newPassword,
+      confirmPassword
+    });
+    return res.data;
+  },
+
+  // Get current user registration permissions
+  getRegistrationPermissions: async () => {
+    const res = await api.get('/auth/registration-permissions');
+    return res.data;
+  },
+
   // Telegram deep link code
   getTelegramLinkCode: async () => {
     const res = await api.post('/auth/telegram/link-code');

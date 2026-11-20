@@ -59,6 +59,19 @@ const userSchema = new mongoose.Schema(
       default: null,
       select: false
     },
+    mustChangePassword: {
+      type: Boolean,
+      default: false
+    },
+    isTemporaryPassword: {
+      type: Boolean,
+      default: false
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
     lastLoginTime: {
       type: Date,
       default: null

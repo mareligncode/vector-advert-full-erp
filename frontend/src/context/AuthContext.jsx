@@ -53,11 +53,26 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (email, password, roles) => {
     const res = await authService.register(email, password, roles);
-    if (res.success && res.data) {
+    // Only auto-login if the creator was not already logged in (e.g. first system bootstrap user)
+    if (!token && res.success && res.data && res.data.token) {
       const { token: receivedToken, ...userData } = res.data;
       setToken(receivedToken);
       setUser(userData);
       localStorage.setItem('vector_token', receivedToken);
+      localStorage.setItem('vector_user', JSON.stringify(userData));
+    }
+    return res;
+  };
+
+  const changePassword = async (currentPassword, newPassword, confirmPassword) => {
+    const res = await authService.changePassword(currentPassword, newPassword, confirmPassword);
+    if (res.success && res.data) {
+      const { token: receivedToken, ...userData } = res.data;
+      if (receivedToken) {
+        setToken(receivedToken);
+        localStorage.setItem('vector_token', receivedToken);
+      }
+      setUser(userData);
       localStorage.setItem('vector_user', JSON.stringify(userData));
     }
     return res;
@@ -92,6 +107,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         register,
+        changePassword,
         logout,
         refreshUser,
         forgotPassword: authService.forgotPassword,
