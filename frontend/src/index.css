@@ -1,9 +1,12 @@
 /* ==========================================================================
    VECTOR BRAND SYSTEM - CSS DESIGN TOKENS & BASE STYLES
-   Extracted from: Vector_Brand_Guideline_Final copy (2).pdf
+   Tailwind CSS v4 + Vector ERP Design Tokens
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Outfit:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Noto+Sans+Ethiopic:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@500;700&display=swap');
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   /* -------------------------------------------------------------------------
@@ -16,16 +19,16 @@
   --brand-primary-subtle: rgba(0, 206, 209, 0.12);
   --brand-primary-glow: rgba(0, 206, 209, 0.35);
 
-  /* Dominant Brand Accent Gradient */
-  --brand-gradient: linear-gradient(135deg, #00ced1 0%, #0090ff 50%, #004da6 100%);
-  --brand-gradient-hover: linear-gradient(135deg, #00e0e3 0%, #0077e6 50%, #003d85 100%);
-  --brand-gradient-surface: linear-gradient(180deg, rgba(0, 206, 209, 0.08) 0%, rgba(0, 77, 166, 0.02) 100%);
+  /* Dominant Brand Accent (Core #00ced1) */
+  --brand-gradient: #00ced1;
+  --brand-gradient-hover: #00b5b8;
+  --brand-gradient-surface: rgba(0, 206, 209, 0.08);
 
   /* -------------------------------------------------------------------------
      2. SECONDARY BRAND COLORS
      ------------------------------------------------------------------------- */
-  --brand-secondary-blue: #0066d1;           /* Vibrant Corporate Blue */
-  --brand-secondary-blue-rgb: 0, 102, 209;
+  --brand-secondary-blue: #0090ff;           /* Vibrant Telegram / Action Blue */
+  --brand-secondary-blue-rgb: 0, 144, 255;
   --brand-secondary-neutral: #e0e0e0;        /* Light Gray Neutral */
   --brand-secondary-neutral-rgb: 224, 224, 224;
   --brand-secondary-dark: #000000;           /* Pure Brand Black */
@@ -70,7 +73,7 @@
   --brand-blue-900: #001429;
 
   /* -------------------------------------------------------------------------
-     6. NEUTRAL & SURFACE TOKENS (Light/Dark Surface Ratios)
+     6. NEUTRAL & SURFACE TOKENS - LIGHT THEME DEFAULT
      ------------------------------------------------------------------------- */
   --bg-primary: #f8fafc;
   --bg-surface: #ffffff;
@@ -84,16 +87,13 @@
   --text-main: #1d1d1b;                     /* Vector Charcoal Text */
   --text-muted: #566767;                    /* Slate Teal Muted */
   --text-secondary: #64748b;
-  --text-on-brand: #ffffff;
+  --text-on-brand: #020617;                 /* High-contrast dark on #00ced1 */
 
   /* -------------------------------------------------------------------------
-     7. TYPOGRAPHY SYSTEM (Brand Guideline Specified)
-     Headline: GoodTimesRg, Azonix, Space Grotesk, sans-serif
-     Body: Century Gothic, Montserrat, system-ui, sans-serif
-     Accent/Editorial: Times New Roman, serif
+     7. TYPOGRAPHY SYSTEM
      ------------------------------------------------------------------------- */
   --font-brand-display: 'GoodTimesRg', 'Azonix', 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-brand-body: 'Century Gothic', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-brand-body: 'Century Gothic', 'Montserrat', 'Noto Sans Ethiopic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-brand-editorial: 'Times New Roman', 'Playfair Display', serif;
 
   /* -------------------------------------------------------------------------
@@ -102,13 +102,60 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
-  --shadow-brand-glow: 0 0 20px rgba(0, 206, 209, 0.35);
+  --shadow-brand-glow: 0 0 25px rgba(0, 206, 209, 0.35);
 
-  /* Component standard radii */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
   --radius-full: 9999px;
+}
+
+/* ==========================================================================
+   DARK MODE TOKENS (Activated by .dark class on html / document element)
+   ========================================================================== */
+.dark {
+  --bg-primary: #070b12;
+  --bg-surface: #0e1626;
+  --bg-elevated: #152238;
+  --bg-subtle: #101c30;
+
+  --border-subtle: #1e2d48;
+  --border-medium: #2a3c5a;
+  --border-brand: var(--brand-primary);
+
+  --text-main: #f1f5f9;
+  --text-muted: #8fa0ba;
+  --text-secondary: #cbd5e1;
+  --text-on-brand: #020617;                 /* High-contrast dark on #00ced1 */
+
+  --brand-primary-subtle: rgba(0, 206, 209, 0.18);
+  --brand-primary-glow: rgba(0, 206, 209, 0.45);
+  --shadow-brand-glow: 0 0 30px rgba(0, 206, 209, 0.45);
+}
+
+@theme {
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-hover: var(--brand-primary-hover);
+  --color-brand-active: var(--brand-primary-active);
+  --color-brand-secondary: var(--brand-secondary-blue);
+  --color-brand-dark: var(--brand-secondary-dark);
+  --color-brand-subtle: var(--brand-primary-subtle);
+  
+  --color-turquoise: var(--color-turquoise);
+  --color-bright-turquoise: var(--color-bright-turquoise);
+  --color-tela: var(--color-tela);
+
+  --color-surface: var(--bg-surface);
+  --color-surface-elevated: var(--bg-elevated);
+  --color-surface-subtle: var(--bg-subtle);
+  --color-bg-base: var(--bg-primary);
+
+  --color-txt-main: var(--text-main);
+  --color-txt-muted: var(--text-muted);
+  --color-txt-secondary: var(--text-secondary);
+
+  --color-border-subtle: var(--border-subtle);
+  --color-border-medium: var(--border-medium);
 }
 
 /* -------------------------------------------------------------------------
@@ -116,8 +163,6 @@
    ------------------------------------------------------------------------- */
 *, *::before, *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 html, body {
@@ -127,37 +172,71 @@ html, body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  -webkit-text-size-adjust: 100%;
 }
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Prevent iOS Safari 16px font-size auto-zoom while preserving styling */
+@media (max-width: 640px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
 
 /* Dominant Selection Color */
 ::selection {
   background-color: var(--brand-primary);
-  color: #ffffff;
+  color: #020617;
 }
 
 /* -------------------------------------------------------------------------
    BRAND ACCENT & DOMINANCE UTILITIES
    ------------------------------------------------------------------------- */
-
-/* Headings with Brand Emphasis */
 h1, h2, h3, h4, h5, h6 {
   color: var(--text-main);
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-/* Links with Primary Brand Dominance */
 a {
-  color: var(--brand-secondary-blue);
+  color: #00ced1;
   text-decoration: none;
-  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.dark a {
+  color: #00ced1;
 }
 
 a:hover {
-  color: var(--brand-primary);
+  color: #00b5b8;
+  text-decoration: underline;
 }
 
-/* Buttons */
+.dark a:hover {
+  color: #33d4cf;
+  text-decoration: underline;
+}
+
+.brand-gradient-bg {
+  background: #00ced1;
+}
+
+.brand-gradient-text {
+  color: #00ced1;
+  display: inline-block;
+}
+
 .btn-brand-primary {
   display: inline-flex;
   align-items: center;
@@ -165,25 +244,31 @@ a:hover {
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   font-family: var(--font-brand-body);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.95rem;
   color: var(--text-on-brand);
-  background: var(--brand-gradient);
+  background-color: #00ced1;
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0, 206, 209, 0.3);
-  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 206, 209, 0.35);
+  transition: all 0.2s ease;
 }
 
-.btn-brand-primary:hover {
-  filter: brightness(1.05);
+.btn-brand-primary:hover:not(:disabled) {
+  background-color: #00b5b8;
   box-shadow: 0 6px 20px rgba(0, 206, 209, 0.45);
   transform: translateY(-1px);
 }
 
-.btn-brand-primary:active {
+.btn-brand-primary:active:not(:disabled) {
+  background-color: #009ca0;
   transform: translateY(0);
+}
+
+.btn-brand-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-brand-outline {
@@ -197,26 +282,52 @@ a:hover {
   font-size: 0.95rem;
   color: var(--brand-primary);
   background-color: transparent;
-  border: 2px solid var(--brand-primary);
+  border: 1.5px solid var(--brand-primary);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-brand-outline:hover {
-  background-color: var(--brand-primary);
-  color: #ffffff;
-  box-shadow: var(--shadow-brand-glow);
+  background-color: var(--brand-primary-subtle);
+  border-color: var(--brand-primary-hover);
 }
 
-/* Inputs & Form Controls with Brand Focus */
-input:focus, select:focus, textarea:focus {
+.brand-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.25s ease;
+}
+
+.brand-card:hover {
+  border-color: rgba(0, 206, 209, 0.5);
+  box-shadow: 0 10px 25px -5px rgba(0, 206, 209, 0.15);
+}
+
+.brand-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--bg-surface);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.brand-input:focus {
   outline: none;
   border-color: var(--brand-primary) !important;
   box-shadow: 0 0 0 3px var(--brand-primary-glow) !important;
 }
 
-/* Brand dominant badges & accents */
+.brand-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
 .badge-brand {
   display: inline-flex;
   align-items: center;
@@ -225,26 +336,6 @@ input:focus, select:focus, textarea:focus {
   font-size: 0.75rem;
   font-weight: 700;
   background-color: var(--brand-primary-subtle);
-  color: var(--color-tela);
+  color: var(--brand-primary);
   border: 1px solid rgba(0, 206, 209, 0.3);
-}
-
-.brand-gradient-text {
-  background: var(--brand-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: inline-block;
-}
-
-.brand-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.brand-card:hover {
-  border-color: var(--brand-primary);
-  box-shadow: 0 10px 25px -5px rgba(0, 206, 209, 0.15);
 }

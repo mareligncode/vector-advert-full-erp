@@ -3,6 +3,7 @@ import Employee from '../models/Employee.js';
 import User from '../models/User.js';
 import { ALL_ROLES, ROLES, HR_ADMIN_ROLES } from '../constants/roles.js';
 import { deleteLocalFile, formatFileUrl } from '../utils/fileUtils.js';
+import { generateRandomTemporaryPassword } from './authController.js';
 
 /**
  * Helper: Generate next sequential employee number (e.g., EMP-0001)
@@ -88,17 +89,27 @@ export const createEmployee = async (req, res) => {
       }
     }
 
-    // Optional inline user provisioning
+    // Optional inline user provisioning with random temporary password & forced change
     let createdUser = null;
+    let temporaryPassword = null;
     if (req.body.createUser) {
-      const { password, roles } = req.body.createUser;
-      const userEmail = req.body.createUser.email || employeeData.email;
+      const createUserPayload = typeof req.body.createUser === 'object' ? req.body.createUser : {};
+      const { roles } = createUserPayload;
+      const userEmail = createUserPayload.email || employeeData.email;
+      let password = createUserPayload.password;
 
-      if (!userEmail || !password) {
+      if (!userEmail) {
         return res.status(400).json({
           success: false,
-          message: 'Email and password are required to create a user account for this employee'
+          message: 'An email is required to provision a user account for this employee'
         });
+      }
+
+      if (!password || password.trim() === '') {
+        password = generateRandomTemporaryPassword();
+        temporaryPassword = password;
+      } else {
+        temporaryPassword = password;
       }
 
       const existingUser = await User.findOne({ email: userEmail.toLowerCase() });
@@ -124,7 +135,10 @@ export const createEmployee = async (req, res) => {
       createdUser = await User.create({
         email: userEmail.toLowerCase(),
         password,
-        roles: userRoles
+        roles: userRoles,
+        mustChangePassword: true,
+        isTemporaryPassword: true,
+        createdBy: req.user ? req.user._id : null
       });
 
       employeeData.user = createdUser._id;
@@ -136,14 +150,22 @@ export const createEmployee = async (req, res) => {
     });
 
     const populatedEmployee = await Employee.findById(employee._id)
-      .populate('user', 'email roles accountStatus lastLoginTime')
+      .populate('user', 'email roles accountStatus mustChangePassword lastLoginTime')
       .populate('manager', 'name employeeNumber jobTitle department email');
 
     return res.status(201).json({
       success: true,
-      message: 'Employee created successfully',
+      message: 'Employee created successfully' + (createdUser ? ' with user account and temporary password' : ''),
       data: populatedEmployee,
-      createdUser: createdUser ? { _id: createdUser._id, email: createdUser.email, roles: createdUser.roles } : undefined
+      createdUser: createdUser
+        ? {
+            _id: createdUser._id,
+            email: createdUser.email,
+            roles: createdUser.roles,
+            mustChangePassword: true,
+            temporaryPassword
+          }
+        : undefined
     });
   } catch (error) {
     return res.status(500).json({
