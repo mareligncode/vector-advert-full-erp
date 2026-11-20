@@ -49,7 +49,7 @@ export default function ThemeToggle({ variant = 'segmented' }) {
             type="button"
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
               isActive
-                ? 'bg-white dark:bg-slate-900 text-[#008182] dark:text-[#00ced1] shadow-xs font-semibold'
+                ? 'bg-white dark:bg-slate-900 text-[#00ced1] shadow-xs font-semibold'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
             }`}
           >

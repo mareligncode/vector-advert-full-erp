@@ -78,7 +78,7 @@ export default function ResetPassword() {
               <div
                 className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-white shadow-lg"
                 style={{
-                  background: 'linear-gradient(135deg, #00ced1 0%, #0090ff 100%)',
+                  backgroundColor: '#00ced1',
                   boxShadow: '0 4px 16px rgba(0, 206, 209, 0.4)'
                 }}
               >
@@ -116,7 +116,7 @@ export default function ResetPassword() {
                 onClick={() => navigate('/login')}
                 className="w-full py-3 px-4 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 shadow-lg hover:brightness-105 active:scale-[0.99] transition-all duration-200 cursor-pointer"
                 style={{
-                  background: 'linear-gradient(135deg, #00ced1 0%, #0090ff 100%)',
+                  backgroundColor: '#00ced1',
                   boxShadow: '0 4px 16px rgba(0, 206, 209, 0.4)'
                 }}
               >
@@ -222,7 +222,7 @@ export default function ResetPassword() {
                 disabled={loading}
                 className="w-full mt-2 py-3 px-4 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 shadow-lg hover:brightness-105 active:scale-[0.99] transition-all duration-200 disabled:opacity-60 cursor-pointer"
                 style={{
-                  background: 'linear-gradient(135deg, #00ced1 0%, #0090ff 100%)',
+                  backgroundColor: '#00ced1',
                   boxShadow: '0 4px 16px rgba(0, 206, 209, 0.4)'
                 }}
               >

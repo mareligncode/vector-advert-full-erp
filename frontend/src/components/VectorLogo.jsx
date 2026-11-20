@@ -45,7 +45,7 @@ export default function VectorLogo({ size = 'md', showText = true, className = '
           <div className={`w-px bg-slate-200 dark:bg-slate-700 ${currentSize.divider}`} />
           <div className="flex flex-col justify-center">
             <span
-              className={`font-black tracking-wider uppercase leading-none text-[#008182] dark:text-[#38ded0] ${currentSize.advert}`}
+              className={`font-black tracking-wider uppercase leading-none text-[#00ced1] ${currentSize.advert}`}
               style={{ fontFamily: 'var(--font-brand-display, sans-serif)' }}
             >
               ADVERT

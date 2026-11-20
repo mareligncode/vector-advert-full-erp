@@ -123,7 +123,7 @@ export default function Login() {
                 </label>
                 <Link
                   to="/forgot-password"
-                  className="text-xs font-semibold text-[#0090ff] hover:text-[#00ced1] dark:text-[#00ced1] dark:hover:text-[#0090ff] hover:underline transition-colors"
+                  className="text-xs font-semibold text-[#00ced1] hover:text-[#00b5b8] hover:underline transition-colors"
                 >
                   {t('auth.forgotPassword')}
                 </Link>
@@ -173,7 +173,7 @@ export default function Login() {
               disabled={loading}
               className="w-full mt-2 py-3 px-4 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 shadow-lg hover:brightness-105 active:scale-[0.99] transition-all duration-200 disabled:opacity-60 cursor-pointer"
               style={{
-                background: 'linear-gradient(135deg, #00ced1 0%, #0090ff 100%)',
+                backgroundColor: '#00ced1',
                 boxShadow: '0 4px 16px rgba(0, 206, 209, 0.4)'
               }}
             >
@@ -197,7 +197,7 @@ export default function Login() {
               {t('auth.noAccount')}{' '}
               <Link
                 to="/register"
-                className="font-bold text-[#0090ff] hover:text-[#00ced1] dark:text-[#00ced1] dark:hover:text-[#0090ff] hover:underline transition-colors"
+                className="font-bold text-[#00ced1] hover:text-[#00b5b8] hover:underline transition-colors"
               >
                 {t('nav.register')}
               </Link>

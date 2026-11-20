@@ -39,7 +39,7 @@ export default function Navbar() {
                 <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate max-w-[140px]">
                   {user?.email}
                 </span>
-                <span className="text-[10px] text-[#008182] dark:text-[#38ded0] font-semibold flex items-center gap-1 justify-end">
+                <span className="text-[10px] text-[#00ced1] font-semibold flex items-center gap-1 justify-end">
                   <Shield className="w-2.5 h-2.5" />
                   {t(`roles.${user?.roles?.[0]}`, user?.roles?.[0] || 'Employee')}
                 </span>
@@ -65,7 +65,7 @@ export default function Navbar() {
               </Link>
               <Link
                 to="/register"
-                className="text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-xl text-white bg-gradient-to-r from-[#00ced1] to-[#0090ff] hover:brightness-105 shadow-sm shadow-[#00ced1]/25 transition-all whitespace-nowrap"
+                className="text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-xl text-white bg-[#00ced1] hover:bg-[#00b5b8] shadow-sm shadow-[#00ced1]/30 transition-all whitespace-nowrap cursor-pointer"
               >
                 {t('nav.register')}
               </Link>

@@ -116,7 +116,7 @@ export default function Dashboard() {
       {/* Welcome Banner */}
       <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-10 border border-slate-200/80 dark:border-slate-800 bg-gradient-to-r from-white via-cyan-50/20 to-blue-50/30 dark:from-[#0e1626] dark:via-[#111c30] dark:to-[#152238] shadow-sm">
         <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold text-[#008182] dark:text-[#38ded0] bg-[#00ced1]/10 border border-[#00ced1]/20 mb-3 sm:mb-4">
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold text-[#00ced1] bg-[#00ced1]/10 border border-[#00ced1]/20 mb-3 sm:mb-4">
             <Sparkles className="w-3.5 h-3.5 shrink-0" />
             <span>Vector Advert ERP 2.0</span>
           </div>
@@ -147,10 +147,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Ambient Decorative Gradient in Background */}
+        {/* Ambient Decorative Glow in Background */}
         <div
-          className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full blur-3xl opacity-25 pointer-events-none"
-          style={{ background: 'linear-gradient(135deg, #00ced1, #0090ff)' }}
+          className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full blur-3xl opacity-20 pointer-events-none"
+          style={{ background: '#00ced1' }}
         />
       </div>
 
@@ -161,7 +161,7 @@ export default function Dashboard() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 text-[#0090ff] flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#00ced1]/15 dark:bg-[#00ced1]/20 text-[#00ced1] flex items-center justify-center shrink-0">
                   <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div>
@@ -250,9 +250,9 @@ export default function Dashboard() {
                       href={telegramData.deepLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full mt-2 py-2 px-3 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 shadow-sm transition-all"
+                      className="w-full mt-2 py-2 px-3 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 shadow-sm transition-all hover:bg-[#00b5b8]"
                       style={{
-                        background: 'linear-gradient(135deg, #00ced1 0%, #0090ff 100%)'
+                        backgroundColor: '#00ced1'
                       }}
                     >
                       <span>{t('dashboard.linkTelegramBtn')}</span>
@@ -265,7 +265,7 @@ export default function Dashboard() {
                     onClick={fetchTelegramInfo}
                     className="w-full py-2 px-3 rounded-xl text-xs font-bold text-white shadow-sm hover:brightness-105 transition-all cursor-pointer"
                     style={{
-                      background: 'linear-gradient(135deg, #00ced1 0%, #0090ff 100%)'
+                      backgroundColor: '#00ced1'
                     }}
                   >
                     {t('dashboard.linkTelegramBtn')}

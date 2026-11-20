@@ -19,10 +19,10 @@
   --brand-primary-subtle: rgba(0, 206, 209, 0.12);
   --brand-primary-glow: rgba(0, 206, 209, 0.35);
 
-  /* Dominant Brand Accent Gradient (Matching "Link Telegram Bot" Gradient) */
-  --brand-gradient: linear-gradient(135deg, #00ced1 0%, #0090ff 100%);
-  --brand-gradient-hover: linear-gradient(135deg, #00e2e5 0%, #1da1ff 100%);
-  --brand-gradient-surface: linear-gradient(180deg, rgba(0, 206, 209, 0.08) 0%, rgba(0, 144, 255, 0.03) 100%);
+  /* Dominant Brand Accent (Core #00ced1) */
+  --brand-gradient: #00ced1;
+  --brand-gradient-hover: #00b5b8;
+  --brand-gradient-surface: rgba(0, 206, 209, 0.08);
 
   /* -------------------------------------------------------------------------
      2. SECONDARY BRAND COLORS
@@ -209,9 +209,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 a {
-  color: #008182;
+  color: #00ced1;
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, opacity 0.2s ease;
 }
 
 .dark a {
@@ -219,21 +219,21 @@ a {
 }
 
 a:hover {
-  color: #0090ff;
+  color: #00b5b8;
+  text-decoration: underline;
 }
 
 .dark a:hover {
-  color: #38ded0;
+  color: #33d4cf;
+  text-decoration: underline;
 }
 
 .brand-gradient-bg {
-  background: var(--brand-gradient);
+  background: #00ced1;
 }
 
 .brand-gradient-text {
-  background: var(--brand-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #00ced1;
   display: inline-block;
 }
 
@@ -247,21 +247,22 @@ a:hover {
   font-weight: 600;
   font-size: 0.95rem;
   color: #ffffff;
-  background: var(--brand-gradient);
+  background-color: #00ced1;
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0, 206, 209, 0.3);
+  box-shadow: 0 4px 14px rgba(0, 206, 209, 0.35);
   transition: all 0.2s ease;
 }
 
 .btn-brand-primary:hover:not(:disabled) {
-  filter: brightness(1.08);
+  background-color: #00b5b8;
   box-shadow: 0 6px 20px rgba(0, 206, 209, 0.45);
   transform: translateY(-1px);
 }
 
 .btn-brand-primary:active:not(:disabled) {
+  background-color: #009ca0;
   transform: translateY(0);
 }
 
