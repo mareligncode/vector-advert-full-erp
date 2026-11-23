@@ -20,6 +20,11 @@ import professionalUpgradeRoutes from './routes/professionalUpgradeRoutes.js';
 import trainingRoutes from './routes/trainingRoutes.js';
 import planRoutes from './routes/planRoutes.js';
 import payrollRoutes from './routes/payrollRoutes.js';
+import inventoryRoutes from './routes/inventoryRoutes.js';
+import grvRoutes from './routes/grvRoutes.js';
+import storeRequestRoutes from './routes/storeRequestRoutes.js';
+import procurementRoutes from './routes/procurementRoutes.js';
+import supplierCreditRoutes from './routes/supplierCreditRoutes.js';
 import { initTelegramBot } from './utils/telegramService.js';
 
 dotenv.config();
@@ -64,6 +69,11 @@ app.use('/api/professional-upgrades', professionalUpgradeRoutes);
 app.use('/api/trainings', trainingRoutes);
 app.use('/api/plans', planRoutes);
 app.use('/api/payroll', payrollRoutes);
+app.use('/api/inventory', inventoryRoutes);
+app.use('/api/grv', grvRoutes);
+app.use('/api/store-requests', storeRequestRoutes);
+app.use('/api/procurement', procurementRoutes);
+app.use('/api/supplier-credits', supplierCreditRoutes);
 
 app.get('/', (req, res) => {
   res.json({
