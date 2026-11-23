@@ -79,42 +79,48 @@ export default function Dashboard() {
       title: t('dashboard.moduleAttendance'),
       icon: Clock,
       color: 'from-cyan-500 to-blue-600',
-      desc: 'GPS clock-in, overtime tracking & daily logs'
+      desc: 'GPS clock-in, overtime tracking & daily logs',
+      to: '/hr/attendance'
     },
     {
       title: t('dashboard.moduleEmployees'),
       icon: Users,
       color: 'from-teal-500 to-emerald-600',
-      desc: 'Staff profiles, departments & documents'
+      desc: 'Staff profiles, departments & documents',
+      to: '/hr/employees'
     },
     {
       title: t('dashboard.moduleRecruitment'),
       icon: Briefcase,
       color: 'from-blue-600 to-indigo-600',
-      desc: 'Vacancies, applicants & interview scoring'
+      desc: 'Vacancies, applicants & interview scoring',
+      to: '/hr/recruitment'
     },
     {
       title: t('dashboard.moduleOvertime'),
       icon: Sparkles,
       color: 'from-amber-500 to-orange-600',
-      desc: 'Requests, multi-tier approvals & calculations'
+      desc: 'Requests, multi-tier approvals & calculations',
+      to: '/hr/overtime'
     },
     {
       title: t('dashboard.modulePlans'),
       icon: FileSpreadsheet,
       color: 'from-purple-600 to-pink-600',
-      desc: 'Strategic objectives, targets & progress'
+      desc: 'Strategic objectives, targets & progress',
+      to: '/hr/plans'
     },
     {
       title: t('dashboard.moduleTraining'),
       icon: Award,
       color: 'from-emerald-500 to-teal-600',
-      desc: 'Professional upgrades & skill development'
+      desc: 'Professional upgrades & skill development',
+      to: '/hr/training'
     }
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8 animate-in fade-in duration-300">
+    <div className="w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8 animate-in fade-in duration-300">
       {/* Welcome Banner */}
       <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-10 border border-slate-200/80 dark:border-slate-800 bg-gradient-to-r from-white via-cyan-50/20 to-blue-50/30 dark:from-[#0e1626] dark:via-[#111c30] dark:to-[#152238] shadow-sm">
         <div className="relative z-10 max-w-2xl">
@@ -300,9 +306,10 @@ export default function Dashboard() {
             {modules.map((mod, i) => {
               const Icon = mod.icon;
               return (
-                <div
+                <Link
                   key={i}
-                  className="group p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0e1626] border border-slate-200/90 dark:border-slate-800 hover:border-[#00ced1]/60 dark:hover:border-[#00ced1]/60 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer"
+                  to={mod.to}
+                  className="group p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0e1626] border border-slate-200/90 dark:border-slate-800 hover:border-[#00ced1]/60 dark:hover:border-[#00ced1]/60 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer block"
                 >
                   <div className="flex items-start gap-3.5 sm:gap-4">
                     <div
@@ -319,7 +326,7 @@ export default function Dashboard() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

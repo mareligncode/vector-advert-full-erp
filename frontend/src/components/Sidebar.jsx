@@ -1,0 +1,299 @@
+import React from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  Users,
+  Headphones,
+  Palette,
+  Printer,
+  Megaphone,
+  Warehouse,
+  ShoppingCart,
+  Scissors,
+  Banknote,
+  Lightbulb,
+  Truck,
+  ShieldCheck,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  Layers,
+  X
+} from 'lucide-react';
+import { useSidebar } from '../context/SidebarContext';
+import { useAuth } from '../context/AuthContext';
+
+export const ERP_MODULES = [
+  {
+    id: '01',
+    name: 'HR',
+    func: 'People, payroll & attendance',
+    path: '/hr',
+    icon: Users,
+    status: 'active'
+  },
+  {
+    id: '02',
+    name: 'Front Desk',
+    func: 'Client intake & job tracking',
+    path: '/front-desk',
+    icon: Headphones,
+    status: 'development'
+  },
+  {
+    id: '03',
+    name: 'Design',
+    func: 'Briefs, proofs & approvals',
+    path: '/design',
+    icon: Palette,
+    status: 'development'
+  },
+  {
+    id: '04',
+    name: 'Machine',
+    func: 'Press scheduling & maintenance',
+    path: '/machine',
+    icon: Printer,
+    status: 'development'
+  },
+  {
+    id: '05',
+    name: 'Marketing',
+    func: 'Leads, campaigns & pipeline',
+    path: '/marketing',
+    icon: Megaphone,
+    status: 'development'
+  },
+  {
+    id: '06',
+    name: 'Store',
+    func: 'Inventory & stock movements',
+    path: '/store',
+    icon: Warehouse,
+    status: 'development'
+  },
+  {
+    id: '07',
+    name: 'Purchaser',
+    func: 'Suppliers, POs & procurement',
+    path: '/purchaser',
+    icon: ShoppingCart,
+    status: 'development'
+  },
+  {
+    id: '08',
+    name: 'Finishing',
+    func: 'Lamination, binding & QC',
+    path: '/finishing',
+    icon: Scissors,
+    status: 'development'
+  },
+  {
+    id: '09',
+    name: 'Finance',
+    func: 'Invoices, expenses & reporting',
+    path: '/finance',
+    icon: Banknote,
+    status: 'development'
+  },
+  {
+    id: '10',
+    name: 'Creative',
+    func: 'Concepts, assets & brand library',
+    path: '/creative',
+    icon: Lightbulb,
+    status: 'development'
+  },
+  {
+    id: '11',
+    name: 'Logistics',
+    func: 'Dispatch, delivery & fleet',
+    path: '/logistics',
+    icon: Truck,
+    status: 'development'
+  },
+  {
+    id: '12',
+    name: 'IT',
+    func: 'Systems, users & access control',
+    path: '/it',
+    icon: ShieldCheck,
+    status: 'development'
+  }
+];
+
+export default function Sidebar() {
+  const { isCollapsed, toggleCollapse, isMobileOpen, closeMobile } = useSidebar();
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
+
+  if (!isAuthenticated) return null;
+
+  const isHrPath = location.pathname.startsWith('/hr');
+  const desktopTopClass = isHrPath ? 'md:top-[6.25rem]' : 'md:top-14 lg:top-16';
+  const desktopHeightClass = isHrPath
+    ? 'md:h-[calc(100vh-6.25rem)]'
+    : 'md:h-[calc(100vh-3.5rem)] lg:h-[calc(100vh-4rem)]';
+
+  return (
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden animate-in fade-in duration-200"
+          onClick={closeMobile}
+        />
+      )}
+
+      {/* Main Sidebar Aside */}
+      <aside
+        className={`fixed md:sticky z-30 bg-white dark:bg-[#0e1626] border-r border-slate-200/80 dark:border-slate-800 transition-all duration-300 flex flex-col justify-between shrink-0 shadow-sm ${
+          isMobileOpen
+            ? 'top-0 left-0 w-72 h-screen z-50'
+            : `-left-72 md:left-0 top-0 ${desktopTopClass} ${desktopHeightClass} ` +
+              (isCollapsed ? 'md:w-20' : 'md:w-64 lg:w-72')
+        }`}
+      >
+        {/* Top Header / Brand Sub-rail */}
+        <div className="p-3 sm:p-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
+          <div className={`flex items-center gap-2.5 min-w-0 ${isCollapsed ? 'md:hidden' : 'flex'}`}>
+            <div className="w-8 h-8 rounded-xl bg-[#00ced1]/15 text-[#00ced1] flex items-center justify-center shrink-0">
+              <Layers className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white truncate">
+                Vector Modules
+              </h2>
+              <span className="text-[10px] text-slate-400 font-semibold block truncate">
+                12 ERP Subsystems
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 shrink-0">
+            {/* Mobile Close Button */}
+            <button
+              type="button"
+              onClick={closeMobile}
+              className="md:hidden p-1.5 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Close Sidebar"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Desktop Collapse Toggle Button */}
+            <button
+              type="button"
+              onClick={toggleCollapse}
+              className="hidden md:flex p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+              title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            >
+              {isCollapsed ? (
+                <ChevronRight className="w-4 h-4 text-[#00ced1]" />
+              ) : (
+                <ChevronLeft className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Modules Nav List */}
+        <div className="flex-1 overflow-y-auto px-2 sm:px-3 py-3 space-y-1 scrollbar-none">
+          {/* Dashboard Home Link */}
+          <NavLink
+            to="/dashboard"
+            onClick={closeMobile}
+            className={({ isActive }) =>
+              `group flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold transition-all relative ${
+                isActive
+                  ? 'bg-[#00ced1] text-[#020617] shadow-xs'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#152238] hover:text-[#00ced1]'
+              } ${isCollapsed ? 'justify-center' : ''}`
+            }
+            title={isCollapsed ? 'Dashboard Overview' : ''}
+          >
+            <LayoutDashboard className="w-4 h-4 shrink-0" />
+            {!isCollapsed && <span className="truncate">Dashboard</span>}
+          </NavLink>
+
+          <div className="my-2 border-t border-slate-100 dark:border-slate-800/80" />
+
+          {/* 12 Core Modules */}
+          {ERP_MODULES.map((mod) => {
+            const Icon = mod.icon;
+            const isHr = mod.id === '01';
+            const isActive = location.pathname.startsWith(mod.path);
+
+            return (
+              <NavLink
+                key={mod.id}
+                to={mod.path}
+                onClick={closeMobile}
+                className={`group flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs transition-all relative ${
+                  isActive
+                    ? 'bg-[#00ced1] text-[#020617] font-bold shadow-xs'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#152238] hover:text-[#00ced1]'
+                } ${isCollapsed ? 'justify-center' : ''}`}
+                title={isCollapsed ? `${mod.id} | ${mod.name} - ${mod.func}` : ''}
+              >
+                {/* Module Number Chip */}
+                <span
+                  className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                    isActive
+                      ? 'bg-black/15 text-[#020617]'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-[#00ced1]/20 group-hover:text-[#00ced1]'
+                  }`}
+                >
+                  {mod.id}
+                </span>
+
+                {/* Module Icon */}
+                <Icon className="w-4 h-4 shrink-0" />
+
+                {/* Text & Function Subtitle (Shown when Expanded) */}
+                {!isCollapsed && (
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="font-bold truncate">{mod.name}</span>
+                      {isHr ? (
+                        <span className="px-1.5 py-0.2 rounded-full text-[9px] font-extrabold uppercase bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                          Active
+                        </span>
+                      ) : (
+                        <span className="px-1.5 py-0.2 rounded-full text-[9px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800/80">
+                          Soon
+                        </span>
+                      )}
+                    </div>
+                    <p
+                      className={`text-[10px] truncate leading-tight mt-0.5 ${
+                        isActive ? 'text-slate-900/80' : 'text-slate-500 dark:text-slate-400'
+                      }`}
+                    >
+                      {mod.func}
+                    </p>
+                  </div>
+                )}
+              </NavLink>
+            );
+          })}
+        </div>
+
+        {/* Footer / Status Card */}
+        {!isCollapsed && (
+          <div className="p-3 border-t border-slate-100 dark:border-slate-800/80">
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200/80 dark:border-slate-800 flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5 text-[#00ced1] shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate">
+                  Vector ERP v2.0
+                </p>
+                <p className="text-[9px] text-slate-500 truncate">Core HR Module Live</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </aside>
+    </>
+  );
+}

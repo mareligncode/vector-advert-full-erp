@@ -1,26 +1,57 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   LogOut,
   User as UserIcon,
+  Users,
   Shield,
   UserPlus,
   Menu,
   X,
   LayoutDashboard,
-  Sparkles
+  Sparkles,
+  Clock,
+  CalendarCheck,
+  Zap,
+  MapPin,
+  Briefcase,
+  GraduationCap,
+  Banknote,
+  Award,
+  BookOpen,
+  FileSpreadsheet,
+  PanelLeft,
+  Layers
 } from 'lucide-react';
 import VectorLogo from './VectorLogo';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
 import { useAuth } from '../context/AuthContext';
+import { useSidebar } from '../context/SidebarContext';
 
 const CAN_REGISTER_ROLES = ['superadmin', 'ceo', 'cao', 'coo', 'hrmanager', 'hrofficer'];
+
+const HR_NAV_ITEMS = [
+  { to: '/hr', end: true, label: 'Overview', icon: LayoutDashboard },
+  { to: '/hr/employees', label: 'Employees', icon: Users },
+  { to: '/hr/attendance', label: 'Attendance', icon: Clock },
+  { to: '/hr/leave', label: 'Leave', icon: CalendarCheck },
+  { to: '/hr/overtime', label: 'Overtime', icon: Zap },
+  { to: '/hr/field-visits', label: 'Field Visits', icon: MapPin },
+  { to: '/hr/recruitment', label: 'Recruitment', icon: Briefcase },
+  { to: '/hr/internships', label: 'Internships', icon: GraduationCap },
+  { to: '/hr/payroll', label: 'Payroll', icon: Banknote },
+  { to: '/hr/clearance', label: 'Clearance', icon: LogOut },
+  { to: '/hr/training', label: 'Training', icon: Award },
+  { to: '/hr/upgrades', label: 'Upgrades', icon: BookOpen },
+  { to: '/hr/plans', label: 'Plans', icon: FileSpreadsheet }
+];
 
 export default function Navbar() {
   const { t } = useTranslation();
   const { user, isAuthenticated, logout } = useAuth();
+  const { isCollapsed, toggleCollapse, toggleMobile, openMobile } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -50,14 +81,34 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-white/90 dark:bg-[#070b12]/90 border-b border-slate-200/80 dark:border-slate-800 transition-colors">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
-        {/* Brand / Logo */}
-        <Link
-          to={isAuthenticated ? '/dashboard' : '/login'}
-          className="flex items-center gap-2 shrink-0 max-w-[65%] xs:max-w-none overflow-hidden"
-        >
-          <VectorLogo size="sm" />
-        </Link>
+      <div className="w-full px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
+        {/* Brand / Logo + Sidebar Toggle */}
+        <div className="flex items-center gap-2 shrink-0">
+          {isAuthenticated && (
+            <button
+              type="button"
+              onClick={() => {
+                if (window.innerWidth < 768) {
+                  toggleMobile();
+                } else {
+                  toggleCollapse();
+                }
+              }}
+              className="p-1.5 sm:p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              title={isCollapsed ? 'Expand ERP Modules Sidebar' : 'Collapse ERP Modules Sidebar'}
+              aria-label="Toggle ERP Modules Sidebar"
+            >
+              <PanelLeft className="w-5 h-5 text-[#00ced1]" />
+            </button>
+          )}
+
+          <Link
+            to={isAuthenticated ? '/dashboard' : '/login'}
+            className="flex items-center gap-2 shrink-0 max-w-[65%] xs:max-w-none overflow-hidden"
+          >
+            <VectorLogo size="sm" />
+          </Link>
+        </div>
 
         {/* Desktop Controls (md and up) */}
         <div className="hidden md:flex items-center gap-3 shrink-0">
@@ -66,6 +117,16 @@ export default function Navbar() {
 
           {isAuthenticated ? (
             <div className="flex items-center gap-3 pl-3 border-l border-slate-200 dark:border-slate-800">
+              {/* HR Portal Shortcut */}
+              <Link
+                to="/hr"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-all cursor-pointer whitespace-nowrap"
+                title="Access Vector HR Subsystem"
+              >
+                <Users className="w-3.5 h-3.5 text-[#00ced1]" />
+                <span>HR Portal</span>
+              </Link>
+
               {/* Executive / HR Staff Registration Shortcut */}
               {isAuthorizedToRegister && (
                 <Link
@@ -133,6 +194,36 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* HR Subsystem Tab Menu Ribbon - Attached directly to header with zero gap */}
+      {isAuthenticated && location.pathname.startsWith('/hr') && (
+        <div className="w-full border-t border-slate-200/70 dark:border-slate-800/80 bg-white/95 dark:bg-[#0e1626]/95">
+          <div className="w-full px-3 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto py-2 scrollbar-none">
+              {HR_NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    className={({ isActive }) =>
+                      `inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+                        isActive
+                          ? 'bg-[#00ced1] text-[#020617] shadow-xs'
+                          : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#152238] hover:text-[#00ced1]'
+                      }`
+                    }
+                  >
+                    <Icon className="w-3.5 h-3.5 shrink-0" />
+                    <span>{item.label}</span>
+                  </NavLink>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Drawer Dropdown Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0e1626] shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
@@ -161,6 +252,24 @@ export default function Navbar() {
                   </span>
                 </div>
 
+                {/* ERP Modules Quick Opener */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    openMobile();
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-100 bg-[#00ced1]/10 hover:bg-[#00ced1]/20 border border-[#00ced1]/30 transition-colors"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Layers className="w-4 h-4 text-[#00ced1]" />
+                    <span>View 12 ERP Modules</span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#00ced1] text-[#020617]">
+                    12 Modules
+                  </span>
+                </button>
+
                 {/* Navigation Links */}
                 <div className="space-y-1.5">
                   <Link
@@ -172,69 +281,54 @@ export default function Navbar() {
                     <span>Dashboard</span>
                   </Link>
 
-                  {/* Register Staff Link (if authorized) */}
+                  <Link
+                    to="/hr"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-[#00ced1] transition-colors"
+                  >
+                    <Users className="w-4 h-4 text-[#00ced1]" />
+                    <span>HR Portal</span>
+                  </Link>
+
                   {isAuthorizedToRegister && (
                     <Link
                       to="/register"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold shadow-sm hover:brightness-95 transition-all"
+                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold shadow-sm transition-all"
                       style={{ backgroundColor: '#00ced1', color: '#020617' }}
                     >
-                      <div className="flex items-center gap-2.5" style={{ color: '#020617' }}>
-                        <UserPlus className="w-4 h-4" style={{ color: '#020617' }} />
-                        <span style={{ color: '#020617' }}>Register Staff / User</span>
-                      </div>
-                      <span
-                        className="text-[10px] uppercase font-black tracking-wider bg-black/10 px-1.5 py-0.5 rounded"
-                        style={{ color: '#020617' }}
-                      >
-                        Admin
-                      </span>
+                      <UserPlus className="w-4 h-4" style={{ color: '#020617' }} />
+                      <span style={{ color: '#020617' }}>Register Staff</span>
                     </Link>
                   )}
                 </div>
 
-                {/* Secondary Controls: Language */}
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    Language
-                  </span>
+                <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
                   <LanguageToggle />
-                </div>
-
-                {/* Logout Button */}
-                <div className="pt-2">
                   <button
                     onClick={handleLogout}
                     type="button"
-                    className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200/60 dark:border-rose-900/40 transition-colors cursor-pointer"
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
                   >
-                    <LogOut className="w-4 h-4" />
+                    <LogOut className="w-4 h-4 shrink-0" />
                     <span>{t('nav.logout')}</span>
                   </button>
                 </div>
               </>
             ) : (
-              <>
-                {/* Unauthenticated Mobile View */}
-                <div className="space-y-3">
-                  <Link
-                    to="/login"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center justify-center py-2.5 px-4 rounded-xl text-xs font-bold shadow-sm hover:brightness-95 transition-all"
-                    style={{ backgroundColor: '#00ced1', color: '#020617' }}
-                  >
-                    <span style={{ color: '#020617' }}>{t('nav.login')}</span>
-                  </Link>
-
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      Language
-                    </span>
-                    <LanguageToggle />
-                  </div>
+              <div className="space-y-3">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block w-full py-2.5 text-center text-xs font-bold rounded-xl shadow-sm transition-all"
+                  style={{ backgroundColor: '#00ced1', color: '#020617' }}
+                >
+                  <span style={{ color: '#020617' }}>{t('nav.login')}</span>
+                </Link>
+                <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800 flex justify-center">
+                  <LanguageToggle />
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
