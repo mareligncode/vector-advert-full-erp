@@ -63,13 +63,13 @@ export const employeeService = {
     return res.data;
   },
 
-  approveNationalId: async (id) => {
-    const res = await api.patch(`/employees/${id}/national-id/approve`);
+  approveNationalId: async (id, status = 'approved', rejectionReason = '') => {
+    const res = await api.patch(`/employees/${id}/national-id/approve`, { status, rejectionReason });
     return res.data;
   },
 
-  approveGuarantorNationalId: async (employeeId, guarantorId) => {
-    const res = await api.patch(`/employees/${employeeId}/guarantors/${guarantorId}/national-id/approve`);
+  approveGuarantorNationalId: async (employeeId, guarantorId, status = 'approved', rejectionReason = '') => {
+    const res = await api.patch(`/employees/${employeeId}/guarantors/${guarantorId}/national-id/approve`, { status, rejectionReason });
     return res.data;
   },
 
@@ -89,8 +89,8 @@ export const employeeService = {
     return res.data;
   },
 
-  approveDocument: async (id, documentId) => {
-    const res = await api.patch(`/employees/${id}/documents/${documentId}/approve`);
+  approveDocument: async (id, documentId, status = 'approved', rejectionReason = '') => {
+    const res = await api.patch(`/employees/${id}/documents/${documentId}/approve`, { status, rejectionReason });
     return res.data;
   },
 
