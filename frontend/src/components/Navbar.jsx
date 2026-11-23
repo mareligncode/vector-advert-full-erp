@@ -76,7 +76,7 @@ export default function Navbar() {
 
           <Link
             to={isAuthenticated ? '/dashboard' : '/login'}
-            className="flex items-center gap-2 shrink-0 max-w-[65%] xs:max-w-none overflow-hidden"
+            className="flex items-center gap-2 shrink-0"
           >
             <VectorLogo size="sm" />
           </Link>
