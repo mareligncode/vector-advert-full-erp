@@ -39,7 +39,7 @@ router.get('/:entityType/:entityId', getEvidenceByEntity);
 router.post(
   '/:entityType/:entityId/attachments',
   setUploadCategory('evidence'),
-  upload.single('file'),
+  upload.any(),
   addAttachment
 );
 

@@ -419,26 +419,28 @@ The lists below show the information stored in each part of the system.
     - Uploaded by
     - Uploaded at
 
-### Evidences
+### Evidences (Universal Multi-File Attachment System)
 
-- `entityType`: String (registered model name)
+The `Evidence` model serves as the unified, polymorphic attachment store for **every table/entity in the ERP** (e.g. `PayrollRun`, `Payslip`, `SalaryAdvanceLoan`, `SalaryStructure`, `Employee`, `LeaveRequest`, `OvertimeRequest`, `Clearance`, `Training`, `Plan`, `JobPosting`, `JobApplication`, `Internship`, `FieldVisit`). Whenever a user clicks **"Add Attachment"** on any record, files are dynamically appended into the `attachments` array.
+
+- `entityType`: String (registered model name, e.g. 'PayrollRun', 'Payslip', 'SalaryAdvanceLoan', 'SalaryStructure', 'Employee', 'LeaveRequest', etc.)
 - `entityId`: ObjectId (refPath to entityType)
-- `entityOwner`: ObjectId (ref to User)
-- `attachments`: []
+- `entityOwner`: ObjectId (ref to User, auto-inferred or explicitly specified)
+- `attachments`: [] (Dynamic array of multiple file attachments added via "Add Attachment" button)
     - `title`: String
     - `description`: String
     - `fileUrl`: String
     - `fileName`: String
     - `mimeType`: String
-    - `fileSize`: Number
+    - `fileSize`: Number (in bytes)
     - `uploadedBy`: ObjectId (ref to User)
-    - `status`: String (pending, verified, rejected)
+    - `status`: String ('pending', 'verified', 'rejected')
     - `reviewedBy`: ObjectId (ref to User)
     - `reviewedAt`: Date
     - `rejectionReason`: String
     - `createdAt`: Date
     - `updatedAt`: Date
-- `notes`: []
+- `notes`: [] (Audit trail and commentary notes for the entity's files)
     - `content`: String
     - `author`: ObjectId (ref to User)
     - `createdAt`: Date

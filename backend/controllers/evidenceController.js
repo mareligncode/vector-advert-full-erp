@@ -25,6 +25,7 @@ const inferEntityOwner = async (entityType, entityId, fallbackUserId) => {
 
     if (parentEntity.user) return parentEntity.user;
     if (parentEntity.createdBy) return parentEntity.createdBy;
+    if (parentEntity.approvals?.preparedBy?.user) return parentEntity.approvals.preparedBy.user;
     if (parentEntity.employee) {
       if (mongoose.modelNames().includes('Employee')) {
         const Employee = mongoose.model('Employee');
@@ -87,7 +88,7 @@ export const getEvidenceByEntity = async (req, res) => {
 };
 
 /**
- * @desc    Add attachment to an entity's evidence document (Upserts doc if needed)
+ * @desc    Add attachment(s) to an entity's evidence document (Upserts doc if needed)
  * @route   POST /api/evidence/:entityType/:entityId/attachments
  * @access  Private
  */
@@ -103,28 +104,86 @@ export const addAttachment = async (req, res) => {
       });
     }
 
-    if (!title || !title.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Attachment title is required'
+    const category = req.uploadCategory || 'evidence';
+    const newAttachments = [];
+
+    // Case 1: Multiple files uploaded via multer (req.files)
+    if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+      req.files.forEach((f, idx) => {
+        newAttachments.push({
+          title: (Array.isArray(title) ? title[idx] : title) || f.originalname,
+          description: (Array.isArray(description) ? description[idx] : description) || '',
+          fileUrl: `/uploads/${category}/${f.filename}`,
+          fileName: f.originalname,
+          mimeType: f.mimetype,
+          fileSize: f.size,
+          uploadedBy: req.user._id,
+          status: 'pending'
+        });
+      });
+    } else if (req.files && typeof req.files === 'object' && Object.keys(req.files).length > 0) {
+      const fileList = Object.values(req.files).flat();
+      fileList.forEach((f, idx) => {
+        newAttachments.push({
+          title: (Array.isArray(title) ? title[idx] : title) || f.originalname,
+          description: (Array.isArray(description) ? description[idx] : description) || '',
+          fileUrl: `/uploads/${category}/${f.filename}`,
+          fileName: f.originalname,
+          mimeType: f.mimetype,
+          fileSize: f.size,
+          uploadedBy: req.user._id,
+          status: 'pending'
+        });
+      });
+    } else if (req.file) {
+      // Case 2: Single file uploaded via req.file
+      newAttachments.push({
+        title: (title && title.trim()) || req.file.originalname,
+        description: description ? description.trim() : '',
+        fileUrl: `/uploads/${category}/${req.file.filename}`,
+        fileName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        fileSize: req.file.size,
+        uploadedBy: req.user._id,
+        status: 'pending'
+      });
+    } else if (req.body.attachments && Array.isArray(req.body.attachments)) {
+      // Case 3: JSON array of attachments passed
+      req.body.attachments.forEach((att) => {
+        if (att.fileUrl) {
+          newAttachments.push({
+            title: att.title || 'Attachment',
+            description: att.description || '',
+            fileUrl: att.fileUrl,
+            fileName: att.fileName || '',
+            mimeType: att.mimeType || '',
+            fileSize: att.fileSize || 0,
+            uploadedBy: req.user._id,
+            status: 'pending'
+          });
+        }
+      });
+    } else if (req.body.fileUrl) {
+      // Case 4: Single fileUrl passed via body
+      if (!title || !title.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Attachment title is required'
+        });
+      }
+      newAttachments.push({
+        title: title.trim(),
+        description: description ? description.trim() : '',
+        fileUrl: req.body.fileUrl,
+        fileName: req.body.fileName || '',
+        mimeType: req.body.mimeType || '',
+        fileSize: req.body.fileSize || 0,
+        uploadedBy: req.user._id,
+        status: 'pending'
       });
     }
 
-    // Check if file was uploaded via multipart or passed via body
-    let fileUrl = req.body.fileUrl;
-    let fileName = req.body.fileName;
-    let mimeType = req.body.mimeType;
-    let fileSize = req.body.fileSize;
-
-    if (req.file) {
-      const category = req.uploadCategory || 'evidence';
-      fileUrl = `/uploads/${category}/${req.file.filename}`;
-      fileName = req.file.originalname;
-      mimeType = req.file.mimetype;
-      fileSize = req.file.size;
-    }
-
-    if (!fileUrl) {
+    if (newAttachments.length === 0) {
       return res.status(400).json({
         success: false,
         message: 'File or fileUrl is required'
@@ -134,17 +193,6 @@ export const addAttachment = async (req, res) => {
     // Determine entityOwner
     const entityOwner = req.body.entityOwner || (await inferEntityOwner(entityType, entityId, req.user._id));
 
-    const newAttachment = {
-      title: title.trim(),
-      description: description ? description.trim() : '',
-      fileUrl,
-      fileName,
-      mimeType,
-      fileSize,
-      uploadedBy: req.user._id,
-      status: 'pending'
-    };
-
     const evidence = await Evidence.findOneAndUpdate(
       { entityType, entityId },
       {
@@ -153,7 +201,7 @@ export const addAttachment = async (req, res) => {
           entityId,
           entityOwner
         },
-        $push: { attachments: newAttachment }
+        $push: { attachments: { $each: newAttachments } }
       },
       {
         upsert: true,
@@ -167,7 +215,7 @@ export const addAttachment = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Attachment added successfully',
+      message: `${newAttachments.length} attachment(s) added successfully`,
       data: evidence
     });
   } catch (error) {
