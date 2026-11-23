@@ -19,6 +19,7 @@ import clearanceRoutes from './routes/clearanceRoutes.js';
 import professionalUpgradeRoutes from './routes/professionalUpgradeRoutes.js';
 import trainingRoutes from './routes/trainingRoutes.js';
 import planRoutes from './routes/planRoutes.js';
+import payrollRoutes from './routes/payrollRoutes.js';
 import { initTelegramBot } from './utils/telegramService.js';
 
 dotenv.config();
@@ -62,6 +63,7 @@ app.use('/api/clearances', clearanceRoutes);
 app.use('/api/professional-upgrades', professionalUpgradeRoutes);
 app.use('/api/trainings', trainingRoutes);
 app.use('/api/plans', planRoutes);
+app.use('/api/payroll', payrollRoutes);
 
 app.get('/', (req, res) => {
   res.json({

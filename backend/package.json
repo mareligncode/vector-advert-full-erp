@@ -12,7 +12,8 @@
     "test:leave": "node tests/leaveApi.test.js",
     "test:recruitment": "node tests/recruitmentApi.test.js",
     "test:evidence": "node tests/evidenceApi.test.js",
-    "test:clearance": "node tests/clearanceApi.test.js"
+    "test:clearance": "node tests/clearanceApi.test.js",
+    "test:payroll": "node tests/payrollUnit.test.js"
   },
   "keywords": [],
   "author": "",

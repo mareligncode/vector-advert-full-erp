@@ -445,3 +445,246 @@ The lists below show the information stored in each part of the system.
     - `updatedAt`: Date
 - `createdAt`: Date
 - `updatedAt`: Date
+
+### Payroll Config
+
+- `companyName`: String
+- `currency`: String (Default: 'ETB')
+- `payFrequency`: String ('monthly', 'bi_weekly', 'weekly', Default: 'monthly')
+- `standardWorkingDaysPerMonth`: Number (Default: 22)
+- `standardWorkingHoursPerDay`: Number (Default: 8)
+- `payrollCutoffDay`: Number (Day of month, e.g. 25)
+- `pensionContribution`:
+    - `employeePensionRate`: Number (Percentage, e.g. 7%)
+    - `employerPensionRate`: Number (Percentage, e.g. 11%)
+    - `isPensionMandatory`: Boolean (Default: true)
+- `incomeTaxSlabs`: []
+    - `slabName`: String
+    - `minIncome`: Number
+    - `maxIncome`: Number (Nullable for highest bracket)
+    - `taxRate`: Number (Percentage, e.g. 0%, 10%, 15%, 20%, 25%, 30%, 35%)
+    - `deductibleAmount`: Number
+- `overtimeMultipliers`:
+    - `normalDayMultiplier`: Number (Default: 1.5)
+    - `nightShiftMultiplier`: Number (Default: 1.75)
+    - `weekendMultiplier`: Number (Default: 2.0)
+    - `publicHolidayMultiplier`: Number (Default: 2.5)
+- `taxExemptAllowanceLimits`:
+    - `transportAllowanceLimit`: Number
+    - `foodAllowanceLimit`: Number
+    - `mobileAllowanceLimit`: Number
+- `isActive`: Boolean (Default: true)
+- `updatedBy`: ObjectId (ref to User)
+- `createdAt`: Date
+- `updatedAt`: Date
+
+### Salary Structures
+
+- `employee`: ObjectId (ref to Employee)
+- `effectiveFrom`: Date
+- `effectiveTo`: Date (Nullable if currently active)
+- `status`: String ('active', 'inactive', 'draft', 'superseded')
+- `baseSalary`: Number (Basic Monthly Salary)
+- `paymentMethod`: String ('bank_transfer', 'cash', 'cheque')
+- `bankAccount`:
+    - `bankName`: String
+    - `holderName`: String
+    - `accountNumber`: String
+    - `branch`: String
+- `isOvertimeEligible`: Boolean (Default: true)
+- `isPensionEligible`: Boolean (Default: true)
+- `isTaxExempt`: Boolean (Default: false)
+- `earnings`: []
+    - `title`: String ('Transport Allowance', 'Housing Allowance', 'Position Allowance', 'Communication Allowance', 'Hardship Allowance', 'Other Allowance')
+    - `amount`: Number
+    - `isTaxable`: Boolean
+    - `taxExemptLimit`: Number
+    - `isRecurring`: Boolean (Default: true)
+- `deductions`: []
+    - `title`: String ('Cost Sharing', 'Union Dues', 'Provident Fund', 'Health Insurance', 'Other')
+    - `amount`: Number
+    - `deductionType`: String ('fixed', 'percentage')
+    - `percentageRate`: Number
+    - `isPreTax`: Boolean (Default: false)
+    - `isRecurring`: Boolean (Default: true)
+- `approvedBy`: ObjectId (ref to User)
+- `approvedAt`: Date
+- `notes`: String
+- `createdAt`: Date
+- `updatedAt`: Date
+
+### Payroll Runs
+
+- `payrollCode`: String (Unique, e.g. 'PR-2026-11')
+- `title`: String (e.g. 'November 2026 Monthly Payroll')
+- `periodMonth`: Number (1 - 12)
+- `periodYear`: Number
+- `startDate`: Date
+- `endDate`: Date
+- `paymentDate`: Date
+- `payrollStatus`: String ('draft', 'calculating', 'pending_manager_approval', 'pending_finance_approval', 'pending_executive_approval', 'approved', 'disbursed', 'cancelled')
+- `totalEmployees`: Number
+- `financialSummary`:
+    - `totalBasicSalary`: Number
+    - `totalAllowances`: Number
+    - `totalOvertimePay`: Number
+    - `totalGrossPay`: Number
+    - `totalTaxableIncome`: Number
+    - `totalIncomeTax`: Number (Total PAYE)
+    - `totalEmployeePension`: Number (e.g. 7%)
+    - `totalEmployerPension`: Number (e.g. 11%)
+    - `totalLoanDeductions`: Number
+    - `totalOtherDeductions`: Number
+    - `totalDeductions`: Number
+    - `totalNetPay`: Number
+    - `totalCompanyCost`: Number (Gross Pay + Employer Pension + Employer Benefits)
+- `approvals`:
+    - `preparedBy`:
+        - `user`: ObjectId (ref to User)
+        - `at`: Date
+        - `comments`: String
+    - `hrApproval`:
+        - `status`: String ('pending', 'approved', 'rejected')
+        - `approvedBy`: ObjectId (ref to User)
+        - `approvedAt`: Date
+        - `comments`: String
+    - `financeApproval`:
+        - `status`: String ('pending', 'approved', 'rejected')
+        - `approvedBy`: ObjectId (ref to User)
+        - `approvedAt`: Date
+        - `comments`: String
+    - `executiveApproval`:
+        - `status`: String ('pending', 'approved', 'rejected')
+        - `approvedBy`: ObjectId (ref to User)
+        - `approvedAt`: Date
+        - `comments`: String
+- `disbursementDetails`:
+    - `disbursedBy`: ObjectId (ref to User)
+    - `disbursedAt`: Date
+    - `sourceBankAccount`: String
+    - `paymentReference`: String
+    - `proofDocumentUrl`: String
+- `notes`: String
+- `createdAt`: Date
+- `updatedAt`: Date
+
+### Payslips
+
+- `payslipNumber`: String (Unique, e.g. 'PS-2026-11-001')
+- `payrollRun`: ObjectId (ref to PayrollRun)
+- `employee`: ObjectId (ref to Employee)
+- `employeeSnapshot`:
+    - `employeeNumber`: String
+    - `fullName`: String
+    - `department`: String
+    - `jobTitle`: String
+    - `employmentType`: String ('full-time', 'part-time', 'contract', 'internship')
+    - `bankAccount`:
+        - `bankName`: String
+        - `holderName`: String
+        - `accountNumber`: String
+- `attendanceSummary`:
+    - `calendarDays`: Number
+    - `expectedWorkingDays`: Number
+    - `daysWorked`: Number
+    - `paidLeaveDays`: Number
+    - `unpaidLeaveDays`: Number
+    - `absentDays`: Number
+    - `lateArrivalPenaltyHours`: Number
+- `overtimeSummary`:
+    - `normalOvertimeHours`: Number
+    - `normalOvertimeAmount`: Number
+    - `nightOvertimeHours`: Number
+    - `nightOvertimeAmount`: Number
+    - `weekendOvertimeHours`: Number
+    - `weekendOvertimeAmount`: Number
+    - `holidayOvertimeHours`: Number
+    - `holidayOvertimeAmount`: Number
+    - `totalOvertimeHours`: Number
+    - `totalOvertimeAmount`: Number
+- `earnings`:
+    - `basicSalary`: Number (Contracted)
+    - `earnedBasicSalary`: Number (Pro-rated for absent/unpaid days)
+    - `allowances`: []
+        - `title`: String
+        - `amount`: Number
+        - `isTaxable`: Boolean
+        - `taxableAmount`: Number
+        - `exemptAmount`: Number
+    - `overtimePay`: Number
+    - `bonuses`: Number
+    - `commissions`: Number
+    - `grossEarnings`: Number
+    - `taxableIncome`: Number
+- `deductions`:
+    - `statutoryDeductions`:
+        - `incomeTax`: Number (PAYE)
+        - `employeePension`: Number (e.g. 7%)
+        - `employerPension`: Number (e.g. 11%)
+    - `nonStatutoryDeductions`:
+        - `loanRepayment`: Number
+        - `salaryAdvanceDeduction`: Number
+        - `attendancePenaltyDeduction`: Number
+        - `costSharing`: Number
+        - `unionDues`: Number
+        - `disciplinaryDeductions`: Number
+        - `customDeductions`: []
+            - `title`: String
+            - `amount`: Number
+            - `reason`: String
+    - `totalEmployeeDeductions`: Number
+    - `totalEmployerContributions`: Number
+- `netSalary`: Number (Gross Earnings - Total Employee Deductions)
+- `paymentStatus`: String ('pending', 'ready', 'paid', 'hold', 'failed')
+- `paymentMethod`: String ('bank_transfer', 'cash', 'cheque')
+- `disbursement`:
+    - `paymentDate`: Date
+    - `transactionReference`: String
+    - `disbursedBy`: ObjectId (ref to User)
+    - `notes`: String
+- `pdfUrl`: String (Link to generated payslip document)
+- `sentToEmployeeAt`: Date
+- `createdAt`: Date
+- `updatedAt`: Date
+
+### Salary Advances & Loans
+
+- `loanCode`: String (Unique, e.g. 'LN-2026-001')
+- `employee`: ObjectId (ref to Employee)
+- `requestType`: String ('salary_advance', 'staff_loan', 'emergency_loan', 'education_loan')
+- `amountRequested`: Number
+- `amountApproved`: Number
+- `disbursementDate`: Date
+- `reason`: String
+- `totalInstallments`: Number (Number of months)
+- `monthlyDeductionAmount`: Number
+- `deductionStartMonth`: Number (1 - 12)
+- `deductionStartYear`: Number
+- `remainingBalance`: Number
+- `repaymentStatus`: String ('pending_approval', 'approved', 'active', 'repaid', 'suspended', 'rejected', 'written_off')
+- `repaymentHistory`: []
+    - `payrollRun`: ObjectId (ref to PayrollRun)
+    - `payslip`: ObjectId (ref to Payslip)
+    - `installmentNumber`: Number
+    - `amountPaid`: Number
+    - `paymentDate`: Date
+    - `balanceAfterPayment`: Number
+- `approvals`:
+    - `managerApproval`:
+        - `status`: String ('pending', 'approved', 'rejected')
+        - `approvedBy`: ObjectId (ref to User)
+        - `approvedAt`: Date
+        - `comments`: String
+    - `hrApproval`:
+        - `status`: String ('pending', 'approved', 'rejected')
+        - `approvedBy`: ObjectId (ref to User)
+        - `approvedAt`: Date
+        - `comments`: String
+    - `financeApproval`:
+        - `status`: String ('pending', 'approved', 'rejected')
+        - `approvedBy`: ObjectId (ref to User)
+        - `approvedAt`: Date
+        - `comments`: String
+- `disbursementReference`: String
+- `createdAt`: Date
+- `updatedAt`: Date
