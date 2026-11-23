@@ -39,23 +39,53 @@ export default function App() {
       <AuthProvider>
         <SidebarProvider>
           <BrowserRouter>
-            <div className="min-h-screen flex flex-col transition-colors duration-200 overflow-x-hidden w-full max-w-[100vw] bg-slate-50 dark:bg-[#070b12]">
+            {/* Fixed Viewport Root Shell */}
+            <div className="h-screen w-screen overflow-hidden flex flex-col bg-slate-50 dark:bg-[#070b12] text-slate-800 dark:text-slate-100">
+              {/* Header: Fixed permanently at top */}
               <Navbar />
-              <div className="flex-1 flex w-full min-h-0 relative">
+
+              {/* Body flex container below fixed Header */}
+              <div className="flex-1 flex min-h-0 w-full overflow-hidden relative">
+                {/* Sidebar: Fixed on left directly under Header */}
                 <Sidebar />
-                <main className="flex-1 min-w-0 flex flex-col overflow-x-hidden">
+
+                {/* Main Content Area to the right of Sidebar */}
+                <main className="flex-1 min-w-0 flex flex-col h-full min-h-0 overflow-hidden relative">
                   <Routes>
                     {/* Public Auth Routes */}
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route
+                      path="/login"
+                      element={
+                        <div className="flex-1 w-full h-full min-h-0 overflow-y-auto">
+                          <Login />
+                        </div>
+                      }
+                    />
+                    <Route
+                      path="/forgot-password"
+                      element={
+                        <div className="flex-1 w-full h-full min-h-0 overflow-y-auto">
+                          <ForgotPassword />
+                        </div>
+                      }
+                    />
+                    <Route
+                      path="/reset-password"
+                      element={
+                        <div className="flex-1 w-full h-full min-h-0 overflow-y-auto">
+                          <ResetPassword />
+                        </div>
+                      }
+                    />
 
                     {/* Forced password change route for users with temporary password */}
                     <Route
                       path="/change-password"
                       element={
                         <ProtectedRoute>
-                          <ChangePassword />
+                          <div className="flex-1 w-full h-full min-h-0 overflow-y-auto">
+                            <ChangePassword />
+                          </div>
                         </ProtectedRoute>
                       }
                     />
@@ -65,7 +95,9 @@ export default function App() {
                       path="/register"
                       element={
                         <ProtectedRoute>
-                          <Register />
+                          <div className="flex-1 w-full h-full min-h-0 overflow-y-auto">
+                            <Register />
+                          </div>
                         </ProtectedRoute>
                       }
                     />

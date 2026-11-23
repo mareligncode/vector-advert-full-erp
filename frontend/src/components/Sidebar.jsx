@@ -129,12 +129,6 @@ export default function Sidebar() {
 
   if (!isAuthenticated) return null;
 
-  const isHrPath = location.pathname.startsWith('/hr');
-  const desktopTopClass = isHrPath ? 'md:top-[6.25rem]' : 'md:top-14 lg:top-16';
-  const desktopHeightClass = isHrPath
-    ? 'md:h-[calc(100vh-6.25rem)]'
-    : 'md:h-[calc(100vh-3.5rem)] lg:h-[calc(100vh-4rem)]';
-
   return (
     <>
       {/* Mobile Backdrop Overlay */}
@@ -145,17 +139,17 @@ export default function Sidebar() {
         />
       )}
 
-      {/* Main Sidebar Aside */}
+      {/* Main Sidebar Aside - Fixed on left directly under Header with zero menu in between */}
       <aside
-        className={`fixed md:sticky z-30 bg-white dark:bg-[#0e1626] border-r border-slate-200/80 dark:border-slate-800 transition-all duration-300 flex flex-col justify-between shrink-0 shadow-sm ${
+        className={`fixed md:static z-30 h-full bg-white dark:bg-[#0e1626] border-r border-slate-200/80 dark:border-slate-800 transition-all duration-300 flex flex-col justify-between shrink-0 shadow-sm ${
           isMobileOpen
             ? 'top-0 left-0 w-72 h-screen z-50'
-            : `-left-72 md:left-0 top-0 ${desktopTopClass} ${desktopHeightClass} ` +
+            : '-left-72 md:left-auto top-0 h-screen md:h-full ' +
               (isCollapsed ? 'md:w-20' : 'md:w-64 lg:w-72')
         }`}
       >
         {/* Top Header / Brand Sub-rail */}
-        <div className="p-3 sm:p-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
+        <div className="p-3 sm:p-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2 shrink-0">
           <div className={`flex items-center gap-2.5 min-w-0 ${isCollapsed ? 'md:hidden' : 'flex'}`}>
             <div className="w-8 h-8 rounded-xl bg-[#00ced1]/15 text-[#00ced1] flex items-center justify-center shrink-0">
               <Layers className="w-4 h-4" />
@@ -185,7 +179,7 @@ export default function Sidebar() {
             <button
               type="button"
               onClick={toggleCollapse}
-              className="hidden md:flex p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+              className="hidden md:flex p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
               title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
             >
               {isCollapsed ? (
@@ -197,7 +191,7 @@ export default function Sidebar() {
           </div>
         </div>
 
-        {/* Modules Nav List */}
+        {/* Modules Nav List - Independent scroll container */}
         <div className="flex-1 overflow-y-auto px-2 sm:px-3 py-3 space-y-1 scrollbar-none">
           {/* Dashboard Home Link */}
           <NavLink
@@ -281,7 +275,7 @@ export default function Sidebar() {
 
         {/* Footer / Status Card */}
         {!isCollapsed && (
-          <div className="p-3 border-t border-slate-100 dark:border-slate-800/80">
+          <div className="p-3 border-t border-slate-100 dark:border-slate-800/80 shrink-0">
             <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200/80 dark:border-slate-800 flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 text-[#00ced1] shrink-0" />
               <div className="min-w-0">

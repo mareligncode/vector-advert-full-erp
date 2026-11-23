@@ -120,7 +120,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8 animate-in fade-in duration-300">
+    <div className="flex-1 w-full h-full min-h-0 overflow-y-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8 animate-in fade-in duration-300">
       {/* Welcome Banner */}
       <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-10 border border-slate-200/80 dark:border-slate-800 bg-gradient-to-r from-white via-cyan-50/20 to-blue-50/30 dark:from-[#0e1626] dark:via-[#111c30] dark:to-[#152238] shadow-sm">
         <div className="relative z-10 max-w-2xl">

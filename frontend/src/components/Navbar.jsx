@@ -1,26 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   LogOut,
-  User as UserIcon,
   Users,
   Shield,
   UserPlus,
   Menu,
   X,
   LayoutDashboard,
-  Sparkles,
-  Clock,
-  CalendarCheck,
-  Zap,
-  MapPin,
-  Briefcase,
-  GraduationCap,
-  Banknote,
-  Award,
-  BookOpen,
-  FileSpreadsheet,
   PanelLeft,
   Layers
 } from 'lucide-react';
@@ -31,22 +19,6 @@ import { useAuth } from '../context/AuthContext';
 import { useSidebar } from '../context/SidebarContext';
 
 const CAN_REGISTER_ROLES = ['superadmin', 'ceo', 'cao', 'coo', 'hrmanager', 'hrofficer'];
-
-const HR_NAV_ITEMS = [
-  { to: '/hr', end: true, label: 'Overview', icon: LayoutDashboard },
-  { to: '/hr/employees', label: 'Employees', icon: Users },
-  { to: '/hr/attendance', label: 'Attendance', icon: Clock },
-  { to: '/hr/leave', label: 'Leave', icon: CalendarCheck },
-  { to: '/hr/overtime', label: 'Overtime', icon: Zap },
-  { to: '/hr/field-visits', label: 'Field Visits', icon: MapPin },
-  { to: '/hr/recruitment', label: 'Recruitment', icon: Briefcase },
-  { to: '/hr/internships', label: 'Internships', icon: GraduationCap },
-  { to: '/hr/payroll', label: 'Payroll', icon: Banknote },
-  { to: '/hr/clearance', label: 'Clearance', icon: LogOut },
-  { to: '/hr/training', label: 'Training', icon: Award },
-  { to: '/hr/upgrades', label: 'Upgrades', icon: BookOpen },
-  { to: '/hr/plans', label: 'Plans', icon: FileSpreadsheet }
-];
 
 export default function Navbar() {
   const { t } = useTranslation();
@@ -80,7 +52,7 @@ export default function Navbar() {
   const isAuthorizedToRegister = user?.roles?.some((r) => CAN_REGISTER_ROLES.includes(r));
 
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-white/90 dark:bg-[#070b12]/90 border-b border-slate-200/80 dark:border-slate-800 transition-colors">
+    <header className="shrink-0 w-full z-40 backdrop-blur-md bg-white/90 dark:bg-[#070b12]/90 border-b border-slate-200/80 dark:border-slate-800 transition-colors relative">
       <div className="w-full px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand / Logo + Sidebar Toggle */}
         <div className="flex items-center gap-2 shrink-0">
@@ -194,40 +166,10 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* HR Subsystem Tab Menu Ribbon - Attached directly to header with zero gap */}
-      {isAuthenticated && location.pathname.startsWith('/hr') && (
-        <div className="w-full border-t border-slate-200/70 dark:border-slate-800/80 bg-white/95 dark:bg-[#0e1626]/95">
-          <div className="w-full px-3 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto py-2 scrollbar-none">
-              {HR_NAV_ITEMS.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={item.end}
-                    className={({ isActive }) =>
-                      `inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 cursor-pointer ${
-                        isActive
-                          ? 'bg-[#00ced1] text-[#020617] shadow-xs'
-                          : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#152238] hover:text-[#00ced1]'
-                      }`
-                    }
-                  >
-                    <Icon className="w-3.5 h-3.5 shrink-0" />
-                    <span>{item.label}</span>
-                  </NavLink>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Mobile Drawer Dropdown Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0e1626] shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="px-4 py-4 space-y-4 max-w-lg mx-auto">
+        <div className="md:hidden absolute top-full left-0 w-full border-t border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0e1626] shadow-xl animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+          <div className="px-4 py-4 space-y-4 max-w-lg mx-auto max-h-[calc(100vh-4rem)] overflow-y-auto">
             {isAuthenticated ? (
               <>
                 {/* User Info Card in Drawer */}
@@ -259,7 +201,7 @@ export default function Navbar() {
                     setMobileMenuOpen(false);
                     openMobile();
                   }}
-                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-100 bg-[#00ced1]/10 hover:bg-[#00ced1]/20 border border-[#00ced1]/30 transition-colors"
+                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-100 bg-[#00ced1]/10 hover:bg-[#00ced1]/20 border border-[#00ced1]/30 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5">
                     <Layers className="w-4 h-4 text-[#00ced1]" />
@@ -308,7 +250,7 @@ export default function Navbar() {
                   <button
                     onClick={handleLogout}
                     type="button"
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                   >
                     <LogOut className="w-4 h-4 shrink-0" />
                     <span>{t('nav.logout')}</span>
@@ -320,7 +262,7 @@ export default function Navbar() {
                 <Link
                   to="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block w-full py-2.5 text-center text-xs font-bold rounded-xl shadow-sm transition-all"
+                  className="block w-full py-2.5 text-center text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
                   style={{ backgroundColor: '#00ced1', color: '#020617' }}
                 >
                   <span style={{ color: '#020617' }}>{t('nav.login')}</span>

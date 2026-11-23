@@ -26,7 +26,8 @@ export default function ModulePlaceholder() {
   const Icon = currentModule.icon;
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-5xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-300">
+    <div className="flex-1 w-full h-full min-h-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 animate-in fade-in duration-300">
+      <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
       {/* Header Banner */}
       <div className="relative overflow-hidden rounded-3xl p-6 sm:p-10 bg-gradient-to-br from-white via-cyan-50/20 to-blue-50/30 dark:from-[#0e1626] dark:via-[#111c30] dark:to-[#152238] border border-slate-200/90 dark:border-slate-800 shadow-sm">
         <div className="relative z-10 space-y-4">
@@ -114,5 +115,6 @@ export default function ModulePlaceholder() {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }
