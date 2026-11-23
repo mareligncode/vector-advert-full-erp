@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Users,
   Search,
@@ -25,7 +26,9 @@ import {
   Sparkles,
   UserX,
   Clock,
-  Briefcase
+  Briefcase,
+  MapPin,
+  Building2
 } from 'lucide-react';
 import { employeeService } from '../../../services/hrService';
 import { useAuth } from '../../../context/AuthContext';
@@ -45,6 +48,8 @@ import {
 } from '../../../utils/rbac';
 
 export default function EmployeeList() {
+  const { t, i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
   const { user } = useAuth();
 
   // Data & Pagination State
@@ -154,10 +159,10 @@ export default function EmployeeList() {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
             <Users className="w-6 h-6 text-[#00ced1]" />
-            <span>Employee Master Directory</span>
+            <span>{t('employee.directory', 'Employee Master Directory')}</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Centralized personnel registry, Fayda Ethiopian National ID verification, and organizational assignments.
+            {t('employee.directorySubtitle', 'Enterprise workforce management, Fayda ID verification, compliance & organizational structure')}
           </p>
         </div>
 
@@ -170,7 +175,7 @@ export default function EmployeeList() {
               style={{ backgroundColor: '#00ced1', color: '#020617' }}
             >
               <Plus className="w-4 h-4" style={{ color: '#020617' }} />
-              <span style={{ color: '#020617' }}>Add New Personnel</span>
+              <span style={{ color: '#020617' }}>{t('employee.registerNew', 'Add New Personnel')}</span>
             </button>
           )}
 
@@ -193,7 +198,7 @@ export default function EmployeeList() {
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Staff</span>
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">{isAmharic ? 'ጠቅላላ ሰራተኞች' : 'Total Staff'}</span>
             <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
               {metrics.total}
             </span>
@@ -205,7 +210,7 @@ export default function EmployeeList() {
             <CheckCircle className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">Active Staff</span>
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">{isAmharic ? 'ንቁ ሰራተኞች' : 'Active Staff'}</span>
             <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
               {metrics.active}
             </span>
@@ -217,7 +222,7 @@ export default function EmployeeList() {
             <Clock className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">On Probation</span>
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">{isAmharic ? 'በሙከራ ላይ' : 'On Probation'}</span>
             <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
               {metrics.probation}
             </span>
@@ -229,7 +234,7 @@ export default function EmployeeList() {
             <Shield className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">Fayda Verified</span>
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">{isAmharic ? 'ፋይዳ የተረጋገጠ' : 'Fayda Verified'}</span>
             <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
               {metrics.verifiedId}
             </span>
@@ -258,7 +263,7 @@ export default function EmployeeList() {
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search by name, employee #, phone, or email..."
+            placeholder={t('employee.searchPlaceholder', 'Search by name, employee #, phone, or email...')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#152238] border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#00ced1]"
@@ -273,10 +278,10 @@ export default function EmployeeList() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#152238] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#00ced1] cursor-pointer"
           >
-            <option value="">All Statuses</option>
+            <option value="">{t('employee.allStatuses', 'All Statuses')}</option>
             {EMPLOYMENT_STATUSES.map((st) => (
               <option key={st.value} value={st.value}>
-                {st.label}
+                {isAmharic ? st.amLabel : st.label}
               </option>
             ))}
           </select>
@@ -287,7 +292,7 @@ export default function EmployeeList() {
             onChange={(e) => setDepartmentFilter(e.target.value)}
             className="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#152238] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#00ced1] cursor-pointer max-w-[170px]"
           >
-            <option value="">All Departments</option>
+            <option value="">{t('employee.allDepartments', 'All Departments')}</option>
             {DEPARTMENTS.map((d) => (
               <option key={d} value={d}>
                 {d}
@@ -301,10 +306,10 @@ export default function EmployeeList() {
             onChange={(e) => setTypeFilter(e.target.value)}
             className="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#152238] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#00ced1] cursor-pointer"
           >
-            <option value="">All Types</option>
-            {EMPLOYMENT_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
+            <option value="">{isAmharic ? 'ሁሉም የቅጥር አይነቶች' : 'All Types'}</option>
+            {EMPLOYMENT_TYPES.map((tItem) => (
+              <option key={tItem.value} value={tItem.value}>
+                {isAmharic ? tItem.amLabel : tItem.label}
               </option>
             ))}
           </select>
@@ -315,10 +320,10 @@ export default function EmployeeList() {
             onChange={(e) => setIdFilter(e.target.value)}
             className="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#152238] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#00ced1] cursor-pointer"
           >
-            <option value="">Fayda ID: All</option>
-            <option value="verified">Fayda Verified</option>
-            <option value="pending">Verification Pending</option>
-            <option value="missing">Not Uploaded</option>
+            <option value="">{isAmharic ? 'ፋይዳ ID፦ ሁሉም' : 'Fayda ID: All'}</option>
+            <option value="verified">{t('employee.verifiedId', 'Fayda Verified')}</option>
+            <option value="pending">{t('employee.pendingId', 'Verification Pending')}</option>
+            <option value="missing">{t('employee.missingId', 'Not Uploaded')}</option>
           </select>
 
           {/* View Mode Toggle */}
@@ -379,12 +384,12 @@ export default function EmployeeList() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50/70 dark:bg-[#152238]/60 border-b border-slate-200/80 dark:border-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 <tr>
-                  <th className="py-3 px-4">Employee</th>
-                  <th className="py-3 px-4">Department & Role</th>
-                  <th className="py-3 px-4">Fayda National ID</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">System User</th>
-                  <th className="py-3 px-4">Contact</th>
+                  <th className="py-3 px-4">{t('employee.details', 'Employee')}</th>
+                  <th className="py-3 px-4">{t('employee.jobTitle', 'Role')} & {t('employee.department', 'Dept')}</th>
+                  <th className="py-3 px-4">{t('employee.faydaNationalId', 'Fayda National ID')}</th>
+                  <th className="py-3 px-4">{t('employee.employmentStatus', 'Status')}</th>
+                  <th className="py-3 px-4">{t('employee.systemAccountTab', 'System User')}</th>
+                  <th className="py-3 px-4">{t('employee.primaryPhone', 'Contact')}</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -436,9 +441,25 @@ export default function EmployeeList() {
                         <span className="font-semibold text-slate-800 dark:text-slate-200 block">
                           {emp.jobTitle || 'Staff Member'}
                         </span>
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                          {emp.department || 'General'}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">
+                          <span>{emp.department || 'General'}</span>
+                          {emp.branch && (
+                            <>
+                              <span>&bull;</span>
+                              <span className="text-[#00ced1] font-medium">{emp.branch}</span>
+                            </>
+                          )}
+                        </div>
+                        {emp.manager && (
+                          <div className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
+                            <span className="font-semibold text-slate-500">Mgr:</span>
+                            <span>
+                              {typeof emp.manager === 'object'
+                                ? `${emp.manager.name?.first || ''} ${emp.manager.name?.last || ''}`.trim() || emp.manager.employeeNumber
+                                : emp.manager}
+                            </span>
+                          </div>
+                        )}
                       </td>
 
                       {/* Fayda National ID */}
@@ -591,7 +612,23 @@ export default function EmployeeList() {
 
                     <div className="space-y-1 text-xs">
                       <p className="font-semibold text-slate-800 dark:text-slate-200">{emp.jobTitle || 'Staff Member'}</p>
-                      <p className="text-[11px] text-slate-500">{emp.department || 'General'}</p>
+                      <div className="flex flex-wrap items-center gap-1 text-[11px] text-slate-500">
+                        <span>{emp.department || 'General'}</span>
+                        {emp.branch && (
+                          <>
+                            <span>&bull;</span>
+                            <span className="text-[#00ced1] font-medium">{emp.branch}</span>
+                          </>
+                        )}
+                      </div>
+                      {emp.manager && (
+                        <p className="text-[10px] text-slate-400">
+                          <span className="font-medium text-slate-500">Mgr:</span>{' '}
+                          {typeof emp.manager === 'object'
+                            ? `${emp.manager.name?.first || ''} ${emp.manager.name?.last || ''}`.trim() || emp.manager.employeeNumber
+                            : emp.manager}
+                        </p>
+                      )}
                     </div>
 
                     <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 space-y-1 text-[11px] text-slate-500">

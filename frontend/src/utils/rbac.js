@@ -88,18 +88,68 @@ export const DEPARTMENTS = [
 ];
 
 export const EMPLOYMENT_STATUSES = [
-  { value: 'active', label: 'Active', color: 'emerald' },
-  { value: 'probation', label: 'Probation', color: 'amber' },
-  { value: 'suspended', label: 'Suspended', color: 'rose' },
-  { value: 'on_leave', label: 'On Leave', color: 'blue' },
-  { value: 'terminated', label: 'Terminated', color: 'slate' },
-  { value: 'resigned', label: 'Resigned', color: 'purple' }
+  { value: 'active', label: 'Active', amLabel: 'ንቁ (Active)' },
+  { value: 'probation', label: 'Probation', amLabel: 'የሙከራ ጊዜ (Probation)' },
+  { value: 'suspended', label: 'Suspended', amLabel: 'የታገደ (Suspended)' },
+  { value: 'on_leave', label: 'On Leave', amLabel: 'በፈቃድ ላይ (On Leave)' },
+  { value: 'terminated', label: 'Terminated', amLabel: 'የተሰናበተ (Terminated)' },
+  { value: 'resigned', label: 'Resigned', amLabel: 'የለቀቀ (Resigned)' }
 ];
 
 export const EMPLOYMENT_TYPES = [
-  { value: 'full-time', label: 'Full-Time' },
-  { value: 'part-time', label: 'Part-Time' },
-  { value: 'contract', label: 'Contract' },
-  { value: 'freelance', label: 'Freelance' },
-  { value: 'internship', label: 'Internship' }
+  { value: 'full-time', label: 'Full-Time', amLabel: 'ሙሉ ሰዓት (Full-Time)' },
+  { value: 'part-time', label: 'Part-Time', amLabel: 'የትርፍ ሰዓት (Part-Time)' },
+  { value: 'contract', label: 'Contract', amLabel: 'የውል (Contract)' },
+  { value: 'freelance', label: 'Freelance', amLabel: 'ፍሪላንስ (Freelance)' },
+  { value: 'internship', label: 'Internship', amLabel: 'ልምምድ (Internship)' }
+];
+
+export const RELIGIONS = [
+  { value: 'Orthodox', label: 'Orthodox Christian', amLabel: 'ኦርቶዶክስ ተዋህዶ' },
+  { value: 'Muslim', label: 'Muslim', amLabel: 'እስልምና' },
+  { value: 'Protestant', label: 'Protestant', amLabel: 'ፕሮቴስታንት' },
+  { value: 'Catholic', label: 'Catholic', amLabel: 'ካቶሊክ' },
+  { value: 'Traditional', label: 'Traditional / Waaqeffanna', amLabel: 'ባህላዊ / ዋቄፈና' },
+  { value: 'Other', label: 'Other', amLabel: 'ሌላ' }
+];
+
+export const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
+
+export const EDUCATION_LEVELS = [
+  { value: 'High School', label: 'High School / 12th Grade', amLabel: 'የሁለተኛ ደረጃ' },
+  { value: 'TVET / Diploma', label: 'TVET / Diploma (Level 1-4)', amLabel: 'ዲፕሎማ / ቴክኒክና ሙያ' },
+  { value: "Bachelor's Degree", label: "Bachelor's Degree (BSc / BA)", amLabel: 'የመጀመሪያ ዲግሪ' },
+  { value: "Master's Degree", label: "Master's Degree (MSc / MA / MBA)", amLabel: 'ሁለተኛ ዲግሪ (ማስተርስ)' },
+  { value: 'PhD / Doctorate', label: 'PhD / Doctorate', amLabel: 'የዶክትሬት ዲግሪ' },
+  { value: 'Professional Certificate', label: 'Professional Certificate', amLabel: 'የሙያ ማረጋገጫ ምስክር ወረቀት' },
+  { value: 'Other', label: 'Other', amLabel: 'ሌላ' }
+];
+
+export const WORK_LOCATIONS = [
+  { value: 'Headquarters (HQ)', label: 'Headquarters (HQ)', amLabel: 'ዋና መ/ቤት (HQ)' },
+  { value: 'Printing & Production Plant', label: 'Printing & Production Plant', amLabel: 'ማተሚያና ማምረቻ ፋብሪካ' },
+  { value: 'Design & Creative Studio', label: 'Design & Creative Studio', amLabel: 'ዲዛይንና ፈጠራ ስቱዲዮ' },
+  { value: 'Central Warehouse & Store', label: 'Central Warehouse & Store', amLabel: 'ዋና መጋዘንና እቃ ግምጃ ቤት' },
+  { value: 'Field / On-Site Operations', label: 'Field / On-Site Operations', amLabel: 'የሜዳና የውጭ ስራዎች' },
+  { value: 'Remote / Work from Home', label: 'Remote / Work from Home', amLabel: 'ከቤት ሆኖ የሚሰራ' }
+];
+
+export const BRANCHES = [
+  { value: 'Main Branch - Bole', label: 'Main Branch - Bole', amLabel: 'ዋና ቅርንጫፍ - ቦሌ' },
+  { value: 'Mexico City Branch', label: 'Mexico City Branch', amLabel: 'ሜክሲኮ ቅርንጫፍ' },
+  { value: 'Piazza Branch', label: 'Piazza Branch', amLabel: 'ፒያሳ ቅርንጫፍ' },
+  { value: 'Megenagna Branch', label: 'Megenagna Branch', amLabel: 'መገናኛ ቅርንጫፍ' },
+  { value: 'Kality Industrial Zone', label: 'Kality Industrial Zone', amLabel: 'ቃሊቲ ኢንዱስትሪ ዞን' },
+  { value: 'Hawassa Branch', label: 'Hawassa Branch', amLabel: 'ሀዋሳ ቅርንጫፍ' },
+  { value: 'Adama Branch', label: 'Adama Branch', amLabel: 'አዳማ ቅርንጫፍ' }
+];
+
+export const GUARANTOR_RELATIONSHIPS = [
+  { value: 'Parent', label: 'Parent (Father/Mother)', amLabel: 'ወላጅ (አባት/እናት)' },
+  { value: 'Spouse', label: 'Spouse (Husband/Wife)', amLabel: 'የትዳር አጋር' },
+  { value: 'Sibling', label: 'Sibling (Brother/Sister)', amLabel: 'ወንድም / እህት' },
+  { value: 'Relative', label: 'Relative / Family Member', amLabel: 'የቅርብ ዘመድ' },
+  { value: 'Colleague', label: 'Colleague / Business Associate', amLabel: 'የስራ ባልደረባ' },
+  { value: 'Friend', label: 'Friend / Guarantor', amLabel: 'ጓደኛ / ዋስ' },
+  { value: 'Other', label: 'Other', amLabel: 'ሌላ' }
 ];

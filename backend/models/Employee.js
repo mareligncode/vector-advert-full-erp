@@ -56,7 +56,21 @@ const employeeSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      enum: ['male', 'female', 'other']
+      enum: ['male', 'female']
+    },
+    religion: {
+      type: String,
+      trim: true
+    },
+    bloodGroup: {
+      type: String,
+      trim: true
+    },
+    education: {
+      level: { type: String, trim: true },
+      fieldOfStudy: { type: String, trim: true },
+      institution: { type: String, trim: true },
+      graduationYear: { type: String, trim: true }
     },
     maritalStatus: {
       type: String,
@@ -80,6 +94,7 @@ const employeeSchema = new mongoose.Schema(
       {
         name: { type: String, required: true },
         phone: { type: String, required: true },
+        relationship: { type: String, trim: true },
         nationalId: {
           fanNumber: { type: String },
           finNumber: { type: String },

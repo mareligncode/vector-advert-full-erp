@@ -228,19 +228,8 @@ export default function Sidebar() {
                     ? 'bg-[#00ced1] text-[#020617] font-bold shadow-xs'
                     : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#152238] hover:text-[#00ced1]'
                 } ${isCollapsed ? 'justify-center' : ''}`}
-                title={isCollapsed ? `${mod.id} | ${mod.name} - ${mod.func}` : ''}
+                title={isCollapsed ? `${mod.name} - ${mod.func}` : ''}
               >
-                {/* Module Number Chip */}
-                <span
-                  className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 ${
-                    isActive
-                      ? 'bg-black/15 text-[#020617]'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-[#00ced1]/20 group-hover:text-[#00ced1]'
-                  }`}
-                >
-                  {mod.id}
-                </span>
-
                 {/* Module Icon */}
                 <Icon className="w-4 h-4 shrink-0" />
 

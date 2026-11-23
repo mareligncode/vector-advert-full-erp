@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   X,
   User,
@@ -20,7 +21,12 @@ import {
   Key,
   UserCheck,
   RefreshCw,
-  Camera
+  Camera,
+  HeartHandshake,
+  GraduationCap,
+  MapPin,
+  Building2,
+  Users
 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { employeeService } from '../../services/hrService';
@@ -45,6 +51,8 @@ export default function EmployeeDetailModal({
   onEdit,
   onOpenEvidence
 }) {
+  const { t, i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
   const { user } = useAuth();
   if (!isOpen || !employee) return null;
 
@@ -368,11 +376,10 @@ export default function EmployeeDetailModal({
         {/* Action Message Banner */}
         {actionMessage.text && (
           <div
-            className={`mx-4 sm:mx-6 mt-3 p-3 rounded-2xl text-xs flex items-center gap-2 shrink-0 ${
-              actionMessage.type === 'success'
+            className={`mx-4 sm:mx-6 mt-3 p-3 rounded-2xl text-xs flex items-center gap-2 shrink-0 ${actionMessage.type === 'success'
                 ? 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
                 : 'bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300'
-            }`}
+              }`}
           >
             {actionMessage.type === 'success' ? (
               <CheckCircle className="w-4 h-4 shrink-0" />
@@ -388,22 +395,20 @@ export default function EmployeeDetailModal({
           <button
             type="button"
             onClick={() => setActiveTab('overview')}
-            className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 whitespace-nowrap cursor-pointer ${
-              activeTab === 'overview'
+            className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 whitespace-nowrap cursor-pointer ${activeTab === 'overview'
                 ? 'border-[#00ced1] text-[#00ced1] bg-white dark:bg-[#0e1626]'
                 : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
+              }`}
           >
             Overview & Bio
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('fayda')}
-            className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'fayda'
+            className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${activeTab === 'fayda'
                 ? 'border-[#00ced1] text-[#00ced1] bg-white dark:bg-[#0e1626]'
                 : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
+              }`}
           >
             <span>Fayda National ID</span>
             {isNationalIdApproved ? (
@@ -416,11 +421,10 @@ export default function EmployeeDetailModal({
             <button
               type="button"
               onClick={() => setActiveTab('compensation')}
-              className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 whitespace-nowrap cursor-pointer ${
-                activeTab === 'compensation'
+              className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 whitespace-nowrap cursor-pointer ${activeTab === 'compensation'
                   ? 'border-[#00ced1] text-[#00ced1] bg-white dark:bg-[#0e1626]'
                   : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
+                }`}
             >
               Compensation & Bank
             </button>
@@ -428,11 +432,10 @@ export default function EmployeeDetailModal({
           <button
             type="button"
             onClick={() => setActiveTab('documents')}
-            className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'documents'
+            className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${activeTab === 'documents'
                 ? 'border-[#00ced1] text-[#00ced1] bg-white dark:bg-[#0e1626]'
                 : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
+              }`}
           >
             <span>Documents ({employee.employeeDocuments?.length || 0})</span>
           </button>
@@ -440,11 +443,10 @@ export default function EmployeeDetailModal({
             <button
               type="button"
               onClick={() => setActiveTab('security')}
-              className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 whitespace-nowrap cursor-pointer ${
-                activeTab === 'security'
+              className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 whitespace-nowrap cursor-pointer ${activeTab === 'security'
                   ? 'border-[#00ced1] text-[#00ced1] bg-white dark:bg-[#0e1626]'
                   : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
+                }`}
             >
               System User Account
             </button>
@@ -453,11 +455,10 @@ export default function EmployeeDetailModal({
             <button
               type="button"
               onClick={() => setActiveTab('lifecycle')}
-              className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 whitespace-nowrap cursor-pointer ${
-                activeTab === 'lifecycle'
+              className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 whitespace-nowrap cursor-pointer ${activeTab === 'lifecycle'
                   ? 'border-[#00ced1] text-[#00ced1] bg-white dark:bg-[#0e1626]'
                   : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
+                }`}
             >
               Status & Lifecycle
             </button>
@@ -471,29 +472,144 @@ export default function EmployeeDetailModal({
             <div className="space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#152238] border border-slate-200/80 dark:border-slate-800">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Employment Type</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">{t('employee.employmentType', 'Employment Type')}</span>
                   <span className="font-bold text-slate-900 dark:text-white capitalize">
                     {employee.employmentType || 'Full-Time'}
                   </span>
                 </div>
                 <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#152238] border border-slate-200/80 dark:border-slate-800">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Work Location</span>
-                  <span className="font-bold text-slate-900 dark:text-white">
-                    {employee.workLocation || 'Addis Ababa HQ'}
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-[#00ced1]" />
+                    <span>{t('employee.workLocation', 'Work Location')}</span>
+                  </span>
+                  <span className="font-bold text-slate-900 dark:text-white truncate block">
+                    {employee.workLocation || 'Headquarters (HQ)'}
                   </span>
                 </div>
                 <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#152238] border border-slate-200/80 dark:border-slate-800">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Hire Date</span>
-                  <span className="font-bold text-slate-900 dark:text-white">
-                    {employee.hireDate ? new Date(employee.hireDate).toLocaleDateString() : 'N/A'}
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block flex items-center gap-1">
+                    <Building2 className="w-3 h-3 text-[#00ced1]" />
+                    <span>{t('employee.branch', 'Branch')}</span>
+                  </span>
+                  <span className="font-bold text-slate-900 dark:text-white truncate block">
+                    {employee.branch || 'Main Branch - Bole'}
                   </span>
                 </div>
                 <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#152238] border border-slate-200/80 dark:border-slate-800">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Gender & Marital</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block flex items-center gap-1">
+                    <Users className="w-3 h-3 text-[#00ced1]" />
+                    <span>{t('employee.manager', 'Direct Manager')}</span>
+                  </span>
+                  <span className="font-bold text-slate-900 dark:text-white truncate block">
+                    {employee.manager
+                      ? typeof employee.manager === 'object'
+                        ? `${employee.manager.name ? employee.manager.name.first + ' ' + (employee.manager.name.last || '') : employee.manager.employeeNumber}`
+                        : employee.manager
+                      : t('employee.noManager', 'None / Top Executive')}
+                  </span>
+                </div>
+              </div>
+
+              {/* Demographics: Gender, Marital, Religion, Blood Group */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#152238] border border-slate-200/80 dark:border-slate-800">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">{t('employee.gender', 'Gender')} & {t('employee.maritalStatus', 'Marital')}</span>
                   <span className="font-bold text-slate-900 dark:text-white capitalize">
                     {employee.gender || 'N/A'}, {employee.maritalStatus || 'Single'}
                   </span>
                 </div>
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#152238] border border-slate-200/80 dark:border-slate-800">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">{t('employee.religion', 'Religion')}</span>
+                  <span className="font-bold text-slate-900 dark:text-white">
+                    {employee.religion || 'Not Specified'}
+                  </span>
+                </div>
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#152238] border border-slate-200/80 dark:border-slate-800">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">{t('employee.bloodGroup', 'Blood Group')}</span>
+                  <span className="font-mono font-bold text-[#00ced1]">
+                    {employee.bloodGroup || 'Unknown'}
+                  </span>
+                </div>
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#152238] border border-slate-200/80 dark:border-slate-800">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">{t('employee.hireDate', 'Hire Date')}</span>
+                  <span className="font-bold text-slate-900 dark:text-white">
+                    {employee.hireDate ? new Date(employee.hireDate).toLocaleDateString() : 'N/A'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Education Level Card */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200 dark:border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <GraduationCap className="w-4 h-4 text-[#00ced1]" />
+                    <span>{t('employee.educationTitle', 'Current Education Level & Qualifications')}</span>
+                  </h4>
+                  {employee.education?.level && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#00ced1]/15 text-[#00ced1] border border-[#00ced1]/30">
+                      {employee.education.level}
+                    </span>
+                  )}
+                </div>
+                {employee.education && (employee.education.level || employee.education.institution || employee.education.fieldOfStudy) ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <span className="text-slate-400 text-[10px] block">{t('employee.fieldOfStudy', 'Field of Study / Major')}</span>
+                      <span className="font-bold text-slate-800 dark:text-slate-200">{employee.education.fieldOfStudy || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 text-[10px] block">{t('employee.institution', 'Institution / University')}</span>
+                      <span className="font-bold text-slate-800 dark:text-slate-200">{employee.education.institution || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 text-[10px] block">{t('employee.graduationYear', 'Graduation Date / Year')}</span>
+                      <span className="font-bold text-slate-800 dark:text-slate-200">{employee.education.graduationYear || 'N/A'}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-slate-400 italic">No formal education record documented.</p>
+                )}
+              </div>
+
+              {/* Warranty / Guarantor Card */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200 dark:border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <HeartHandshake className="w-4 h-4 text-[#00ced1]" />
+                    <span>{t('employee.warrantyTitle', 'Warranty / Guarantor')}</span>
+                  </h4>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                    Legal Guarantee
+                  </span>
+                </div>
+                {employee.guarantors && employee.guarantors.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {employee.guarantors.map((g, idx) => (
+                      <div key={idx} className="p-3.5 rounded-xl bg-white dark:bg-[#0e1626] border border-slate-200 dark:border-slate-700 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="font-bold text-slate-800 dark:text-slate-200">{g.name}</p>
+                          <span className="px-2 py-0.2 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                            {g.relationship || 'Guarantor'}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-[10px] text-slate-400 block">{t('employee.primaryPhone', 'Phone')}</span>
+                            <span className="font-mono text-slate-700 dark:text-slate-300">{g.phone}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-400 block">Fayda FAN</span>
+                            <span className="font-mono font-bold text-[#00ced1] text-[11px] truncate block">
+                              {g.nationalId?.fanNumber || 'Not provided'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-slate-400 italic">No guarantor warranty registered for this personnel.</p>
+                )}
               </div>
 
               {/* Contact Card */}
@@ -558,19 +674,18 @@ export default function EmployeeDetailModal({
                     <span>Fayda Ethiopian National ID Record</span>
                   </h4>
                   <span
-                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                      isNationalIdApproved
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isNationalIdApproved
                         ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800'
                         : employee.nationalId?.status === 'rejected'
-                        ? 'bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-400'
-                        : 'bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400'
-                    }`}
+                          ? 'bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-400'
+                          : 'bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400'
+                      }`}
                   >
                     {isNationalIdApproved
                       ? 'Verified National ID'
                       : employee.nationalId?.status === 'rejected'
-                      ? 'Verification Rejected'
-                      : 'Pending HR Verification'}
+                        ? 'Verification Rejected'
+                        : 'Pending HR Verification'}
                   </span>
                 </div>
 
@@ -787,13 +902,12 @@ export default function EmployeeDetailModal({
                               {doc.type || 'Document'}
                             </span>
                             <span
-                              className={`px-2 py-0.2 rounded-full text-[9px] font-bold ${
-                                doc.status === 'approved'
+                              className={`px-2 py-0.2 rounded-full text-[9px] font-bold ${doc.status === 'approved'
                                   ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400'
                                   : doc.status === 'rejected'
-                                  ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400'
-                                  : 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400'
-                              }`}
+                                    ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400'
+                                    : 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400'
+                                }`}
                             >
                               {doc.status || 'pending'}
                             </span>

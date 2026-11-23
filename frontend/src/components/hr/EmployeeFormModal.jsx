@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   X,
   User,
@@ -14,7 +15,12 @@ import {
   Check,
   AlertCircle,
   Save,
-  UserPlus
+  UserPlus,
+  GraduationCap,
+  HeartHandshake,
+  MapPin,
+  Building2,
+  Users
 } from 'lucide-react';
 import { employeeService } from '../../services/hrService';
 import { useAuth } from '../../context/AuthContext';
@@ -24,10 +30,18 @@ import {
   DEPARTMENTS,
   EMPLOYMENT_STATUSES,
   EMPLOYMENT_TYPES,
-  ALL_ROLES
+  ALL_ROLES,
+  RELIGIONS,
+  BLOOD_GROUPS,
+  EDUCATION_LEVELS,
+  WORK_LOCATIONS,
+  BRANCHES,
+  GUARANTOR_RELATIONSHIPS
 } from '../../utils/rbac';
 
 export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess }) {
+  const { t, i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
   const { user } = useAuth();
   const isEditMode = !!employee;
   const showFinancials = canViewFinancials(user);
@@ -38,6 +52,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
   const [error, setError] = useState('');
   const [createdCredentials, setCreatedCredentials] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [managerOptions, setManagerOptions] = useState([]);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -51,6 +66,8 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
     nationality: 'Ethiopian',
     maritalStatus: 'single',
     homeAddress: '',
+    religion: '',
+    bloodGroup: '',
     // Contact
     primaryPhone: '',
     alternativePhone: '',
@@ -59,10 +76,11 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
     employeeNumber: '',
     department: 'Human Resources',
     jobTitle: '',
+    manager: '',
     employmentStatus: 'probation',
     employmentType: 'full-time',
-    workLocation: 'Addis Ababa HQ',
-    branch: 'Main Branch',
+    workLocation: 'Headquarters (HQ)',
+    branch: 'Main Branch - Bole',
     hireDate: new Date().toISOString().split('T')[0],
     probationEndDate: '',
     contractEndDate: '',
@@ -74,6 +92,17 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
     // Fayda National ID
     fanNumber: '',
     finNumber: '',
+    // Warranty / Guarantor
+    guarantorName: '',
+    guarantorPhone: '',
+    guarantorRelationship: 'Parent',
+    guarantorFan: '',
+    guarantorFin: '',
+    // Current Education Level
+    educationLevel: '',
+    fieldOfStudy: '',
+    institution: '',
+    graduationYear: '',
     // Emergency Contact
     emergencyName: '',
     emergencyPhone: '',
@@ -83,6 +112,32 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
     userRole: 'employee',
     customPassword: ''
   });
+
+  // Fetch active employees for manager dropdown
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let isMounted = true;
+    const loadPotentialManagers = async () => {
+      try {
+        const res = await employeeService.getEmployees({ limit: 100, employmentStatus: 'active' });
+        if (res.success && res.data && isMounted) {
+          // Filter out current employee in edit mode to avoid self-referencing hierarchy
+          const filtered = isEditMode
+            ? res.data.filter((emp) => emp._id !== employee._id)
+            : res.data;
+          setManagerOptions(filtered);
+        }
+      } catch (err) {
+        console.error('Failed to load manager candidates:', err);
+      }
+    };
+
+    loadPotentialManagers();
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, isEditMode, employee]);
 
   // Populate form if in edit mode
   useEffect(() => {
@@ -96,16 +151,19 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
         nationality: employee.nationality || 'Ethiopian',
         maritalStatus: employee.maritalStatus || 'single',
         homeAddress: employee.homeAddress || '',
+        religion: employee.religion || '',
+        bloodGroup: employee.bloodGroup || '',
         primaryPhone: employee.primaryPhone || '',
         alternativePhone: employee.alternativePhone || '',
         email: employee.email || '',
         employeeNumber: employee.employeeNumber || '',
         department: employee.department || 'Human Resources',
         jobTitle: employee.jobTitle || '',
+        manager: typeof employee.manager === 'object' && employee.manager?._id ? employee.manager._id : employee.manager || '',
         employmentStatus: employee.employmentStatus || 'probation',
         employmentType: employee.employmentType || 'full-time',
-        workLocation: employee.workLocation || 'Addis Ababa HQ',
-        branch: employee.branch || 'Main Branch',
+        workLocation: employee.workLocation || 'Headquarters (HQ)',
+        branch: employee.branch || 'Main Branch - Bole',
         hireDate: employee.hireDate ? employee.hireDate.split('T')[0] : new Date().toISOString().split('T')[0],
         probationEndDate: employee.probationEndDate ? employee.probationEndDate.split('T')[0] : '',
         contractEndDate: employee.contractEndDate ? employee.contractEndDate.split('T')[0] : '',
@@ -115,6 +173,18 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
         bankAccountNumber: employee.bankAccounts?.[0]?.accountNumber || '',
         fanNumber: employee.nationalId?.fanNumber || '',
         finNumber: employee.nationalId?.finNumber || '',
+        // Warranty / Guarantor
+        guarantorName: employee.guarantors?.[0]?.name || '',
+        guarantorPhone: employee.guarantors?.[0]?.phone || '',
+        guarantorRelationship: employee.guarantors?.[0]?.relationship || 'Parent',
+        guarantorFan: employee.guarantors?.[0]?.nationalId?.fanNumber || '',
+        guarantorFin: employee.guarantors?.[0]?.nationalId?.finNumber || '',
+        // Education
+        educationLevel: employee.education?.level || '',
+        fieldOfStudy: employee.education?.fieldOfStudy || '',
+        institution: employee.education?.institution || '',
+        graduationYear: employee.education?.graduationYear || '',
+        // Emergency
         emergencyName: employee.emergencyContacts?.[0]?.name || '',
         emergencyPhone: employee.emergencyContacts?.[0]?.phone || '',
         emergencyRelation: employee.emergencyContacts?.[0]?.relationship || 'Spouse',
@@ -133,16 +203,19 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
         nationality: 'Ethiopian',
         maritalStatus: 'single',
         homeAddress: '',
+        religion: '',
+        bloodGroup: '',
         primaryPhone: '',
         alternativePhone: '',
         email: '',
         employeeNumber: '',
         department: 'Human Resources',
         jobTitle: '',
+        manager: '',
         employmentStatus: 'probation',
         employmentType: 'full-time',
-        workLocation: 'Addis Ababa HQ',
-        branch: 'Main Branch',
+        workLocation: 'Headquarters (HQ)',
+        branch: 'Main Branch - Bole',
         hireDate: new Date().toISOString().split('T')[0],
         probationEndDate: '',
         contractEndDate: '',
@@ -152,6 +225,15 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
         bankAccountNumber: '',
         fanNumber: '',
         finNumber: '',
+        guarantorName: '',
+        guarantorPhone: '',
+        guarantorRelationship: 'Parent',
+        guarantorFan: '',
+        guarantorFin: '',
+        educationLevel: '',
+        fieldOfStudy: '',
+        institution: '',
+        graduationYear: '',
         emergencyName: '',
         emergencyPhone: '',
         emergencyRelation: 'Spouse',
@@ -188,13 +270,13 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
     setError('');
 
     if (!formData.firstName.trim() || !formData.lastName.trim()) {
-      setError('First and last names are mandatory.');
+      setError(isAmharic ? 'የመጀመሪያ እና የአያት ስም የግዴታ ነው።' : 'First and last names are mandatory.');
       setActiveTab('personal');
       return;
     }
 
     if (!formData.primaryPhone.trim()) {
-      setError('Primary phone number is required.');
+      setError(isAmharic ? 'ዋና ስልክ ቁጥር የግዴታ ነው።' : 'Primary phone number is required.');
       setActiveTab('personal');
       return;
     }
@@ -208,7 +290,16 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
           middle: formData.middleName.trim(),
           last: formData.lastName.trim()
         },
-        gender: formData.gender,
+        gender: formData.gender, // strictly 'male' or 'female'
+        religion: formData.religion || undefined,
+        bloodGroup: formData.bloodGroup || undefined,
+        education: {
+          level: formData.educationLevel || undefined,
+          fieldOfStudy: formData.fieldOfStudy.trim() || undefined,
+          institution: formData.institution.trim() || undefined,
+          graduationYear: formData.graduationYear.trim() || undefined
+        },
+        manager: formData.manager || undefined,
         dateOfBirth: formData.dateOfBirth || undefined,
         nationality: formData.nationality.trim(),
         maritalStatus: formData.maritalStatus,
@@ -231,8 +322,24 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
         }
       };
 
-      if (formData.employeeNumber.trim()) {
+      // Only pass employeeNumber if explicitly set in edit mode (auto-generated in create mode)
+      if (isEditMode && formData.employeeNumber.trim()) {
         payload.employeeNumber = formData.employeeNumber.trim();
+      }
+
+      // Warranty / Guarantor
+      if (formData.guarantorName.trim() && formData.guarantorPhone.trim()) {
+        payload.guarantors = [
+          {
+            name: formData.guarantorName.trim(),
+            phone: formData.guarantorPhone.trim(),
+            relationship: formData.guarantorRelationship || 'Parent',
+            nationalId: {
+              fanNumber: formData.guarantorFan.trim() || undefined,
+              finNumber: formData.guarantorFin.trim() || undefined
+            }
+          }
+        ];
       }
 
       // Financials (if permitted)
@@ -241,10 +348,11 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
           payload.basicSalary = Number(formData.basicSalary);
         }
         if (formData.bankAccountNumber.trim()) {
+          const autoHolder = `${formData.firstName} ${formData.middleName ? formData.middleName + ' ' : ''}${formData.lastName}`.trim();
           payload.bankAccounts = [
             {
               bankName: formData.bankName,
-              holderName: formData.bankHolderName.trim() || `${formData.firstName} ${formData.lastName}`.trim(),
+              holderName: formData.bankHolderName.trim() || autoHolder,
               accountNumber: formData.bankAccountNumber.trim(),
               isPrimary: true
             }
@@ -266,7 +374,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
       // User account inline provisioning (Create mode only)
       if (!isEditMode && formData.createUserAccount) {
         if (!formData.email.trim()) {
-          setError('Email is required when creating a system login account.');
+          setError(isAmharic ? 'የስርዓት መለያ ለመክፈት ኢሜይል ማስገባት ያስፈልጋል።' : 'Email is required when creating a system login account.');
           setActiveTab('personal');
           setLoading(false);
           return;
@@ -311,7 +419,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full max-w-3xl bg-white dark:bg-[#0e1626] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+      <div className="w-full max-w-4xl bg-white dark:bg-[#0e1626] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
         {/* Header */}
         <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
@@ -320,12 +428,14 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-                {isEditMode ? `Edit Personnel: #${employee?.employeeNumber}` : 'Register New Personnel'}
+                {isEditMode
+                  ? `${t('employee.editPersonnel', 'Edit Personnel')}: #${employee?.employeeNumber}`
+                  : t('employee.registerNew', 'Register New Personnel')}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {isEditMode
-                  ? 'Update employee profile details, compensation, and organization data'
-                  : 'Add a new employee to the ERP directory and optionally provision credentials'}
+                  ? 'Update employee profile details, hierarchy, warranty & qualifications'
+                  : 'Add a new employee with auto-assigned ID, guarantor warranty & qualifications'}
               </p>
             </div>
           </div>
@@ -383,7 +493,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                   onClick={onClose}
                   className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors cursor-pointer"
                 >
-                  Done
+                  {t('common.close', 'Done')}
                 </button>
               </div>
             </div>
@@ -401,7 +511,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                     : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                 }`}
               >
-                1. Personal & Contact
+                {t('employee.personalTab', '1. Personal & Contact')}
               </button>
               <button
                 type="button"
@@ -412,7 +522,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                     : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                 }`}
               >
-                2. Job & Department
+                {t('employee.jobTab', '2. Job & Organization')}
               </button>
               <button
                 type="button"
@@ -423,7 +533,19 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                     : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                 }`}
               >
-                3. Financial & Fayda ID
+                {t('employee.financialTab', '3. Financial & Fayda ID')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('warranty')}
+                className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'warranty'
+                    ? 'border-[#00ced1] text-[#00ced1] bg-white dark:bg-[#0e1626]'
+                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+              >
+                <HeartHandshake className="w-3.5 h-3.5" />
+                <span>{t('employee.warrantyEducationTab', '4. Warranty & Education')}</span>
               </button>
               <button
                 type="button"
@@ -434,7 +556,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                     : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                 }`}
               >
-                4. Emergency & Account
+                {t('employee.emergencyAccountTab', '5. Emergency & Account')}
               </button>
             </div>
 
@@ -451,10 +573,11 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
               {/* TAB 1: Personal & Contact */}
               {activeTab === 'personal' && (
                 <div className="space-y-4">
+                  {/* Name Fields */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        First Name <span className="text-rose-500">*</span>
+                        {t('employee.firstName', 'First Name')} <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -462,26 +585,26 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                         required
                         value={formData.firstName}
                         onChange={handleChange}
-                        placeholder="e.g. Abebe"
+                        placeholder="e.g. Abebe / አበበ"
                         className="brand-input"
                       />
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Father's Name (Middle)
+                        {t('employee.middleName', "Father's Name (Middle)")}
                       </label>
                       <input
                         type="text"
                         name="middleName"
                         value={formData.middleName}
                         onChange={handleChange}
-                        placeholder="e.g. Kebede"
+                        placeholder="e.g. Kebede / ከበደ"
                         className="brand-input"
                       />
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Grandfather's Name (Last) <span className="text-rose-500">*</span>
+                        {t('employee.lastName', "Grandfather's Name (Last)")} <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -489,16 +612,17 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                         required
                         value={formData.lastName}
                         onChange={handleChange}
-                        placeholder="e.g. Tadesse"
+                        placeholder="e.g. Tadesse / ታደሰ"
                         className="brand-input"
                       />
                     </div>
                   </div>
 
+                  {/* Phone & Email */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Primary Phone <span className="text-rose-500">*</span>
+                        {t('employee.primaryPhone', 'Primary Phone')} <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="tel"
@@ -512,7 +636,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Alternative Phone
+                        {t('employee.alternativePhone', 'Alternative Phone')}
                       </label>
                       <input
                         type="tel"
@@ -525,7 +649,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Email Address
+                        {t('employee.email', 'Email Address')}
                       </label>
                       <input
                         type="email"
@@ -538,20 +662,20 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                     </div>
                   </div>
 
+                  {/* Gender (Male / Female ONLY - other removed), DOB, Marital, Nationality */}
                   <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Gender
+                        {t('employee.gender', 'Gender')} <span className="text-rose-500">*</span>
                       </label>
                       <select name="gender" value={formData.gender} onChange={handleChange} className="brand-input">
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
+                        <option value="male">{t('employee.male', 'Male')}</option>
+                        <option value="female">{t('employee.female', 'Female')}</option>
                       </select>
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Date of Birth
+                        {t('employee.dateOfBirth', 'Date of Birth')}
                       </label>
                       <input
                         type="date"
@@ -563,18 +687,18 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Marital Status
+                        {t('employee.maritalStatus', 'Marital Status')}
                       </label>
                       <select name="maritalStatus" value={formData.maritalStatus} onChange={handleChange} className="brand-input">
-                        <option value="single">Single</option>
-                        <option value="married">Married</option>
-                        <option value="divorced">Divorced</option>
-                        <option value="widowed">Widowed</option>
+                        <option value="single">Single / ያላገባ</option>
+                        <option value="married">Married / ያገባ</option>
+                        <option value="divorced">Divorced / የተፋታ</option>
+                        <option value="widowed">Widowed / የሞተበት</option>
                       </select>
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Nationality
+                        {t('employee.nationality', 'Nationality')}
                       </label>
                       <input
                         type="text"
@@ -586,16 +710,48 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                     </div>
                   </div>
 
+                  {/* Religion & Blood Group */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        {t('employee.religion', 'Religion')}
+                      </label>
+                      <select name="religion" value={formData.religion} onChange={handleChange} className="brand-input">
+                        <option value="">{t('employee.selectReligion', '-- Select Religion --')}</option>
+                        {RELIGIONS.map((rel) => (
+                          <option key={rel.value} value={rel.value}>
+                            {isAmharic ? rel.amLabel : rel.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        {t('employee.bloodGroup', 'Blood Group')}
+                      </label>
+                      <select name="bloodGroup" value={formData.bloodGroup} onChange={handleChange} className="brand-input font-bold">
+                        <option value="">{t('employee.selectBloodGroup', '-- Select Blood Group --')}</option>
+                        {BLOOD_GROUPS.map((bg) => (
+                          <option key={bg} value={bg}>
+                            {bg}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Address */}
                   <div>
                     <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      Residential Home Address
+                      {t('employee.homeAddress', 'Residential Home Address')}
                     </label>
                     <input
                       type="text"
                       name="homeAddress"
                       value={formData.homeAddress}
                       onChange={handleChange}
-                      placeholder="e.g. Bole Subcity, Woreda 03, House #142"
+                      placeholder="e.g. Bole Subcity, Woreda 03, House #142 / ቦሌ ክፍለ ከተማ፣ ወረዳ 03"
                       className="brand-input"
                     />
                   </div>
@@ -606,22 +762,26 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
               {activeTab === 'job' && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {/* Auto-generation Employee ID */}
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Employee ID #
+                        {t('employee.employeeId', 'Employee ID #')}
                       </label>
-                      <input
-                        type="text"
-                        name="employeeNumber"
-                        value={formData.employeeNumber}
-                        onChange={handleChange}
-                        placeholder="Auto-generated if empty"
-                        className="brand-input font-mono"
-                      />
+                      {isEditMode ? (
+                        <div className="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono font-bold text-[#00ced1] text-xs">
+                          #{formData.employeeNumber}
+                        </div>
+                      ) : (
+                        <div className="px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/70 text-emerald-700 dark:text-emerald-400 text-xs font-semibold flex items-center gap-1.5">
+                          <Check className="w-3.5 h-3.5 shrink-0" />
+                          <span>{t('employee.autoGenerated', 'Auto-generated by System (e.g. EMP-0001)')}</span>
+                        </div>
+                      )}
                     </div>
+
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Department <span className="text-rose-500">*</span>
+                        {t('employee.department', 'Department')} <span className="text-rose-500">*</span>
                       </label>
                       <select name="department" value={formData.department} onChange={handleChange} className="brand-input">
                         {DEPARTMENTS.map((dept) => (
@@ -631,9 +791,10 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                         ))}
                       </select>
                     </div>
+
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Job Title <span className="text-rose-500">*</span>
+                        {t('employee.jobTitle', 'Job Title')} <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -647,50 +808,107 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Manager / Supervisor Hierarchy */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                      <Users className="w-3.5 h-3.5 text-[#00ced1]" />
+                      <span>{t('employee.manager', 'Direct Manager / Supervisor')}</span>
+                    </label>
+                    <select
+                      name="manager"
+                      value={formData.manager}
+                      onChange={handleChange}
+                      className="brand-input"
+                    >
+                      <option value="">{t('employee.noManager', 'None / Top Executive')}</option>
+                      {managerOptions.map((mgr) => {
+                        const mgrName = mgr.name ? `${mgr.name.first} ${mgr.name.last}` : mgr.employeeNumber;
+                        return (
+                          <option key={mgr._id} value={mgr._id}>
+                            #{mgr.employeeNumber} - {mgrName} ({mgr.jobTitle || mgr.department})
+                          </option>
+                        );
+                      })}
+                    </select>
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Select the employee's direct reporting supervisor for approval workflows.
+                    </p>
+                  </div>
+
+                  {/* Employment Status & Type */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Employment Status
+                        {t('employee.employmentStatus', 'Employment Status')}
                       </label>
                       <select name="employmentStatus" value={formData.employmentStatus} onChange={handleChange} className="brand-input">
                         {EMPLOYMENT_STATUSES.map((st) => (
                           <option key={st.value} value={st.value}>
-                            {st.label}
+                            {isAmharic ? st.amLabel : st.label}
                           </option>
                         ))}
                       </select>
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Employment Type
+                        {t('employee.employmentType', 'Employment Type')}
                       </label>
                       <select name="employmentType" value={formData.employmentType} onChange={handleChange} className="brand-input">
-                        {EMPLOYMENT_TYPES.map((t) => (
-                          <option key={t.value} value={t.value}>
-                            {t.label}
+                        {EMPLOYMENT_TYPES.map((tItem) => (
+                          <option key={tItem.value} value={tItem.value}>
+                            {isAmharic ? tItem.amLabel : tItem.label}
                           </option>
                         ))}
                       </select>
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Work Location / Branch
-                      </label>
-                      <input
-                        type="text"
-                        name="workLocation"
-                        value={formData.workLocation}
-                        onChange={handleChange}
-                        placeholder="e.g. Production Center"
-                        className="brand-input"
-                      />
                     </div>
                   </div>
 
+                  {/* SEPARATE Work Location & Branch */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-[#152238]/40 border border-slate-200 dark:border-slate-800">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-[#00ced1]" />
+                        <span>{t('employee.workLocation', 'Work Location')}</span>
+                      </label>
+                      <select
+                        name="workLocation"
+                        value={formData.workLocation}
+                        onChange={handleChange}
+                        className="brand-input"
+                      >
+                        {WORK_LOCATIONS.map((loc) => (
+                          <option key={loc.value} value={loc.value}>
+                            {isAmharic ? loc.amLabel : loc.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                        <Building2 className="w-3.5 h-3.5 text-[#00ced1]" />
+                        <span>{t('employee.branch', 'Branch')}</span>
+                      </label>
+                      <select
+                        name="branch"
+                        value={formData.branch}
+                        onChange={handleChange}
+                        className="brand-input"
+                      >
+                        {BRANCHES.map((br) => (
+                          <option key={br.value} value={br.value}>
+                            {isAmharic ? br.amLabel : br.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Dates */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Hire Date
+                        {t('employee.hireDate', 'Hire Date')}
                       </label>
                       <input
                         type="date"
@@ -702,7 +920,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Probation End Date
+                        {t('employee.probationEndDate', 'Probation End Date')}
                       </label>
                       <input
                         type="date"
@@ -714,7 +932,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Contract Expiry Date
+                        {t('employee.contractEndDate', 'Contract Expiry Date')}
                       </label>
                       <input
                         type="date"
@@ -742,7 +960,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                           <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                            Basic Monthly Salary (ETB)
+                            {t('employee.basicSalary', 'Basic Monthly Salary (ETB)')}
                           </label>
                           <input
                             type="number"
@@ -757,7 +975,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                         </div>
                         <div>
                           <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                            Bank Name
+                            {t('employee.bankName', 'Bank Name')}
                           </label>
                           <select name="bankName" value={formData.bankName} onChange={handleChange} className="brand-input">
                             <option value="Commercial Bank of Ethiopia">Commercial Bank of Ethiopia (CBE)</option>
@@ -766,12 +984,30 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                             <option value="Bank of Abyssinia">Bank of Abyssinia</option>
                             <option value="Nib International Bank">Nib International Bank</option>
                             <option value="Hibret Bank">Hibret Bank</option>
+                            <option value="Cooperative Bank of Oromia">Cooperative Bank of Oromia (Coop)</option>
+                            <option value="Zemen Bank">Zemen Bank</option>
                             <option value="Telebirr">Telebirr SuperApp</option>
                           </select>
                         </div>
                         <div>
                           <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                            Account Number
+                            {t('employee.bankHolderName', 'Account Holder Name')}
+                          </label>
+                          <input
+                            type="text"
+                            name="bankHolderName"
+                            value={formData.bankHolderName}
+                            onChange={handleChange}
+                            placeholder="Full name as on bank passbook"
+                            className="brand-input"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                            {t('employee.bankAccountNumber', 'Account Number')}
                           </label>
                           <input
                             type="text"
@@ -781,6 +1017,9 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                             placeholder="e.g. 100012345678"
                             className="brand-input font-mono"
                           />
+                        </div>
+                        <div className="flex items-center text-[11px] text-slate-400 pt-5">
+                          <span>Salaries and payroll transfers will be disbursed to this verified bank account.</span>
                         </div>
                       </div>
                     </div>
@@ -794,13 +1033,13 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200 dark:border-slate-800 space-y-3">
                     <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-xs">
                       <Shield className="w-4 h-4 text-[#00ced1]" />
-                      <span>Fayda Ethiopian National ID (Digital Verification)</span>
+                      <span>{t('employee.faydaNationalId', 'Fayda Ethiopian National ID (Digital Verification)')}</span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                          FAN (Fayda Identification Number - 16 Digits)
+                          {t('employee.fanNumber', 'FAN (Fayda Identification Number - 16 Digits)')}
                         </label>
                         <input
                           type="text"
@@ -813,7 +1052,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                       </div>
                       <div>
                         <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                          FIN (Fayda Individual Number - 12 Digits)
+                          {t('employee.finNumber', 'FIN (Fayda Individual Number - 12 Digits)')}
                         </label>
                         <input
                           type="text"
@@ -832,16 +1071,187 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                 </div>
               )}
 
-              {/* TAB 4: Emergency Contacts & System Account */}
+              {/* TAB 4: Warranty & Education */}
+              {activeTab === 'warranty' && (
+                <div className="space-y-4">
+                  {/* WARRANTY / GUARANTOR SECTION */}
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200 dark:border-slate-800 space-y-3">
+                    <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-xs">
+                      <HeartHandshake className="w-4 h-4 text-[#00ced1]" />
+                      <span>{t('employee.warrantyTitle', 'Warranty / Guarantor')}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      {t('employee.warrantySubtitle', 'Guarantor personal information, contact, and Fayda National ID for legal guarantee')}
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          {t('employee.guarantorName', 'Guarantor Full Name')}
+                        </label>
+                        <input
+                          type="text"
+                          name="guarantorName"
+                          value={formData.guarantorName}
+                          onChange={handleChange}
+                          placeholder="e.g. Girma Tesfaye / ግርማ ተስፋዬ"
+                          className="brand-input"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          {t('employee.guarantorPhone', 'Guarantor Phone Number')}
+                        </label>
+                        <input
+                          type="tel"
+                          name="guarantorPhone"
+                          value={formData.guarantorPhone}
+                          onChange={handleChange}
+                          placeholder="e.g. 0911554433"
+                          className="brand-input"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          {t('employee.guarantorRelationship', 'Guarantor Relationship')}
+                        </label>
+                        <select
+                          name="guarantorRelationship"
+                          value={formData.guarantorRelationship}
+                          onChange={handleChange}
+                          className="brand-input"
+                        >
+                          {GUARANTOR_RELATIONSHIPS.map((rel) => (
+                            <option key={rel.value} value={rel.value}>
+                              {isAmharic ? rel.amLabel : rel.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          {t('employee.guarantorFan', 'Guarantor Fayda FAN (16 Digits)')}
+                        </label>
+                        <input
+                          type="text"
+                          name="guarantorFan"
+                          value={formData.guarantorFan}
+                          onChange={handleChange}
+                          placeholder="e.g. 9876-5432-1098-7654"
+                          className="brand-input font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          {t('employee.guarantorFin', 'Guarantor Fayda FIN (12 Digits)')}
+                        </label>
+                        <input
+                          type="text"
+                          name="guarantorFin"
+                          value={formData.guarantorFin}
+                          onChange={handleChange}
+                          placeholder="e.g. 9876-5432-1098"
+                          className="brand-input font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CURRENT EDUCATION LEVEL SECTION */}
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200 dark:border-slate-800 space-y-3">
+                    <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-xs">
+                      <GraduationCap className="w-4 h-4 text-[#00ced1]" />
+                      <span>{t('employee.educationTitle', 'Education Level & Current Qualifications')}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      {t('employee.educationSubtitle', 'Highest education attained, institution, major field of study, and graduation year')}
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          {t('employee.educationLevel', 'Education Level')}
+                        </label>
+                        <select
+                          name="educationLevel"
+                          value={formData.educationLevel}
+                          onChange={handleChange}
+                          className="brand-input"
+                        >
+                          <option value="">-- Select Education Level --</option>
+                          {EDUCATION_LEVELS.map((ed) => (
+                            <option key={ed.value} value={ed.value}>
+                              {isAmharic ? ed.amLabel : ed.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          {t('employee.fieldOfStudy', 'Field of Study / Major')}
+                        </label>
+                        <input
+                          type="text"
+                          name="fieldOfStudy"
+                          value={formData.fieldOfStudy}
+                          onChange={handleChange}
+                          placeholder="e.g. Graphic Design, Marketing, Accounting"
+                          className="brand-input"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          {t('employee.institution', 'Institution / University')}
+                        </label>
+                        <input
+                          type="text"
+                          name="institution"
+                          value={formData.institution}
+                          onChange={handleChange}
+                          placeholder="e.g. Addis Ababa University"
+                          className="brand-input"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          {t('employee.graduationYear', 'Graduation Date / Year')}
+                        </label>
+                        <input
+                          type="text"
+                          name="graduationYear"
+                          value={formData.graduationYear}
+                          onChange={handleChange}
+                          placeholder="e.g. 2023 / 2015 E.C."
+                          className="brand-input"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 5: Emergency Contacts & System Account */}
               {activeTab === 'emergency' && (
                 <div className="space-y-4">
                   {/* Emergency Contact */}
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200 dark:border-slate-800 space-y-3">
-                    <h4 className="font-bold text-slate-900 dark:text-white text-xs">Primary Emergency Contact</h4>
+                    <h4 className="font-bold text-slate-900 dark:text-white text-xs">
+                      {t('employee.emergencyContact', 'Primary Emergency Contact')}
+                    </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
                         <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                          Contact Name
+                          {t('employee.emergencyName', 'Contact Name')}
                         </label>
                         <input
                           type="text"
@@ -854,7 +1264,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                       </div>
                       <div>
                         <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                          Contact Phone
+                          {t('employee.emergencyPhone', 'Contact Phone')}
                         </label>
                         <input
                           type="tel"
@@ -867,7 +1277,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                       </div>
                       <div>
                         <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                          Relationship
+                          {t('employee.emergencyRelation', 'Relationship')}
                         </label>
                         <select name="emergencyRelation" value={formData.emergencyRelation} onChange={handleChange} className="brand-input">
                           <option value="Spouse">Spouse</option>
@@ -949,11 +1359,12 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                     onClick={() => {
                       if (activeTab === 'job') setActiveTab('personal');
                       if (activeTab === 'financial') setActiveTab('job');
-                      if (activeTab === 'emergency') setActiveTab('financial');
+                      if (activeTab === 'warranty') setActiveTab('financial');
+                      if (activeTab === 'emergency') setActiveTab('warranty');
                     }}
-                    className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs"
+                    className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs cursor-pointer"
                   >
-                    Back
+                    {t('employee.back', 'Back')}
                   </button>
                 )}
                 {activeTab !== 'emergency' && (
@@ -962,11 +1373,12 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                     onClick={() => {
                       if (activeTab === 'personal') setActiveTab('job');
                       if (activeTab === 'job') setActiveTab('financial');
-                      if (activeTab === 'financial') setActiveTab('emergency');
+                      if (activeTab === 'financial') setActiveTab('warranty');
+                      if (activeTab === 'warranty') setActiveTab('emergency');
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-xs"
+                    className="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-xs cursor-pointer"
                   >
-                    Next Tab
+                    {t('employee.nextTab', 'Next Tab')}
                   </button>
                 )}
               </div>
@@ -975,9 +1387,9 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
-                  Cancel
+                  {t('employee.cancel', 'Cancel')}
                 </button>
                 <button
                   type="submit"
@@ -986,7 +1398,13 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                   style={{ backgroundColor: '#00ced1', color: '#020617' }}
                 >
                   <Save className="w-4 h-4" style={{ color: '#020617' }} />
-                  <span style={{ color: '#020617' }}>{loading ? 'Saving...' : isEditMode ? 'Update Employee' : 'Save Employee'}</span>
+                  <span style={{ color: '#020617' }}>
+                    {loading
+                      ? t('employee.saving', 'Saving...')
+                      : isEditMode
+                      ? t('employee.update', 'Update Employee')
+                      : t('employee.save', 'Save Employee')}
+                  </span>
                 </button>
               </div>
             </div>

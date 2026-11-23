@@ -8,6 +8,7 @@ import employeeRoutes from '../routes/employeeRoutes.js';
 import User from '../models/User.js';
 import Employee from '../models/Employee.js';
 import { ROLES } from '../constants/roles.js';
+import { generateToken } from '../middleware/authMiddleware.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,21 +49,15 @@ async function runTests() {
     await User.deleteMany({ email: { $regex: /@test\.vector/ } });
     await Employee.deleteMany({ email: { $regex: /@test\.vector/ } });
 
-    // 1. Register HR Manager User
-    console.log('Test 1: Register HR Manager');
-    const hrRes = await fetch(`${BASE_URL}/api/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: 'hrmanager@test.vector',
-        password: 'password123',
-        roles: [ROLES.HR_MANAGER]
-      })
+    // 1. Setup HR Manager User
+    console.log('Test 1: Setup HR Manager');
+    const hrUser = await User.create({
+      email: 'hrmanager@test.vector',
+      password: 'password123',
+      roles: [ROLES.HR_MANAGER]
     });
-    const hrData = await hrRes.json();
-    if (!hrData.success) throw new Error(`HR Registration failed: ${hrData.message}`);
-    hrToken = hrData.data.token;
-    console.log('✅ HR Manager registered successfully. Token obtained.');
+    hrToken = generateToken(hrUser._id);
+    console.log('✅ HR Manager created successfully. Token obtained.');
 
     // 2. Create an Employee via POST /api/employees (Auto-generating employeeNumber)
     console.log('\nTest 2: Create Employee with Fayda ID, Guarantor, Emergency Contact, and Bank Account');
