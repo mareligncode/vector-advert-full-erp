@@ -3,6 +3,7 @@ import CreditTransaction from '../models/CreditTransaction.js';
 import CreditPayment from '../models/CreditPayment.js';
 import TaxConfiguration from '../models/TaxConfiguration.js';
 import { generateCode, withTransaction } from '../utils/inventoryService.js';
+import { attachFilesToEvidence, getEvidenceForEntity } from '../utils/evidenceHelper.js';
 
 // ==========================================
 // 1. Supplier Controllers
@@ -36,13 +37,22 @@ export const getSupplierById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Supplier not found' });
     }
 
-    // Also fetch credit ledger history
     const transactions = await CreditTransaction.find({ supplierId: supplier._id })
       .populate('purchaseOrderId', 'purchaseOrderCode')
       .populate('grvId', 'grvCode')
       .sort({ transactionDate: -1 });
 
-    res.json({ success: true, data: { ...supplier.toObject(), transactions } });
+    // Universal Evidence Table Integration (Supplier licenses, TIN docs, bank agreements)
+    const evidence = await getEvidenceForEntity('Supplier', supplier._id);
+
+    res.json({
+      success: true,
+      data: {
+        ...supplier.toObject(),
+        transactions,
+        evidence: evidence?.attachments || []
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -53,6 +63,19 @@ export const createSupplier = async (req, res) => {
     const code = req.body.code || (await generateCode('SUP', Supplier, 'code'));
     const supplier = new Supplier({ ...req.body, code });
     await supplier.save();
+
+    // Universal Evidence Table Attachment for Business License / Tax Cert
+    if (req.body.attachments?.length > 0 || req.files?.length > 0) {
+      const filesToAttach = req.files?.length > 0 ? req.files : req.body.attachments;
+      await attachFilesToEvidence({
+        entityType: 'Supplier',
+        entityId: supplier._id,
+        files: filesToAttach,
+        user: req.user,
+        title: `Supplier ${supplier.name} Registration & License Documents`
+      });
+    }
+
     res.status(201).json({ success: true, data: supplier });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -68,9 +91,38 @@ export const updateSupplier = async (req, res) => {
     if (!supplier) {
       return res.status(404).json({ success: false, message: 'Supplier not found' });
     }
+
+    if (req.body.attachments?.length > 0 || req.files?.length > 0) {
+      const filesToAttach = req.files?.length > 0 ? req.files : req.body.attachments;
+      await attachFilesToEvidence({
+        entityType: 'Supplier',
+        entityId: supplier._id,
+        files: filesToAttach,
+        user: req.user,
+        title: `Supplier ${supplier.name} Updated Files`
+      });
+    }
+
     res.json({ success: true, data: supplier });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const deleteSupplier = async (req, res) => {
+  try {
+    const hasTransactions = await CreditTransaction.findOne({ supplierId: req.params.id });
+    if (hasTransactions) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete supplier with transaction history. Set status to inactive instead.'
+      });
+    }
+
+    await Supplier.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'Supplier deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -109,6 +161,56 @@ export const getCreditTransactions = async (req, res) => {
   }
 };
 
+export const getCreditTransactionById = async (req, res) => {
+  try {
+    const transaction = await CreditTransaction.findById(req.params.id)
+      .populate('supplierId')
+      .populate('purchaseOrderId')
+      .populate('grvId')
+      .populate('createdBy', 'email');
+
+    if (!transaction) {
+      return res.status(404).json({ success: false, message: 'Transaction not found' });
+    }
+
+    const payments = await CreditPayment.find({ creditTransactionId: transaction._id }).sort({
+      paymentDate: -1
+    });
+
+    const evidence = await getEvidenceForEntity('CreditTransaction', transaction._id);
+
+    res.json({
+      success: true,
+      data: {
+        ...transaction.toObject(),
+        payments,
+        evidence: evidence?.attachments || []
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getCreditPayments = async (req, res) => {
+  try {
+    const { supplierId, creditTransactionId } = req.query;
+    const query = {};
+    if (supplierId) query.supplierId = supplierId;
+    if (creditTransactionId) query.creditTransactionId = creditTransactionId;
+
+    const payments = await CreditPayment.find(query)
+      .populate('supplierId', 'name code')
+      .populate('creditTransactionId', 'transactionCode')
+      .populate('recordedBy', 'email')
+      .sort({ paymentDate: -1 });
+
+    res.json({ success: true, count: payments.length, data: payments });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const recordCreditPayment = async (req, res) => {
   try {
     const {
@@ -117,7 +219,8 @@ export const recordCreditPayment = async (req, res) => {
       paymentMethod = 'bank_transfer',
       referenceNumber,
       bankName,
-      notes = ''
+      notes = '',
+      attachments = []
     } = req.body;
 
     const paymentAmount = Number(amount);
@@ -159,6 +262,19 @@ export const recordCreditPayment = async (req, res) => {
       await tx.save(opts);
     });
 
+    // Universal Evidence Table Attachment for Bank Deposit Slip / Transfer Receipt
+    if (attachments.length > 0 || req.files?.length > 0) {
+      const filesToAttach = req.files?.length > 0 ? req.files : attachments;
+      await attachFilesToEvidence({
+        entityType: 'CreditPayment',
+        entityId: payment._id,
+        files: filesToAttach,
+        user: req.user,
+        title: `Payment ${payment.paymentCode} Bank Deposit / Transfer Advice`,
+        description: `Reference: ${payment.referenceNumber || 'N/A'}`
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Supplier payment recorded and ledger updated successfully',
@@ -187,6 +303,20 @@ export const createTaxConfiguration = async (req, res) => {
     const tax = new TaxConfiguration(req.body);
     await tax.save();
     res.status(201).json({ success: true, data: tax });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const updateTaxConfiguration = async (req, res) => {
+  try {
+    const tax = await TaxConfiguration.findByIdAndUpdate(req.params.id, req.body, {
+      new: true
+    });
+    if (!tax) {
+      return res.status(404).json({ success: false, message: 'Tax configuration not found' });
+    }
+    res.json({ success: true, data: tax });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }

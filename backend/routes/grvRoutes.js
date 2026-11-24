@@ -3,6 +3,7 @@ import {
   getGRVs,
   getGRVById,
   createGRVByPurchaser,
+  updateGRVByPurchaser,
   acceptGRVByStoreKeeper,
   rejectGRVByStoreKeeper
 } from '../controllers/grvController.js';
@@ -21,6 +22,13 @@ router.post(
   '/',
   authorizeRoles(ROLES.PURCHASING, ...MANAGEMENT_ROLES),
   createGRVByPurchaser
+);
+
+// Edit GRV by Purchaser before storekeeper acceptance
+router.put(
+  '/:id',
+  authorizeRoles(ROLES.PURCHASING, ...MANAGEMENT_ROLES),
+  updateGRVByPurchaser
 );
 
 // Step 2: Storekeeper accepts GRV (with comments, deliveryStatus, and stock upsert)

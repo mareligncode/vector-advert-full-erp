@@ -4,6 +4,7 @@ import VendorPriceComparison from '../models/VendorPriceComparison.js';
 import PurchaseOrder from '../models/PurchaseOrder.js';
 import PurchaserAuction from '../models/PurchaserAuction.js';
 import { generateCode } from '../utils/inventoryService.js';
+import { attachFilesToEvidence, getEvidenceForEntity } from '../utils/evidenceHelper.js';
 
 // ==========================================
 // 1. Purchase Requests (PR)
@@ -53,7 +54,15 @@ export const getPurchaseRequestById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Purchase request not found' });
     }
 
-    res.json({ success: true, data: pr });
+    const evidence = await getEvidenceForEntity('PurchaseRequest', pr._id);
+
+    res.json({
+      success: true,
+      data: {
+        ...pr.toObject(),
+        evidence: evidence?.attachments || []
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -68,7 +77,8 @@ export const createPurchaseRequest = async (req, res) => {
       requiredDate,
       purpose,
       items = [],
-      notes = ''
+      notes = '',
+      attachments = []
     } = req.body;
 
     if (!items || items.length === 0) {
@@ -127,6 +137,19 @@ export const createPurchaseRequest = async (req, res) => {
 
     await pr.save();
 
+    // Universal Evidence Table Integration
+    if (attachments.length > 0 || req.files?.length > 0) {
+      const filesToAttach = req.files?.length > 0 ? req.files : attachments;
+      await attachFilesToEvidence({
+        entityType: 'PurchaseRequest',
+        entityId: pr._id,
+        files: filesToAttach,
+        user: req.user,
+        title: `PR ${pr.requestCode} Quotation/Catalog Reference`,
+        description: pr.purpose
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Purchase request submitted successfully',
@@ -155,9 +178,47 @@ export const approvePurchaseRequest = async (req, res) => {
   }
 };
 
+export const rejectPurchaseRequest = async (req, res) => {
+  try {
+    const pr = await PurchaseRequest.findById(req.params.id);
+    if (!pr) {
+      return res.status(404).json({ success: false, message: 'Purchase request not found' });
+    }
+
+    pr.approvalStatus = 'rejected';
+    pr.notes = req.body.rejectionReason || pr.notes;
+    pr.approvedBy = req.user._id;
+    pr.approvedAt = new Date();
+    await pr.save();
+
+    res.json({ success: true, message: 'Purchase request rejected', data: pr });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // ==========================================
 // 2. Procurement Assignment
 // ==========================================
+
+export const getProcurementAssignments = async (req, res) => {
+  try {
+    const { assignedTo, status } = req.query;
+    const query = {};
+    if (assignedTo) query.assignedTo = assignedTo;
+    if (status) query.status = status;
+
+    const assignments = await ProcurementAssignment.find(query)
+      .populate('purchaseRequestId', 'requestCode purpose requiredDate')
+      .populate('assignedTo', 'email')
+      .populate('assignedBy', 'email')
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, count: assignments.length, data: assignments });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 export const assignProcurementRequest = async (req, res) => {
   try {
@@ -197,6 +258,23 @@ export const assignProcurementRequest = async (req, res) => {
   }
 };
 
+export const updateProcurementAssignmentStatus = async (req, res) => {
+  try {
+    const { status, notes } = req.body;
+    const assignment = await ProcurementAssignment.findByIdAndUpdate(
+      req.params.id,
+      { status, notes },
+      { new: true }
+    );
+    if (!assignment) {
+      return res.status(404).json({ success: false, message: 'Assignment not found' });
+    }
+    res.json({ success: true, data: assignment });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 // ==========================================
 // 3. Vendor Price Comparison
 // ==========================================
@@ -210,6 +288,32 @@ export const getVendorPriceComparisons = async (req, res) => {
       .sort({ createdAt: -1 });
 
     res.json({ success: true, count: comparisons.length, data: comparisons });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getVendorPriceComparisonById = async (req, res) => {
+  try {
+    const comparison = await VendorPriceComparison.findById(req.params.id)
+      .populate('purchaseRequestId')
+      .populate('suppliers')
+      .populate('selectedSupplierId')
+      .populate('quotes.supplierId');
+
+    if (!comparison) {
+      return res.status(404).json({ success: false, message: 'Comparison not found' });
+    }
+
+    const evidence = await getEvidenceForEntity('VendorPriceComparison', comparison._id);
+
+    res.json({
+      success: true,
+      data: {
+        ...comparison.toObject(),
+        evidence: evidence?.attachments || []
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -232,6 +336,18 @@ export const createVendorPriceComparison = async (req, res) => {
       procurementStatus: 'in_comparison'
     });
 
+    // Universal Evidence Table Integration (Vendor proforma invoice attachments)
+    if (req.body.attachments?.length > 0 || req.files?.length > 0) {
+      const filesToAttach = req.files?.length > 0 ? req.files : req.body.attachments;
+      await attachFilesToEvidence({
+        entityType: 'VendorPriceComparison',
+        entityId: comparison._id,
+        files: filesToAttach,
+        user: req.user,
+        title: `VPC ${comparison.comparisonCode} Supplier Quotations/Proformas`
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Vendor quotation comparison sheet created',
@@ -239,6 +355,27 @@ export const createVendorPriceComparison = async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const approveVendorPriceComparison = async (req, res) => {
+  try {
+    const { selectedSupplierId, selectionReason } = req.body;
+    const comparison = await VendorPriceComparison.findById(req.params.id);
+    if (!comparison) {
+      return res.status(404).json({ success: false, message: 'Comparison not found' });
+    }
+
+    comparison.selectedSupplierId = selectedSupplierId || comparison.selectedSupplierId;
+    comparison.selectionReason = selectionReason || comparison.selectionReason;
+    comparison.selectedBy = req.user._id;
+    comparison.approvalStatus = 'approved';
+    comparison.approvedBy = req.user._id;
+    await comparison.save();
+
+    res.json({ success: true, message: 'Price comparison approved and supplier selected', data: comparison });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -292,7 +429,15 @@ export const getPurchaseOrderById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Purchase order not found' });
     }
 
-    res.json({ success: true, data: po });
+    const evidence = await getEvidenceForEntity('PurchaseOrder', po._id);
+
+    res.json({
+      success: true,
+      data: {
+        ...po.toObject(),
+        evidence: evidence?.attachments || []
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -313,7 +458,8 @@ export const createPurchaseOrder = async (req, res) => {
       deliveryCost = 0,
       discount = 0,
       totalAmount = 0,
-      notes = ''
+      notes = '',
+      attachments = []
     } = req.body;
 
     const purchaseOrderCode = await generateCode('PO', PurchaseOrder, 'purchaseOrderCode');
@@ -383,11 +529,73 @@ export const createPurchaseOrder = async (req, res) => {
       });
     }
 
+    // Universal Evidence Table Integration (Signed PO, Contract)
+    if (attachments.length > 0 || req.files?.length > 0) {
+      const filesToAttach = req.files?.length > 0 ? req.files : attachments;
+      await attachFilesToEvidence({
+        entityType: 'PurchaseOrder',
+        entityId: po._id,
+        files: filesToAttach,
+        user: req.user,
+        title: `PO ${po.purchaseOrderCode} Official Contract / Signed Order`
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Purchase order created and issued to vendor successfully',
       data: po
     });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================================
+// 5. Purchaser Auctions & Bidding
+// ==========================================
+
+export const getPurchaserAuctions = async (req, res) => {
+  try {
+    const auctions = await PurchaserAuction.find()
+      .populate('purchaseRequestId', 'requestCode purpose')
+      .populate('invitedSuppliers', 'name code')
+      .populate('bids.supplierId', 'name code')
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, count: auctions.length, data: auctions });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const createPurchaserAuction = async (req, res) => {
+  try {
+    const auctionCode = await generateCode('AUC', PurchaserAuction, 'auctionCode');
+    const auction = new PurchaserAuction({
+      ...req.body,
+      auctionCode,
+      createdBy: req.user._id,
+      status: 'open'
+    });
+    await auction.save();
+    res.status(201).json({ success: true, data: auction });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const submitBid = async (req, res) => {
+  try {
+    const auction = await PurchaserAuction.findById(req.params.id);
+    if (!auction) {
+      return res.status(404).json({ success: false, message: 'Auction not found' });
+    }
+
+    auction.bids.push(req.body);
+    await auction.save();
+
+    res.status(201).json({ success: true, message: 'Supplier bid recorded', data: auction });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }

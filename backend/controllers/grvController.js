@@ -5,6 +5,7 @@ import {
   processGRVAcceptance,
   withTransaction
 } from '../utils/inventoryService.js';
+import { attachFilesToEvidence, getEvidenceForEntity } from '../utils/evidenceHelper.js';
 
 /**
  * Get all Goods Received Vouchers with filtering
@@ -44,7 +45,7 @@ export const getGRVs = async (req, res) => {
 };
 
 /**
- * Get single GRV by ID
+ * Get single GRV by ID (including Universal Evidence attachments)
  */
 export const getGRVById = async (req, res) => {
   try {
@@ -61,7 +62,16 @@ export const getGRVById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'GRV not found' });
     }
 
-    res.json({ success: true, data: grv });
+    // Universal Evidence polymorphic attachment integration
+    const evidence = await getEvidenceForEntity('GoodsReceivedVoucher', grv._id);
+
+    res.json({
+      success: true,
+      data: {
+        ...grv.toObject(),
+        evidence: evidence?.attachments || []
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -83,7 +93,8 @@ export const createGRVByPurchaser = async (req, res) => {
       deliveryStatus = 'fully_delivered',
       deliveryStatusRemarks = '',
       items = [],
-      notes = ''
+      notes = '',
+      attachments = []
     } = req.body;
 
     if (!supplierId || !warehouseId || !supplierInvoiceNumber) {
@@ -152,11 +163,61 @@ export const createGRVByPurchaser = async (req, res) => {
 
     await grv.save();
 
+    // Universal Evidence Table Attachment for Invoice & Delivery Note files
+    if (attachments.length > 0 || req.files?.length > 0) {
+      const filesToAttach = req.files?.length > 0 ? req.files : attachments;
+      await attachFilesToEvidence({
+        entityType: 'GoodsReceivedVoucher',
+        entityId: grv._id,
+        files: filesToAttach,
+        user: req.user,
+        title: `GRV ${grv.grvCode} Supplier Delivery Proof`,
+        description: `Invoice: ${grv.supplierInvoiceNumber}, Delivery Note: ${grv.deliveryNoteNumber || 'N/A'}`
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'GRV created by Purchaser and is pending Storekeeper acceptance',
       data: grv
     });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Purchaser updates GRV details before acceptance
+ */
+export const updateGRVByPurchaser = async (req, res) => {
+  try {
+    const grv = await GoodsReceivedVoucher.findById(req.params.id);
+    if (!grv) {
+      return res.status(404).json({ success: false, message: 'GRV not found' });
+    }
+
+    if (grv.status === 'accepted') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot modify an already accepted GRV'
+      });
+    }
+
+    Object.assign(grv, req.body);
+    await grv.save();
+
+    if (req.body.attachments?.length > 0 || req.files?.length > 0) {
+      const filesToAttach = req.files?.length > 0 ? req.files : req.body.attachments;
+      await attachFilesToEvidence({
+        entityType: 'GoodsReceivedVoucher',
+        entityId: grv._id,
+        files: filesToAttach,
+        user: req.user,
+        title: `GRV ${grv.grvCode} Updated Documents`
+      });
+    }
+
+    res.json({ success: true, message: 'GRV updated successfully', data: grv });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -175,7 +236,8 @@ export const acceptGRVByStoreKeeper = async (req, res) => {
       storeKeeperComment = '',
       deliveryStatus = 'fully_delivered',
       deliveryStatusRemarks = '',
-      items = []
+      items = [],
+      attachments = []
     } = req.body;
 
     const grv = await GoodsReceivedVoucher.findById(id);
@@ -257,6 +319,20 @@ export const acceptGRVByStoreKeeper = async (req, res) => {
       });
     });
 
+    // Universal Evidence Table Attachment for Store Inspection photos
+    if (attachments.length > 0 || req.files?.length > 0) {
+      const filesToAttach = req.files?.length > 0 ? req.files : attachments;
+      await attachFilesToEvidence({
+        entityType: 'GoodsReceivedVoucher',
+        entityId: grv._id,
+        files: filesToAttach,
+        user: req.user,
+        title: `GRV ${grv.grvCode} Storekeeper Inspection Photos`,
+        description: storeKeeperComment,
+        note: `Store acceptance: ${deliveryStatus}`
+      });
+    }
+
     res.json({
       success: true,
       message:
@@ -274,7 +350,7 @@ export const acceptGRVByStoreKeeper = async (req, res) => {
 export const rejectGRVByStoreKeeper = async (req, res) => {
   try {
     const { id } = req.params;
-    const { storeKeeperComment = 'Goods rejected by Storekeeper' } = req.body;
+    const { storeKeeperComment = 'Goods rejected by Storekeeper', attachments = [] } = req.body;
 
     const grv = await GoodsReceivedVoucher.findById(id);
     if (!grv) {
@@ -293,6 +369,19 @@ export const rejectGRVByStoreKeeper = async (req, res) => {
     grv.storeAcceptedAt = new Date();
     grv.storeKeeperComment = storeKeeperComment;
     await grv.save();
+
+    // Universal Evidence for Rejection proof (e.g. photos of broken seals, damaged boxes)
+    if (attachments.length > 0 || req.files?.length > 0) {
+      const filesToAttach = req.files?.length > 0 ? req.files : attachments;
+      await attachFilesToEvidence({
+        entityType: 'GoodsReceivedVoucher',
+        entityId: grv._id,
+        files: filesToAttach,
+        user: req.user,
+        title: `GRV ${grv.grvCode} Rejection Proof`,
+        description: storeKeeperComment
+      });
+    }
 
     res.json({
       success: true,

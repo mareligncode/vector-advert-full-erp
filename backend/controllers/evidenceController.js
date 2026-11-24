@@ -25,6 +25,14 @@ const inferEntityOwner = async (entityType, entityId, fallbackUserId) => {
 
     if (parentEntity.user) return parentEntity.user;
     if (parentEntity.createdBy) return parentEntity.createdBy;
+    if (parentEntity.requestedBy) return parentEntity.requestedBy;
+    if (parentEntity.purchaserId) return parentEntity.purchaserId;
+    if (parentEntity.storeKeeperId) return parentEntity.storeKeeperId;
+    if (parentEntity.issuedBy) return parentEntity.issuedBy;
+    if (parentEntity.returnedBy) return parentEntity.returnedBy;
+    if (parentEntity.reportedBy) return parentEntity.reportedBy;
+    if (parentEntity.assignedTo) return parentEntity.assignedTo;
+    if (parentEntity.recordedBy) return parentEntity.recordedBy;
     if (parentEntity.approvals?.preparedBy?.user) return parentEntity.approvals.preparedBy.user;
     if (parentEntity.employee) {
       if (mongoose.modelNames().includes('Employee')) {

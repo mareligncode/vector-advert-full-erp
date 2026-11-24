@@ -11,6 +11,7 @@ import {
   processSIVIssuance,
   withTransaction
 } from '../utils/inventoryService.js';
+import { attachFilesToEvidence, getEvidenceForEntity } from '../utils/evidenceHelper.js';
 
 // ==========================================
 // 1. Staff Requisitions (Office & Workshop)
@@ -61,7 +62,15 @@ export const getStaffRequestById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Request not found' });
     }
 
-    res.json({ success: true, data: request });
+    const evidence = await getEvidenceForEntity('StaffRequest', request._id);
+
+    res.json({
+      success: true,
+      data: {
+        ...request.toObject(),
+        evidence: evidence?.attachments || []
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -78,7 +87,8 @@ export const createStaffRequest = async (req, res) => {
       requiredDate,
       purpose,
       items = [],
-      notes = ''
+      notes = '',
+      attachments = []
     } = req.body;
 
     // Rule 9.4 & 9.6: Workshop request MUST require jobOrderId; office must not
@@ -141,6 +151,19 @@ export const createStaffRequest = async (req, res) => {
     });
 
     await staffRequest.save();
+
+    // Universal Evidence Table Integration
+    if (attachments.length > 0 || req.files?.length > 0) {
+      const filesToAttach = req.files?.length > 0 ? req.files : attachments;
+      await attachFilesToEvidence({
+        entityType: 'StaffRequest',
+        entityId: staffRequest._id,
+        files: filesToAttach,
+        user: req.user,
+        title: `Requisition ${staffRequest.requestCode} Job Blueprint/Design`,
+        description: staffRequest.purpose
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -228,6 +251,32 @@ export const approveStaffRequest = async (req, res) => {
   }
 };
 
+export const rejectStaffRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rejectionReason = 'Requisition rejected by Storekeeper / Management' } = req.body;
+
+    const staffRequest = await StaffRequest.findById(id);
+    if (!staffRequest) {
+      return res.status(404).json({ success: false, message: 'Request not found' });
+    }
+
+    staffRequest.approvalStatus = 'rejected';
+    staffRequest.rejectionReason = rejectionReason;
+    staffRequest.approvedBy = req.user._id;
+    staffRequest.approvedAt = new Date();
+    await staffRequest.save();
+
+    res.json({
+      success: true,
+      message: 'Requisition rejected',
+      data: staffRequest
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // ==========================================
 // 2. Store Issue Voucher (SIV) Dispensing
 // ==========================================
@@ -242,7 +291,7 @@ export const getStoreIssueVouchers = async (req, res) => {
 
     const total = await StoreIssueVoucher.countDocuments(query);
     const sivs = await StoreIssueVoucher.find(query)
-      .populate('staffRequestId', 'requestCode requestType')
+      .populate('staffRequestId', 'requestCode requestType purpose')
       .populate('warehouseId', 'name code')
       .populate('issuedBy', 'email')
       .populate('receivedBy', 'email')
@@ -264,6 +313,33 @@ export const getStoreIssueVouchers = async (req, res) => {
   }
 };
 
+export const getStoreIssueVoucherById = async (req, res) => {
+  try {
+    const siv = await StoreIssueVoucher.findById(req.params.id)
+      .populate('staffRequestId')
+      .populate('warehouseId')
+      .populate('issuedBy', 'email')
+      .populate('receivedBy', 'email')
+      .populate('items.stockItemId');
+
+    if (!siv) {
+      return res.status(404).json({ success: false, message: 'SIV not found' });
+    }
+
+    const evidence = await getEvidenceForEntity('StoreIssueVoucher', siv._id);
+
+    res.json({
+      success: true,
+      data: {
+        ...siv.toObject(),
+        evidence: evidence?.attachments || []
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const createStoreIssueVoucher = async (req, res) => {
   try {
     const {
@@ -271,7 +347,8 @@ export const createStoreIssueVoucher = async (req, res) => {
       warehouseId,
       receivedBy,
       items = [],
-      notes = ''
+      notes = '',
+      attachments = []
     } = req.body;
 
     const staffRequest = await StaffRequest.findById(staffRequestId);
@@ -325,6 +402,18 @@ export const createStoreIssueVoucher = async (req, res) => {
       });
     });
 
+    // Universal Evidence Table Integration (Signed collection slip photo)
+    if (attachments.length > 0 || req.files?.length > 0) {
+      const filesToAttach = req.files?.length > 0 ? req.files : attachments;
+      await attachFilesToEvidence({
+        entityType: 'StoreIssueVoucher',
+        entityId: siv._id,
+        files: filesToAttach,
+        user: req.user,
+        title: `SIV ${siv.sivCode} Signed Receipt Document`
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Items issued and inventory deducted successfully',
@@ -338,6 +427,23 @@ export const createStoreIssueVoucher = async (req, res) => {
 // ==========================================
 // 3. Staff Return & Returns to Suppliers
 // ==========================================
+
+export const getStaffReturns = async (req, res) => {
+  try {
+    const returns = await StaffReturn.find()
+      .populate('sivId', 'sivCode')
+      .populate('staffRequestId', 'requestCode')
+      .populate('returnedBy', 'email')
+      .populate('receivedBy', 'email')
+      .populate('warehouseId', 'name code')
+      .populate('items.stockItemId', 'name code unit')
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, count: returns.length, data: returns });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 export const createStaffReturn = async (req, res) => {
   try {
@@ -395,6 +501,16 @@ export const createStaffReturn = async (req, res) => {
       await staffReturn.save(opts);
     });
 
+    if (req.body.attachments?.length > 0 || req.files?.length > 0) {
+      await attachFilesToEvidence({
+        entityType: 'StaffReturn',
+        entityId: staffReturn._id,
+        files: req.files?.length > 0 ? req.files : req.body.attachments,
+        user: req.user,
+        title: `Staff Return ${staffReturn.returnCode} Proof`
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Staff return processed and stock credited back',
@@ -402,6 +518,117 @@ export const createStaffReturn = async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================================
+// 4. Returns to Supplier (GRV Return)
+// ==========================================
+
+export const getGRVReturns = async (req, res) => {
+  try {
+    const returns = await GRVReturn.find()
+      .populate('originalGrvId', 'grvCode storeGrvNumber')
+      .populate('supplierId', 'name code')
+      .populate('warehouseId', 'name code')
+      .populate('returnedBy', 'email')
+      .populate('items.stockItemId', 'name code unit')
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, count: returns.length, data: returns });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const createGRVReturn = async (req, res) => {
+  try {
+    const returnCode = await generateCode('VRET', GRVReturn, 'returnCode');
+    const grvReturn = new GRVReturn({
+      ...req.body,
+      returnCode,
+      returnedBy: req.user._id,
+      status: 'approved'
+    });
+
+    await withTransaction(async (session) => {
+      const opts = session ? { session } : {};
+      for (const item of grvReturn.items) {
+        const retQty = Number(item.quantity) || 0;
+        const multiplier = Number(item.multiplier) || 1;
+        const retTotal = retQty * multiplier;
+
+        const balance = await StockBalance.findOne({
+          stockItemId: item.stockItemId,
+          warehouseId: grvReturn.warehouseId
+        }).session(session);
+
+        if (balance) {
+          balance.balanceQuantity = Math.max(0, balance.balanceQuantity - retQty);
+          balance.balanceTotalQuantity = Math.max(0, balance.balanceTotalQuantity - retTotal);
+          balance.availableQuantity = Math.max(0, balance.balanceQuantity - balance.reservedQuantity);
+          await balance.save(opts);
+
+          const movementCode = await generateCode('MOV', StockMovement, 'movementCode');
+          const movement = new StockMovement({
+            movementCode,
+            stockItemId: item.stockItemId,
+            warehouseId: grvReturn.warehouseId,
+            movementType: 'supplier_return',
+            referenceType: 'GRVReturn',
+            referenceId: grvReturn._id,
+            quantityOut: retQty,
+            totalQuantityOut: retTotal,
+            balanceQuantityAfter: balance.balanceQuantity,
+            balanceTotalQuantityAfter: balance.balanceTotalQuantity,
+            unit: item.unit || 'pcs',
+            baseUnit: item.baseUnit || 'pcs',
+            performedBy: req.user._id,
+            movementDate: new Date(),
+            notes: `Supplier Return: ${grvReturn.returnCode} - ${item.reason || ''}`
+          });
+          await movement.save(opts);
+        }
+      }
+
+      await grvReturn.save(opts);
+    });
+
+    if (req.body.attachments?.length > 0 || req.files?.length > 0) {
+      await attachFilesToEvidence({
+        entityType: 'GRVReturn',
+        entityId: grvReturn._id,
+        files: req.files?.length > 0 ? req.files : req.body.attachments,
+        user: req.user,
+        title: `Supplier Return ${grvReturn.returnCode} Waybill/Debit Note`
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Goods returned to supplier and stock deducted successfully',
+      data: grvReturn
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================================
+// 5. Store Scrap & Waste Write-Off
+// ==========================================
+
+export const getSIVWastes = async (req, res) => {
+  try {
+    const wastes = await SIVWaste.find()
+      .populate('warehouseId', 'name code')
+      .populate('reportedBy', 'email')
+      .populate('items.stockItemId', 'name code unit')
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, count: wastes.length, data: wastes });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -457,6 +684,17 @@ export const createSIVWaste = async (req, res) => {
 
       await waste.save(opts);
     });
+
+    if (req.body.attachments?.length > 0 || req.files?.length > 0) {
+      await attachFilesToEvidence({
+        entityType: 'SIVWaste',
+        entityId: waste._id,
+        files: req.files?.length > 0 ? req.files : req.body.attachments,
+        user: req.user,
+        title: `Waste Write-Off ${waste.wasteCode} Damage Photos`,
+        description: waste.reason
+      });
+    }
 
     res.status(201).json({
       success: true,
