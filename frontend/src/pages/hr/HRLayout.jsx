@@ -101,9 +101,9 @@ export default function HRLayout() {
   };
 
   return (
-    <div className="flex-1 w-full h-full min-h-0 flex flex-col overflow-hidden bg-slate-50 dark:bg-[#070b12] text-slate-800 dark:text-slate-100">
+    <div className="flex-1 w-full h-full min-h-0 flex flex-col overflow-hidden bg-slate-50 dark:bg-[#070b12] text-slate-800 dark:text-slate-100 transition-colors duration-200">
       {/* HR Subsystem Top Tab Bar - Permanently fixed directly under Header with ZERO gap, positioned after (right of) Sidebar */}
-      <div className="shrink-0 w-full border-b border-slate-200/80 dark:border-slate-800/90 bg-white/95 dark:bg-[#0e1626]/95 backdrop-blur-md z-20 relative">
+      <div className="shrink-0 w-full border-b border-slate-200/80 dark:border-slate-800/90 bg-white/95 dark:bg-[#0e1626]/95 backdrop-blur-md z-20 relative transition-colors duration-200">
         <div className="w-full relative flex items-center">
           {/* Scroll Left Button (<-) with Gradient Fade */}
           {canScrollLeft && (

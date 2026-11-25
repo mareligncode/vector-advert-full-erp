@@ -229,11 +229,11 @@ a:not([class*="bg-"]):not([class*="btn-"]):not([class*="text-"]):hover {
   text-decoration: underline;
 }
 
-/* Enforce high-contrast text on all primary brand buttons and links */
+/* Enforce high-contrast text on solid primary brand buttons and links (not translucent /10, /15, /20 variants) */
 .btn-brand-primary,
 .btn-brand-primary *,
-[class*="bg-[#00ced1]"],
-[class*="bg-[#00ced1]"] *,
+[class~="bg-[#00ced1]"],
+[class~="bg-[#00ced1]"] *,
 button[style*="background-color: #00ced1"],
 button[style*="background-color: #00ced1"] *,
 button[style*="backgroundColor: #00ced1"],

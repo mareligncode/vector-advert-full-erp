@@ -175,7 +175,7 @@ export default function Navbar() {
                 {/* User Info Card in Drawer */}
                 <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#152238] border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-[#00ced1]/15 text-[#00ced1] flex items-center justify-center shrink-0 font-black text-sm">
+                    <div className="w-9 h-9 rounded-xl bg-[#00ced1]/15 text-[#008182] dark:text-[#00ced1] flex items-center justify-center shrink-0 font-black text-sm">
                       {user?.email?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div className="min-w-0">

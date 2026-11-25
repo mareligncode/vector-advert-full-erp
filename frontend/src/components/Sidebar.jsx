@@ -163,16 +163,16 @@ export default function Sidebar() {
         }`}
       >
         {/* Top Header / Brand Sub-rail */}
-        <div className="p-3 sm:p-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2 shrink-0">
+        <div className="p-3 sm:p-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2 shrink-0 transition-colors duration-200">
           <div className={`flex items-center gap-2.5 min-w-0 ${isCollapsed ? 'md:hidden' : 'flex'}`}>
-            <div className="w-8 h-8 rounded-xl bg-[#00ced1]/15 text-[#00ced1] flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-[#00ced1]/15 text-[#008182] dark:text-[#00ced1] flex items-center justify-center shrink-0 transition-colors">
               <Layers className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white truncate">
                 {t('sidebar.title')}
               </h2>
-              <span className="text-[10px] text-slate-400 font-semibold block truncate">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block truncate">
                 {t('sidebar.subtitle')}
               </span>
             </div>
@@ -255,11 +255,23 @@ export default function Sidebar() {
                     <div className="flex items-center justify-between gap-1">
                       <span className="font-bold truncate">{modName}</span>
                       {isHr ? (
-                        <span className="px-1.5 py-0.2 rounded-full text-[9px] font-extrabold uppercase bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                        <span
+                          className={`px-1.5 py-0.2 rounded-full text-[9px] font-extrabold uppercase border transition-colors ${
+                            isActive
+                              ? 'bg-[#020617]/15 text-[#020617] border-[#020617]/20'
+                              : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+                          }`}
+                        >
                           {t('sidebar.active')}
                         </span>
                       ) : (
-                        <span className="px-1.5 py-0.2 rounded-full text-[9px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800/80">
+                        <span
+                          className={`px-1.5 py-0.2 rounded-full text-[9px] font-semibold transition-colors ${
+                            isActive
+                              ? 'bg-[#020617]/15 text-[#020617]'
+                              : 'text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80'
+                          }`}
+                        >
                           {t('sidebar.soon')}
                         </span>
                       )}
@@ -280,14 +292,14 @@ export default function Sidebar() {
 
         {/* Footer / Status Card */}
         {!isCollapsed && (
-          <div className="p-3 border-t border-slate-100 dark:border-slate-800/80 shrink-0">
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200/80 dark:border-slate-800 flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 text-[#00ced1] shrink-0" />
+          <div className="p-3 border-t border-slate-100 dark:border-slate-800/80 shrink-0 transition-colors duration-200">
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200/80 dark:border-slate-800 flex items-center gap-2 transition-colors">
+              <Sparkles className="w-3.5 h-3.5 text-[#008182] dark:text-[#00ced1] shrink-0" />
               <div className="min-w-0">
                 <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate">
                   {t('sidebar.versionTitle')}
                 </p>
-                <p className="text-[9px] text-slate-500 truncate">{t('sidebar.versionSub')}</p>
+                <p className="text-[9px] text-slate-500 dark:text-slate-400 truncate">{t('sidebar.versionSub')}</p>
               </div>
             </div>
           </div>
