@@ -11,7 +11,97 @@
     "register": "ተመዝገብ",
     "logout": "ውጣ",
     "profile": "የግል መረጃ",
-    "settings": "ቅንብሮች"
+    "settings": "ቅንብሮች",
+    "hrPortal": "የሰው ሀብት ፖርታል",
+    "hrPortalTooltip": "የቬክተር የሰው ሀብት ክፍልን ይክፈቱ",
+    "registerStaff": "ሰራተኛ መዝግብ",
+    "registerStaffTooltip": "የተጠቃሚ እና የሰራተኛ መለያዎችን ይፍጠሩ",
+    "viewModules": "12ቱን የኢአርፒ ክፍሎች ይመልከቱ",
+    "modulesCountBadge": "12 ክፍሎች",
+    "activeStatus": "ንቁ"
+  },
+  "sidebar": {
+    "title": "የቬክተር ክፍሎች",
+    "subtitle": "12 የኢአርፒ ንዑስ ስርዓቶች",
+    "dashboard": "ዳሽቦርድ",
+    "dashboardOverview": "የዳሽቦርድ አጠቃላይ እይታ",
+    "expand": "የጎን መምሪያን ዘርጋ",
+    "collapse": "የጎን መምሪያን እጠፍ",
+    "close": "የጎን መምሪያን ዝጋ",
+    "expandModules": "የኢአርፒ ክፍሎች ጎን መምሪያን ዘርጋ",
+    "collapseModules": "የኢአርፒ ክፍሎች ጎን መምሪያን እጠፍ",
+    "toggleModules": "የኢአርፒ ክፍሎች ጎን መምሪያን ቀይር",
+    "active": "ንቁ",
+    "soon": "በቅርቡ",
+    "versionTitle": "ቬክተር ኢአርፒ v2.0",
+    "versionSub": "ዋናው የሰው ሀብት ክፍል ስራ ላይ ነው",
+    "items": {
+      "hr": {
+        "name": "የሰው ሀብት (HR)",
+        "func": "ሰራተኞች፣ ደመወዝ እና የሰዓት መቆጣጠሪያ"
+      },
+      "frontdesk": {
+        "name": "የፊት ጠረጴዛ",
+        "func": "የደንበኞች አቀባበል እና የስራ ክትትል"
+      },
+      "design": {
+        "name": "ዲዛይን",
+        "func": "ንድፎች፣ ናሙናዎች እና ማረጋገጫዎች"
+      },
+      "machine": {
+        "name": "ማሽን",
+        "func": "የህትመት መርሃግብር እና ጥገና"
+      },
+      "marketing": {
+        "name": "ማርኬቲንግ",
+        "func": "ደንበኞች፣ ዘመቻዎች እና የሽያጭ ሂደት"
+      },
+      "store": {
+        "name": "ስቶር (መጋዘን)",
+        "func": "ንብረት እና የእቃ ዝውውር"
+      },
+      "purchaser": {
+        "name": "ግዢ",
+        "func": "አቅራቢዎች፣ የግዢ ትዕዛዞች እና አቅርቦት"
+      },
+      "finishing": {
+        "name": "ማጠናቀቂያ",
+        "func": "ላሚኔሽን፣ ጥራዝ እና የጥራት ቁጥጥር"
+      },
+      "finance": {
+        "name": "ፋይናንስ",
+        "func": "ደረሰኞች፣ ወጪዎች እና ሪፖርቶች"
+      },
+      "creative": {
+        "name": "ክሬቲቭ (ፈጠራ)",
+        "func": "ሀሳቦች፣ ዲዛይኖች እና የብራንድ ማህደር"
+      },
+      "logistics": {
+        "name": "ሎጂስቲክስ",
+        "func": "ስርጭት፣ አቅርቦት እና ተሽከርካሪዎች"
+      },
+      "it": {
+        "name": "አይቲ (IT)",
+        "func": "ስርዓቶች፣ ተጠቃሚዎች እና የፈቃድ ቁጥጥር"
+      }
+    }
+  },
+  "hrNav": {
+    "overview": "አጠቃላይ እይታ",
+    "employees": "ሰራተኞች",
+    "attendance": "ሰዓት መቆጣጠሪያ",
+    "leave": "ፈቃድ",
+    "overtime": "ትርፍ ሰዓት",
+    "fieldVisits": "የመስክ ጉዞዎች",
+    "recruitment": "ቅጥር እና ምልመላ",
+    "internships": "ልምምድ (Internship)",
+    "payroll": "ደመወዝ",
+    "clearance": "መልቀቂያ (Clearance)",
+    "training": "ስልጠና",
+    "upgrades": "ደረጃ ማሻሻያ",
+    "plans": "እቅዶች",
+    "scrollLeft": "ወደ ግራ ያንሸራትቱ",
+    "scrollRight": "ወደ ቀኝ ያንሸራትቱ"
   },
   "theme": {
     "light": "ብርሃን (ቀን)",

@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   Users,
@@ -19,22 +20,23 @@ import {
 } from 'lucide-react';
 
 export const HR_NAV_ITEMS = [
-  { to: '/hr', end: true, label: 'Overview', icon: LayoutDashboard },
-  { to: '/hr/employees', label: 'Employees', icon: Users },
-  { to: '/hr/attendance', label: 'Attendance', icon: Clock },
-  { to: '/hr/leave', label: 'Leave', icon: CalendarCheck },
-  { to: '/hr/overtime', label: 'Overtime', icon: Zap },
-  { to: '/hr/field-visits', label: 'Field Visits', icon: MapPin },
-  { to: '/hr/recruitment', label: 'Recruitment', icon: Briefcase },
-  { to: '/hr/internships', label: 'Internships', icon: GraduationCap },
-  { to: '/hr/payroll', label: 'Payroll', icon: Banknote },
-  { to: '/hr/clearance', label: 'Clearance', icon: LogOut },
-  { to: '/hr/training', label: 'Training', icon: Award },
-  { to: '/hr/upgrades', label: 'Upgrades', icon: BookOpen },
-  { to: '/hr/plans', label: 'Plans', icon: FileSpreadsheet }
+  { key: 'overview', to: '/hr', end: true, label: 'Overview', icon: LayoutDashboard },
+  { key: 'employees', to: '/hr/employees', label: 'Employees', icon: Users },
+  { key: 'attendance', to: '/hr/attendance', label: 'Attendance', icon: Clock },
+  { key: 'leave', to: '/hr/leave', label: 'Leave', icon: CalendarCheck },
+  { key: 'overtime', to: '/hr/overtime', label: 'Overtime', icon: Zap },
+  { key: 'fieldVisits', to: '/hr/field-visits', label: 'Field Visits', icon: MapPin },
+  { key: 'recruitment', to: '/hr/recruitment', label: 'Recruitment', icon: Briefcase },
+  { key: 'internships', to: '/hr/internships', label: 'Internships', icon: GraduationCap },
+  { key: 'payroll', to: '/hr/payroll', label: 'Payroll', icon: Banknote },
+  { key: 'clearance', to: '/hr/clearance', label: 'Clearance', icon: LogOut },
+  { key: 'training', to: '/hr/training', label: 'Training', icon: Award },
+  { key: 'upgrades', to: '/hr/upgrades', label: 'Upgrades', icon: BookOpen },
+  { key: 'plans', to: '/hr/plans', label: 'Plans', icon: FileSpreadsheet }
 ];
 
 export default function HRLayout() {
+  const { t } = useTranslation();
   const location = useLocation();
   const scrollContainerRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -110,8 +112,8 @@ export default function HRLayout() {
                 type="button"
                 onClick={() => scrollByAmount('left')}
                 className="pointer-events-auto p-1 sm:p-1.5 rounded-xl bg-white dark:bg-[#152238] border border-slate-200/90 dark:border-slate-700 shadow-md text-slate-700 dark:text-slate-200 hover:text-[#00ced1] hover:bg-slate-50 dark:hover:bg-[#1c2e4a] transition-all flex items-center justify-center cursor-pointer shrink-0"
-                aria-label="Scroll tabs left"
-                title="Scroll left"
+                aria-label={t('hrNav.scrollLeft')}
+                title={t('hrNav.scrollLeft')}
               >
                 <ChevronLeft className="w-4 h-4 text-[#00ced1]" />
               </button>
@@ -139,7 +141,7 @@ export default function HRLayout() {
                   }
                 >
                   <Icon className="w-3.5 h-3.5 shrink-0" />
-                  <span>{item.label}</span>
+                  <span>{t(`hrNav.${item.key}`, item.label)}</span>
                 </NavLink>
               );
             })}
@@ -152,8 +154,8 @@ export default function HRLayout() {
                 type="button"
                 onClick={() => scrollByAmount('right')}
                 className="pointer-events-auto p-1 sm:p-1.5 rounded-xl bg-white dark:bg-[#152238] border border-slate-200/90 dark:border-slate-700 shadow-md text-slate-700 dark:text-slate-200 hover:text-[#00ced1] hover:bg-slate-50 dark:hover:bg-[#1c2e4a] transition-all flex items-center justify-center cursor-pointer shrink-0"
-                aria-label="Scroll tabs right"
-                title="Scroll right"
+                aria-label={t('hrNav.scrollRight')}
+                title={t('hrNav.scrollRight')}
               >
                 <ChevronRight className="w-4 h-4 text-[#00ced1]" />
               </button>

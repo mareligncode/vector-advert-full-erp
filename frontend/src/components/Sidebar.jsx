@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   Users,
@@ -26,6 +27,7 @@ import { useAuth } from '../context/AuthContext';
 export const ERP_MODULES = [
   {
     id: '01',
+    key: 'hr',
     name: 'HR',
     func: 'People, payroll & attendance',
     path: '/hr',
@@ -34,6 +36,7 @@ export const ERP_MODULES = [
   },
   {
     id: '02',
+    key: 'frontdesk',
     name: 'Front Desk',
     func: 'Client intake & job tracking',
     path: '/front-desk',
@@ -42,6 +45,7 @@ export const ERP_MODULES = [
   },
   {
     id: '03',
+    key: 'design',
     name: 'Design',
     func: 'Briefs, proofs & approvals',
     path: '/design',
@@ -50,6 +54,7 @@ export const ERP_MODULES = [
   },
   {
     id: '04',
+    key: 'machine',
     name: 'Machine',
     func: 'Press scheduling & maintenance',
     path: '/machine',
@@ -58,6 +63,7 @@ export const ERP_MODULES = [
   },
   {
     id: '05',
+    key: 'marketing',
     name: 'Marketing',
     func: 'Leads, campaigns & pipeline',
     path: '/marketing',
@@ -66,6 +72,7 @@ export const ERP_MODULES = [
   },
   {
     id: '06',
+    key: 'store',
     name: 'Store',
     func: 'Inventory & stock movements',
     path: '/store',
@@ -74,6 +81,7 @@ export const ERP_MODULES = [
   },
   {
     id: '07',
+    key: 'purchaser',
     name: 'Purchaser',
     func: 'Suppliers, POs & procurement',
     path: '/purchaser',
@@ -82,6 +90,7 @@ export const ERP_MODULES = [
   },
   {
     id: '08',
+    key: 'finishing',
     name: 'Finishing',
     func: 'Lamination, binding & QC',
     path: '/finishing',
@@ -90,6 +99,7 @@ export const ERP_MODULES = [
   },
   {
     id: '09',
+    key: 'finance',
     name: 'Finance',
     func: 'Invoices, expenses & reporting',
     path: '/finance',
@@ -98,6 +108,7 @@ export const ERP_MODULES = [
   },
   {
     id: '10',
+    key: 'creative',
     name: 'Creative',
     func: 'Concepts, assets & brand library',
     path: '/creative',
@@ -106,6 +117,7 @@ export const ERP_MODULES = [
   },
   {
     id: '11',
+    key: 'logistics',
     name: 'Logistics',
     func: 'Dispatch, delivery & fleet',
     path: '/logistics',
@@ -114,6 +126,7 @@ export const ERP_MODULES = [
   },
   {
     id: '12',
+    key: 'it',
     name: 'IT',
     func: 'Systems, users & access control',
     path: '/it',
@@ -123,6 +136,7 @@ export const ERP_MODULES = [
 ];
 
 export default function Sidebar() {
+  const { t } = useTranslation();
   const { isCollapsed, toggleCollapse, isMobileOpen, closeMobile } = useSidebar();
   const { isAuthenticated } = useAuth();
   const location = useLocation();
@@ -156,10 +170,10 @@ export default function Sidebar() {
             </div>
             <div className="min-w-0">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white truncate">
-                Vector Modules
+                {t('sidebar.title')}
               </h2>
               <span className="text-[10px] text-slate-400 font-semibold block truncate">
-                12 ERP Subsystems
+                {t('sidebar.subtitle')}
               </span>
             </div>
           </div>
@@ -170,7 +184,7 @@ export default function Sidebar() {
               type="button"
               onClick={closeMobile}
               className="md:hidden p-1.5 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              aria-label="Close Sidebar"
+              aria-label={t('sidebar.close')}
             >
               <X className="w-4 h-4" />
             </button>
@@ -180,7 +194,7 @@ export default function Sidebar() {
               type="button"
               onClick={toggleCollapse}
               className="hidden md:flex p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
-              title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+              title={isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
             >
               {isCollapsed ? (
                 <ChevronRight className="w-4 h-4 text-[#00ced1]" />
@@ -204,10 +218,10 @@ export default function Sidebar() {
                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#152238] hover:text-[#00ced1]'
               } ${isCollapsed ? 'justify-center' : ''}`
             }
-            title={isCollapsed ? 'Dashboard Overview' : ''}
+            title={isCollapsed ? t('sidebar.dashboardOverview') : ''}
           >
             <LayoutDashboard className="w-4 h-4 shrink-0" />
-            {!isCollapsed && <span className="truncate">Dashboard</span>}
+            {!isCollapsed && <span className="truncate">{t('sidebar.dashboard')}</span>}
           </NavLink>
 
           <div className="my-2 border-t border-slate-100 dark:border-slate-800/80" />
@@ -217,6 +231,8 @@ export default function Sidebar() {
             const Icon = mod.icon;
             const isHr = mod.id === '01';
             const isActive = location.pathname.startsWith(mod.path);
+            const modName = t(`sidebar.items.${mod.key}.name`, mod.name);
+            const modFunc = t(`sidebar.items.${mod.key}.func`, mod.func);
 
             return (
               <NavLink
@@ -228,7 +244,7 @@ export default function Sidebar() {
                     ? 'bg-[#00ced1] text-[#020617] font-bold shadow-xs'
                     : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#152238] hover:text-[#00ced1]'
                 } ${isCollapsed ? 'justify-center' : ''}`}
-                title={isCollapsed ? `${mod.name} - ${mod.func}` : ''}
+                title={isCollapsed ? `${modName} - ${modFunc}` : ''}
               >
                 {/* Module Icon */}
                 <Icon className="w-4 h-4 shrink-0" />
@@ -237,14 +253,14 @@ export default function Sidebar() {
                 {!isCollapsed && (
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-1">
-                      <span className="font-bold truncate">{mod.name}</span>
+                      <span className="font-bold truncate">{modName}</span>
                       {isHr ? (
                         <span className="px-1.5 py-0.2 rounded-full text-[9px] font-extrabold uppercase bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                          Active
+                          {t('sidebar.active')}
                         </span>
                       ) : (
                         <span className="px-1.5 py-0.2 rounded-full text-[9px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800/80">
-                          Soon
+                          {t('sidebar.soon')}
                         </span>
                       )}
                     </div>
@@ -253,7 +269,7 @@ export default function Sidebar() {
                         isActive ? 'text-slate-900/80' : 'text-slate-500 dark:text-slate-400'
                       }`}
                     >
-                      {mod.func}
+                      {modFunc}
                     </p>
                   </div>
                 )}
@@ -269,9 +285,9 @@ export default function Sidebar() {
               <Sparkles className="w-3.5 h-3.5 text-[#00ced1] shrink-0" />
               <div className="min-w-0">
                 <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate">
-                  Vector ERP v2.0
+                  {t('sidebar.versionTitle')}
                 </p>
-                <p className="text-[9px] text-slate-500 truncate">Core HR Module Live</p>
+                <p className="text-[9px] text-slate-500 truncate">{t('sidebar.versionSub')}</p>
               </div>
             </div>
           </div>

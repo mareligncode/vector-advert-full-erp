@@ -67,8 +67,8 @@ export default function Navbar() {
                 }
               }}
               className="p-1.5 sm:p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              title={isCollapsed ? 'Expand ERP Modules Sidebar' : 'Collapse ERP Modules Sidebar'}
-              aria-label="Toggle ERP Modules Sidebar"
+              title={isCollapsed ? t('sidebar.expandModules') : t('sidebar.collapseModules')}
+              aria-label={t('sidebar.toggleModules')}
             >
               <PanelLeft className="w-5 h-5 text-[#00ced1]" />
             </button>
@@ -93,10 +93,10 @@ export default function Navbar() {
               <Link
                 to="/hr"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-all cursor-pointer whitespace-nowrap"
-                title="Access Vector HR Subsystem"
+                title={t('nav.hrPortalTooltip')}
               >
                 <Users className="w-3.5 h-3.5 text-[#00ced1]" />
-                <span>HR Portal</span>
+                <span>{t('nav.hrPortal')}</span>
               </Link>
 
               {/* Executive / HR Staff Registration Shortcut */}
@@ -105,10 +105,10 @@ export default function Navbar() {
                   to="/register"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm shadow-[#00ced1]/30 hover:brightness-95 transition-all cursor-pointer whitespace-nowrap"
                   style={{ backgroundColor: '#00ced1', color: '#020617' }}
-                  title="Provision users & staff accounts"
+                  title={t('nav.registerStaffTooltip')}
                 >
                   <UserPlus className="w-3.5 h-3.5" style={{ color: '#020617' }} />
-                  <span style={{ color: '#020617' }}>Register Staff</span>
+                  <span style={{ color: '#020617' }}>{t('nav.registerStaff')}</span>
                 </Link>
               )}
 
@@ -190,7 +190,7 @@ export default function Navbar() {
                   </div>
 
                   <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800">
-                    Active
+                    {t('nav.activeStatus')}
                   </span>
                 </div>
 
@@ -205,10 +205,10 @@ export default function Navbar() {
                 >
                   <div className="flex items-center gap-2.5">
                     <Layers className="w-4 h-4 text-[#00ced1]" />
-                    <span>View 12 ERP Modules</span>
+                    <span>{t('nav.viewModules')}</span>
                   </div>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#00ced1] text-[#020617]">
-                    12 Modules
+                    {t('nav.modulesCountBadge')}
                   </span>
                 </button>
 
@@ -220,7 +220,7 @@ export default function Navbar() {
                     className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-[#00ced1] transition-colors"
                   >
                     <LayoutDashboard className="w-4 h-4 text-[#00ced1]" />
-                    <span>Dashboard</span>
+                    <span>{t('nav.dashboard')}</span>
                   </Link>
 
                   <Link
@@ -229,7 +229,7 @@ export default function Navbar() {
                     className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-[#00ced1] transition-colors"
                   >
                     <Users className="w-4 h-4 text-[#00ced1]" />
-                    <span>HR Portal</span>
+                    <span>{t('nav.hrPortal')}</span>
                   </Link>
 
                   {isAuthorizedToRegister && (
@@ -240,7 +240,7 @@ export default function Navbar() {
                       style={{ backgroundColor: '#00ced1', color: '#020617' }}
                     >
                       <UserPlus className="w-4 h-4" style={{ color: '#020617' }} />
-                      <span style={{ color: '#020617' }}>Register Staff</span>
+                      <span style={{ color: '#020617' }}>{t('nav.registerStaff')}</span>
                     </Link>
                   )}
                 </div>

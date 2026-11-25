@@ -11,7 +11,97 @@
     "register": "Sign Up",
     "logout": "Sign Out",
     "profile": "My Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "hrPortal": "HR Portal",
+    "hrPortalTooltip": "Access Vector HR Subsystem",
+    "registerStaff": "Register Staff",
+    "registerStaffTooltip": "Provision users & staff accounts",
+    "viewModules": "View 12 ERP Modules",
+    "modulesCountBadge": "12 Modules",
+    "activeStatus": "Active"
+  },
+  "sidebar": {
+    "title": "Vector Modules",
+    "subtitle": "12 ERP Subsystems",
+    "dashboard": "Dashboard",
+    "dashboardOverview": "Dashboard Overview",
+    "expand": "Expand Sidebar",
+    "collapse": "Collapse Sidebar",
+    "close": "Close Sidebar",
+    "expandModules": "Expand ERP Modules Sidebar",
+    "collapseModules": "Collapse ERP Modules Sidebar",
+    "toggleModules": "Toggle ERP Modules Sidebar",
+    "active": "Active",
+    "soon": "Soon",
+    "versionTitle": "Vector ERP v2.0",
+    "versionSub": "Core HR Module Live",
+    "items": {
+      "hr": {
+        "name": "HR",
+        "func": "People, payroll & attendance"
+      },
+      "frontdesk": {
+        "name": "Front Desk",
+        "func": "Client intake & job tracking"
+      },
+      "design": {
+        "name": "Design",
+        "func": "Briefs, proofs & approvals"
+      },
+      "machine": {
+        "name": "Machine",
+        "func": "Press scheduling & maintenance"
+      },
+      "marketing": {
+        "name": "Marketing",
+        "func": "Leads, campaigns & pipeline"
+      },
+      "store": {
+        "name": "Store",
+        "func": "Inventory & stock movements"
+      },
+      "purchaser": {
+        "name": "Purchaser",
+        "func": "Suppliers, POs & procurement"
+      },
+      "finishing": {
+        "name": "Finishing",
+        "func": "Lamination, binding & QC"
+      },
+      "finance": {
+        "name": "Finance",
+        "func": "Invoices, expenses & reporting"
+      },
+      "creative": {
+        "name": "Creative",
+        "func": "Concepts, assets & brand library"
+      },
+      "logistics": {
+        "name": "Logistics",
+        "func": "Dispatch, delivery & fleet"
+      },
+      "it": {
+        "name": "IT",
+        "func": "Systems, users & access control"
+      }
+    }
+  },
+  "hrNav": {
+    "overview": "Overview",
+    "employees": "Employees",
+    "attendance": "Attendance",
+    "leave": "Leave",
+    "overtime": "Overtime",
+    "fieldVisits": "Field Visits",
+    "recruitment": "Recruitment",
+    "internships": "Internships",
+    "payroll": "Payroll",
+    "clearance": "Clearance",
+    "training": "Training",
+    "upgrades": "Upgrades",
+    "plans": "Plans",
+    "scrollLeft": "Scroll left",
+    "scrollRight": "Scroll right"
   },
   "theme": {
     "light": "Light",

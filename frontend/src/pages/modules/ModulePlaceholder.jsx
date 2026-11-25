@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Sparkles,
   ArrowRight,
@@ -11,6 +12,7 @@ import {
 import { ERP_MODULES } from '../../components/Sidebar';
 
 export default function ModulePlaceholder() {
+  const { t } = useTranslation();
   const location = useLocation();
 
   // Find module by path
@@ -22,6 +24,13 @@ export default function ModulePlaceholder() {
       icon: Layers,
       status: 'development'
     };
+
+  const moduleName = currentModule.key
+    ? t(`sidebar.items.${currentModule.key}.name`, currentModule.name)
+    : currentModule.name;
+  const moduleFunc = currentModule.key
+    ? t(`sidebar.items.${currentModule.key}.func`, currentModule.func)
+    : currentModule.func;
 
   const Icon = currentModule.icon;
 
@@ -43,10 +52,10 @@ export default function ModulePlaceholder() {
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                {currentModule.name} Module
+                {moduleName} Module
               </h1>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
-                {currentModule.func}
+                {moduleFunc}
               </p>
             </div>
           </div>
