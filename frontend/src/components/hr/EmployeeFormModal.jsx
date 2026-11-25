@@ -317,8 +317,14 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
         probationEndDate: formData.probationEndDate || undefined,
         contractEndDate: formData.contractEndDate || undefined,
         nationalId: {
+          ...(employee?.nationalId || {}),
           fanNumber: formData.fanNumber.trim() || undefined,
-          finNumber: formData.finNumber.trim() || undefined
+          finNumber: formData.finNumber.trim() || undefined,
+          status: employee?.nationalId?.status || 'pending',
+          frontImageUrl: employee?.nationalId?.frontImageUrl || undefined,
+          backImageUrl: employee?.nationalId?.backImageUrl || undefined,
+          approvedBy: employee?.nationalId?.approvedBy || undefined,
+          approvedAt: employee?.nationalId?.approvedAt || undefined
         }
       };
 
@@ -328,18 +334,34 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
       }
 
       // Warranty / Guarantor
-      if (formData.guarantorName.trim() && formData.guarantorPhone.trim()) {
+      const hasGuarantorData = !!(
+        formData.guarantorName.trim() ||
+        formData.guarantorPhone.trim() ||
+        formData.guarantorFan.trim() ||
+        formData.guarantorFin.trim()
+      );
+
+      if (hasGuarantorData) {
+        const existingGuarantor = employee?.guarantors?.[0] || {};
         payload.guarantors = [
           {
-            name: formData.guarantorName.trim(),
-            phone: formData.guarantorPhone.trim(),
+            name: formData.guarantorName.trim() || 'Guarantor',
+            phone: formData.guarantorPhone.trim() || '',
             relationship: formData.guarantorRelationship || 'Parent',
             nationalId: {
+              ...(existingGuarantor.nationalId || {}),
               fanNumber: formData.guarantorFan.trim() || undefined,
-              finNumber: formData.guarantorFin.trim() || undefined
+              finNumber: formData.guarantorFin.trim() || undefined,
+              status: existingGuarantor.nationalId?.status || 'pending',
+              frontImageUrl: existingGuarantor.nationalId?.frontImageUrl || undefined,
+              backImageUrl: existingGuarantor.nationalId?.backImageUrl || undefined,
+              approvedBy: existingGuarantor.nationalId?.approvedBy || undefined,
+              approvedAt: existingGuarantor.nationalId?.approvedAt || undefined
             }
           }
         ];
+      } else if (isEditMode) {
+        payload.guarantors = [];
       }
 
       // Financials (if permitted)

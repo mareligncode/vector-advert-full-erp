@@ -93,7 +93,7 @@ const employeeSchema = new mongoose.Schema(
     guarantors: [
       {
         name: { type: String, required: true },
-        phone: { type: String, required: true },
+        phone: { type: String, trim: true },
         relationship: { type: String, trim: true },
         nationalId: {
           fanNumber: { type: String },

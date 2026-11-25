@@ -184,8 +184,9 @@ async function runTests() {
     });
     const docData = await docRes.json();
     if (!docData.success) throw new Error(`Add document failed: ${docData.message}`);
-    testDocumentId = docData.data._id;
-    console.log(`✅ Document uploaded: '${docData.data.title}', Status: ${docData.data.status}`);
+    const createdDoc = docData.document || (docData.data.employeeDocuments && docData.data.employeeDocuments[docData.data.employeeDocuments.length - 1]) || docData.data;
+    testDocumentId = createdDoc._id;
+    console.log(`✅ Document uploaded: '${createdDoc.title}', Status: ${createdDoc.status}`);
 
     // 8. Approve Employee Document
     console.log('\nTest 8: Approve Document');
@@ -198,8 +199,9 @@ async function runTests() {
       body: JSON.stringify({ status: 'approved' })
     });
     const appDocData = await appDocRes.json();
-    if (!appDocData.success || appDocData.data.status !== 'approved') throw new Error('Approve document failed');
-    console.log(`✅ Document approval status: ${appDocData.data.status}, Approver: ${appDocData.data.approvedBy}`);
+    const approvedDoc = appDocData.document || (appDocData.data.employeeDocuments && appDocData.data.employeeDocuments.find(d => d._id === testDocumentId)) || appDocData.data;
+    if (!appDocData.success || approvedDoc.status !== 'approved') throw new Error('Approve document failed');
+    console.log(`✅ Document approval status: ${approvedDoc.status}, Approver: ${approvedDoc.approvedBy}`);
 
     // 9. Approve Employee Fayda National ID
     console.log('\nTest 9: Approve Fayda National ID');
@@ -212,8 +214,9 @@ async function runTests() {
       body: JSON.stringify({ status: 'approved' })
     });
     const idAppData = await idAppRes.json();
-    if (!idAppData.success || idAppData.data.status !== 'approved') throw new Error('Approve national ID failed');
-    console.log(`✅ Fayda National ID status: ${idAppData.data.status}`);
+    const nidStatus = idAppData.nationalId ? idAppData.nationalId.status : idAppData.data?.nationalId?.status;
+    if (!idAppData.success || nidStatus !== 'approved') throw new Error('Approve national ID failed');
+    console.log(`✅ Fayda National ID status: ${nidStatus}`);
 
     // 10. Approve Guarantor National ID
     console.log('\nTest 10: Approve Guarantor National ID');
@@ -226,8 +229,9 @@ async function runTests() {
       body: JSON.stringify({ status: 'approved' })
     });
     const gAppData = await gAppRes.json();
-    if (!gAppData.success || gAppData.data.status !== 'approved') throw new Error('Approve guarantor ID failed');
-    console.log(`✅ Guarantor National ID status: ${gAppData.data.status}`);
+    const gnidStatus = gAppData.nationalId ? gAppData.nationalId.status : gAppData.data?.guarantors?.[0]?.nationalId?.status;
+    if (!gAppData.success || gnidStatus !== 'approved') throw new Error('Approve guarantor ID failed');
+    console.log(`✅ Guarantor National ID status: ${gnidStatus}`);
 
     // 11. Create & Link User Account to Employee
     console.log('\nTest 11: Create & Link User Account to Employee');
@@ -343,10 +347,11 @@ async function runTests() {
       body: nidForm
     });
     const nidData = await nidRes.json();
-    if (!nidData.success || !nidData.data.frontImageUrl || !nidData.data.backImageUrl) {
+    const nidObj = nidData.nationalId || nidData.data?.nationalId || nidData.data;
+    if (!nidData.success || !nidObj.frontImageUrl || !nidObj.backImageUrl) {
       throw new Error(`National ID photo upload failed: ${nidData.message}`);
     }
-    console.log(`✅ National ID photos uploaded: Front=${nidData.data.frontImageUrl}, Back=${nidData.data.backImageUrl}`);
+    console.log(`✅ National ID photos uploaded: Front=${nidObj.frontImageUrl}, Back=${nidObj.backImageUrl}`);
 
     // 18. Upload Document with file (Multipart Local Upload)
     console.log('\nTest 18: Upload Employee Document with Multipart File');
@@ -362,10 +367,11 @@ async function runTests() {
       body: docUploadForm
     });
     const docUploadData = await docUploadRes.json();
-    if (!docUploadData.success || !docUploadData.data.fileUrl.startsWith('/uploads/employees/')) {
+    const uploadedDoc = docUploadData.document || (docUploadData.data.employeeDocuments && docUploadData.data.employeeDocuments[docUploadData.data.employeeDocuments.length - 1]);
+    if (!docUploadData.success || !uploadedDoc || !uploadedDoc.fileUrl.startsWith('/uploads/employees/')) {
       throw new Error(`Multipart document upload failed: ${docUploadData.message}`);
     }
-    console.log(`✅ Document uploaded via multipart: ${docUploadData.data.fileUrl}`);
+    console.log(`✅ Document uploaded via multipart: ${uploadedDoc.fileUrl}`);
 
     // 19. Remove Profile Photo
     console.log('\nTest 19: Remove Profile Photo');
@@ -376,6 +382,78 @@ async function runTests() {
     const delPhotoData = await delPhotoRes.json();
     if (!delPhotoData.success) throw new Error('Remove profile photo failed');
     console.log('✅ Profile photo removed successfully.');
+
+    // 19b. Verify Fayda National ID Status does NOT reset to unverified on profile update
+    console.log('\nTest 19b: Preserve Approved Fayda National ID Status on Profile Update');
+    await fetch(`${BASE_URL}/api/employees/${testEmployeeId}/national-id/approve`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${hrToken}`
+      },
+      body: JSON.stringify({ status: 'approved' })
+    });
+
+    const updateProfileRes = await fetch(`${BASE_URL}/api/employees/${testEmployeeId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${hrToken}`
+      },
+      body: JSON.stringify({
+        jobTitle: 'Principal Creative Technologist',
+        nationalId: {
+          fanNumber: 'FAN-1122334455',
+          finNumber: 'FIN-99887766'
+        }
+      })
+    });
+    const updateProfileData = await updateProfileRes.json();
+    if (!updateProfileData.success) throw new Error(`Profile update failed: ${updateProfileData.message}`);
+    if (updateProfileData.data.nationalId?.status !== 'approved') {
+      throw new Error(`CRITICAL: Fayda ID status reset from approved to ${updateProfileData.data.nationalId?.status}!`);
+    }
+    console.log(`✅ Fayda ID status preserved as: ${updateProfileData.data.nationalId.status}`);
+
+    // 19c. Verify Warranty (Guarantor) Persistence on Save & Refresh
+    console.log('\nTest 19c: Save Warranty / Guarantor without phone and verify persistence on refresh');
+    const warrantySaveRes = await fetch(`${BASE_URL}/api/employees/${testEmployeeId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${hrToken}`
+      },
+      body: JSON.stringify({
+        guarantors: [
+          {
+            name: 'Kassahun Bekele',
+            phone: '', // phone omitted/blank
+            relationship: 'Brother',
+            nationalId: {
+              fanNumber: 'FAN-7766554433221100',
+              finNumber: 'FIN-1122334455'
+            }
+          }
+        ]
+      })
+    });
+    const warrantySaveData = await warrantySaveRes.json();
+    if (!warrantySaveData.success) throw new Error(`Warranty update failed: ${warrantySaveData.message}`);
+
+    // Re-fetch employee from DB to simulate page refresh
+    const refreshEmpRes = await fetch(`${BASE_URL}/api/employees/${testEmployeeId}`, {
+      headers: { Authorization: `Bearer ${hrToken}` }
+    });
+    const refreshEmpData = await refreshEmpRes.json();
+    if (!refreshEmpData.success) throw new Error('Refresh fetch failed');
+    const refreshedGuarantors = refreshEmpData.data.guarantors;
+    if (!refreshedGuarantors || refreshedGuarantors.length === 0) {
+      throw new Error('Guarantors empty after refresh!');
+    }
+    if (refreshedGuarantors[0].name !== 'Kassahun Bekele' || refreshedGuarantors[0].nationalId?.fanNumber !== 'FAN-7766554433221100') {
+      throw new Error(`Warranty data corrupted: ${JSON.stringify(refreshedGuarantors[0])}`);
+    }
+    console.log(`✅ Warranty saved & persisted across refresh: ${refreshedGuarantors[0].name}, FAN: ${refreshedGuarantors[0].nationalId.fanNumber}`);
 
     // 20. Delete Employee
     console.log('\nTest 20: Delete Employee');

@@ -763,7 +763,7 @@ export default function EmployeeList() {
           onSuccess={(updated) => {
             setEditingEmployee(null);
             fetchEmployees();
-            if (selectedEmployee?._id === updated?._id) {
+            if (updated) {
               setSelectedEmployee(updated);
             }
             setMessage({ type: 'success', text: `Employee #${updated?.employeeNumber || ''} updated successfully!` });
@@ -773,9 +773,9 @@ export default function EmployeeList() {
       )}
 
       {/* VIEW & MANAGE Detail Modal / Drawer */}
-      {selectedEmployee && (
+      {selectedEmployee && !editingEmployee && (
         <EmployeeDetailModal
-          isOpen={!!selectedEmployee}
+          isOpen={!!selectedEmployee && !editingEmployee}
           onClose={() => setSelectedEmployee(null)}
           employee={selectedEmployee}
           onUpdate={(updated) => {
@@ -787,7 +787,6 @@ export default function EmployeeList() {
             fetchEmployees();
           }}
           onEdit={(emp) => {
-            setSelectedEmployee(null);
             setEditingEmployee(emp);
           }}
           onOpenEvidence={(emp) => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   X,
@@ -46,7 +46,7 @@ import {
 export default function EmployeeDetailModal({
   isOpen,
   onClose,
-  employee,
+  employee: initialEmployee,
   onUpdate,
   onEdit,
   onOpenEvidence
@@ -54,7 +54,35 @@ export default function EmployeeDetailModal({
   const { t, i18n } = useTranslation();
   const isAmharic = i18n.language === 'am';
   const { user } = useAuth();
-  if (!isOpen || !employee) return null;
+  if (!isOpen || !initialEmployee) return null;
+
+  const [currentEmployee, setCurrentEmployee] = useState(initialEmployee);
+
+  useEffect(() => {
+    setCurrentEmployee(initialEmployee);
+  }, [initialEmployee]);
+
+  // Fetch full populated fresh employee whenever opened or employee id changes
+  useEffect(() => {
+    let isMounted = true;
+    if (isOpen && initialEmployee?._id) {
+      employeeService.getEmployeeById(initialEmployee._id)
+        .then((res) => {
+          if (res.success && res.data && isMounted) {
+            setCurrentEmployee(res.data);
+            if (onUpdate) onUpdate(res.data);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to load fresh employee details:', err);
+        });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, initialEmployee?._id]);
+
+  const employee = currentEmployee || initialEmployee;
 
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(false);
@@ -79,6 +107,31 @@ export default function EmployeeDetailModal({
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState('employee');
 
+  useEffect(() => {
+    if (employee) {
+      setNewStatus(employee.employmentStatus || 'active');
+      setNewUserEmail(employee.email || '');
+    }
+  }, [employee]);
+
+  const syncUpdatedEmployee = async (responseData) => {
+    let updated = responseData && responseData._id ? responseData : null;
+    if (!updated && employee?._id) {
+      try {
+        const fresh = await employeeService.getEmployeeById(employee._id);
+        if (fresh.success && fresh.data) {
+          updated = fresh.data;
+        }
+      } catch (e) {
+        console.error('Failed to re-fetch updated employee:', e);
+      }
+    }
+    if (updated) {
+      setCurrentEmployee(updated);
+      if (onUpdate) onUpdate(updated);
+    }
+  };
+
   const fullName = employee.name
     ? `${employee.name.first || ''} ${employee.name.middle || ''} ${employee.name.last || ''}`.trim()
     : 'Personnel Profile';
@@ -95,7 +148,7 @@ export default function EmployeeDetailModal({
       const res = await employeeService.uploadProfilePhoto(employee._id, file);
       if (res.success) {
         setActionMessage({ type: 'success', text: 'Profile photo updated successfully!' });
-        if (onUpdate) onUpdate(res.data);
+        await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
       setActionMessage({ type: 'error', text: err.response?.data?.message || 'Failed to upload photo' });
@@ -120,7 +173,7 @@ export default function EmployeeDetailModal({
         setActionMessage({ type: 'success', text: 'National ID photos uploaded successfully!' });
         setFrontIdFile(null);
         setBackIdFile(null);
-        if (onUpdate) onUpdate(res.data);
+        await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
       setActionMessage({ type: 'error', text: err.response?.data?.message || 'Failed to upload ID photos' });
@@ -146,7 +199,7 @@ export default function EmployeeDetailModal({
           type: 'success',
           text: `National ID marked as ${status} successfully!`
         });
-        if (onUpdate) onUpdate(res.data);
+        await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
       setActionMessage({ type: 'error', text: err.response?.data?.message || 'Verification update failed' });
@@ -171,7 +224,7 @@ export default function EmployeeDetailModal({
         setActionMessage({ type: 'success', text: 'Document uploaded successfully!' });
         setDocFile(null);
         setDocTitle('');
-        if (onUpdate) onUpdate(res.data);
+        await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
       setActionMessage({ type: 'error', text: err.response?.data?.message || 'Failed to add document' });
@@ -194,7 +247,7 @@ export default function EmployeeDetailModal({
       const res = await employeeService.approveDocument(employee._id, documentId, status, rejectionReason);
       if (res.success) {
         setActionMessage({ type: 'success', text: `Document marked as ${status}!` });
-        if (onUpdate) onUpdate(res.data);
+        await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
       setActionMessage({ type: 'error', text: err.response?.data?.message || 'Document review failed' });
@@ -212,7 +265,7 @@ export default function EmployeeDetailModal({
       const res = await employeeService.removeDocument(employee._id, documentId);
       if (res.success) {
         setActionMessage({ type: 'success', text: 'Document removed.' });
-        if (onUpdate) onUpdate(res.data);
+        await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
       setActionMessage({ type: 'error', text: err.response?.data?.message || 'Failed to delete document' });
@@ -231,7 +284,7 @@ export default function EmployeeDetailModal({
       if (res.success) {
         setActionMessage({ type: 'success', text: `Employment status updated to ${newStatus}!` });
         setStatusNotes('');
-        if (onUpdate) onUpdate(res.data);
+        await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
       setActionMessage({ type: 'error', text: err.response?.data?.message || 'Failed to update status' });
@@ -259,7 +312,7 @@ export default function EmployeeDetailModal({
       if (res.success) {
         setActionMessage({ type: 'success', text: 'User account created and linked!' });
         setNewUserPassword('');
-        if (onUpdate) onUpdate(res.data);
+        await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
       setActionMessage({ type: 'error', text: err.response?.data?.message || 'Failed to create user' });
@@ -277,7 +330,7 @@ export default function EmployeeDetailModal({
       const res = await employeeService.unlinkUserAccount(employee._id);
       if (res.success) {
         setActionMessage({ type: 'success', text: 'User account unlinked.' });
-        if (onUpdate) onUpdate(res.data);
+        await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
       setActionMessage({ type: 'error', text: err.response?.data?.message || 'Failed to unlink user' });
@@ -592,15 +645,21 @@ export default function EmployeeDetailModal({
                             {g.relationship || 'Guarantor'}
                           </span>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
                           <div>
                             <span className="text-[10px] text-slate-400 block">{t('employee.primaryPhone', 'Phone')}</span>
-                            <span className="font-mono text-slate-700 dark:text-slate-300">{g.phone}</span>
+                            <span className="font-mono text-slate-700 dark:text-slate-300">{g.phone || '—'}</span>
                           </div>
                           <div>
                             <span className="text-[10px] text-slate-400 block">Fayda FAN</span>
                             <span className="font-mono font-bold text-[#00ced1] text-[11px] truncate block">
-                              {g.nationalId?.fanNumber || 'Not provided'}
+                              {g.nationalId?.fanNumber || '—'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-400 block">Fayda FIN</span>
+                            <span className="font-mono font-bold text-slate-700 dark:text-slate-300 text-[11px] truncate block">
+                              {g.nationalId?.finNumber || '—'}
                             </span>
                           </div>
                         </div>

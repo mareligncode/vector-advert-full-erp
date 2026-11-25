@@ -361,6 +361,15 @@ export const getEmployeeById = async (req, res) => {
   }
 };
 
+export const getPopulatedEmployee = async (id) => {
+  return await Employee.findById(id)
+    .populate('user', 'email roles accountStatus lastLoginTime')
+    .populate('manager', 'name employeeNumber jobTitle department email primaryPhone')
+    .populate('nationalId.approvedBy', 'email roles')
+    .populate('guarantors.nationalId.approvedBy', 'email roles')
+    .populate('employeeDocuments.approvedBy', 'email roles');
+};
+
 /**
  * @desc    Update employee details
  * @route   PUT /api/employees/:id
@@ -403,13 +412,55 @@ export const updateEmployee = async (req, res) => {
       }
     }
 
-    const updatedEmployee = await Employee.findByIdAndUpdate(
+    const updatePayload = { ...req.body };
+
+    // PRESERVE NATIONAL ID VERIFICATION STATUS & IMAGES (CRITICAL: DO NOT RESET TO PENDING)
+    if (updatePayload.nationalId) {
+      const existingNid = employee.nationalId
+        ? (typeof employee.nationalId.toObject === 'function' ? employee.nationalId.toObject() : employee.nationalId)
+        : {};
+      updatePayload.nationalId = {
+        ...existingNid,
+        ...updatePayload.nationalId,
+        status: existingNid.status || 'pending',
+        approvedBy: existingNid.approvedBy || undefined,
+        approvedAt: existingNid.approvedAt || undefined,
+        rejectionReason: existingNid.rejectionReason || undefined,
+        frontImageUrl: existingNid.frontImageUrl || updatePayload.nationalId.frontImageUrl,
+        backImageUrl: existingNid.backImageUrl || updatePayload.nationalId.backImageUrl
+      };
+    }
+
+    // PRESERVE GUARANTORS VERIFICATION STATUS & IMAGES IF PRESENT
+    if (Array.isArray(updatePayload.guarantors) && updatePayload.guarantors.length > 0) {
+      const existingGuarantors = employee.guarantors || [];
+      updatePayload.guarantors = updatePayload.guarantors.map((g, idx) => {
+        const existingG = existingGuarantors[idx];
+        const existingG_nid = existingG?.nationalId
+          ? (typeof existingG.nationalId.toObject === 'function' ? existingG.nationalId.toObject() : existingG.nationalId)
+          : {};
+        return {
+          ...g,
+          nationalId: {
+            ...existingG_nid,
+            ...(g.nationalId || {}),
+            status: existingG_nid?.status || 'pending',
+            approvedBy: existingG_nid?.approvedBy || undefined,
+            approvedAt: existingG_nid?.approvedAt || undefined,
+            frontImageUrl: existingG_nid?.frontImageUrl || g.nationalId?.frontImageUrl,
+            backImageUrl: existingG_nid?.backImageUrl || g.nationalId?.backImageUrl
+          }
+        };
+      });
+    }
+
+    await Employee.findByIdAndUpdate(
       id,
-      { $set: req.body },
+      { $set: updatePayload },
       { returnDocument: 'after', runValidators: true }
-    )
-      .populate('user', 'email roles accountStatus')
-      .populate('manager', 'name employeeNumber jobTitle department email');
+    );
+
+    const updatedEmployee = await getPopulatedEmployee(id);
 
     return res.status(200).json({
       success: true,
@@ -456,10 +507,12 @@ export const updateEmploymentStatus = async (req, res) => {
 
     await employee.save();
 
+    const populated = await getPopulatedEmployee(id);
+
     return res.status(200).json({
       success: true,
       message: `Employment status updated to '${status}'`,
-      data: employee
+      data: populated
     });
   } catch (error) {
     return res.status(500).json({
@@ -679,10 +732,12 @@ export const unlinkUserAccount = async (req, res) => {
     employee.user = null;
     await employee.save();
 
+    const populated = await getPopulatedEmployee(id);
+
     return res.status(200).json({
       success: true,
       message: 'User account unlinked successfully',
-      data: employee
+      data: populated
     });
   } catch (error) {
     return res.status(500).json({
@@ -738,12 +793,13 @@ export const uploadProfilePhoto = async (req, res) => {
     employee.profilePhoto = fileUrl;
     await employee.save();
 
+    const populated = await getPopulatedEmployee(id);
+
     return res.status(200).json({
       success: true,
       message: 'Profile photo updated successfully',
-      data: {
-        profilePhoto: employee.profilePhoto
-      }
+      data: populated,
+      profilePhoto: employee.profilePhoto
     });
   } catch (error) {
     return res.status(500).json({
@@ -846,10 +902,13 @@ export const uploadNationalIdPhotos = async (req, res) => {
 
     await employee.save();
 
+    const populated = await getPopulatedEmployee(id);
+
     return res.status(200).json({
       success: true,
       message: 'National ID photos uploaded successfully and awaiting review',
-      data: employee.nationalId
+      data: populated,
+      nationalId: populated.nationalId
     });
   } catch (error) {
     return res.status(500).json({
@@ -911,11 +970,13 @@ export const addDocument = async (req, res) => {
     await employee.save();
 
     const createdDoc = employee.employeeDocuments[employee.employeeDocuments.length - 1];
+    const populated = await getPopulatedEmployee(employee._id);
 
     return res.status(201).json({
       success: true,
       message: 'Document uploaded successfully and awaiting review',
-      data: createdDoc
+      data: populated,
+      document: createdDoc
     });
   } catch (error) {
     return res.status(500).json({
@@ -961,9 +1022,12 @@ export const removeDocument = async (req, res) => {
     employee.employeeDocuments.splice(docIndex, 1);
     await employee.save();
 
+    const populated = await getPopulatedEmployee(employee._id);
+
     return res.status(200).json({
       success: true,
-      message: 'Document removed successfully'
+      message: 'Document removed successfully',
+      data: populated
     });
   } catch (error) {
     return res.status(500).json({
@@ -1013,10 +1077,13 @@ export const approveDocument = async (req, res) => {
 
     await employee.save();
 
+    const populated = await getPopulatedEmployee(employee._id);
+
     return res.status(200).json({
       success: true,
       message: `Document has been ${status}`,
-      data: doc
+      data: populated,
+      document: doc
     });
   } catch (error) {
     return res.status(500).json({
@@ -1065,10 +1132,13 @@ export const approveNationalId = async (req, res) => {
 
     await employee.save();
 
+    const populated = await getPopulatedEmployee(employee._id);
+
     return res.status(200).json({
       success: true,
       message: `National ID has been ${status}`,
-      data: employee.nationalId
+      data: populated,
+      nationalId: populated.nationalId
     });
   } catch (error) {
     return res.status(500).json({
@@ -1125,10 +1195,13 @@ export const approveGuarantorNationalId = async (req, res) => {
 
     await employee.save();
 
+    const populated = await getPopulatedEmployee(employee._id);
+
     return res.status(200).json({
       success: true,
       message: `Guarantor National ID has been ${status}`,
-      data: guarantor.nationalId
+      data: populated,
+      nationalId: guarantor.nationalId
     });
   } catch (error) {
     return res.status(500).json({
