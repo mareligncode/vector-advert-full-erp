@@ -498,6 +498,46 @@ async function runTests() {
   await staffRet.validate();
 
   console.log('All 23 operations and inventory models validated successfully!');
+
+  // Verify critical cross-model references and relationships
+  const pathChecks = [
+    { model: StaffRequest, path: 'jobOrderId', ref: 'JobOrder' },
+    { model: StaffRequest, path: 'productionRequestId', ref: 'ProductionRequest' },
+    { model: StaffRequest, path: 'isSupplemental' },
+    { model: StaffReturn, path: 'jobOrderId', ref: 'JobOrder' },
+    { model: StaffReturn, path: 'productionRequestId', ref: 'ProductionRequest' },
+    { model: Invoice, path: 'invoiceType' },
+    { model: Invoice, path: 'proformaReferenceCode' },
+    { model: Invoice, path: 'jobOrderId', ref: 'JobOrder' },
+    { model: PaymentCollection, path: 'invoiceId', ref: 'Invoice' },
+    { model: PaymentCollection, path: 'triggersProductionClearance' },
+    { model: CustomerCreditLedger, path: 'transactionCode' },
+    { model: CustomerCreditLedger, path: 'agingBracket' },
+    { model: ProductionRequest, path: 'submittedDimensions.finishedDimensions.widthCm' },
+    { model: ProductionRequest, path: 'submittedMaterials.0.materialCategory' },
+    { model: ProductionMachine, path: 'machineCode' },
+    { model: ProductionWastage, path: 'jobOrderId', ref: 'JobOrder' },
+    { model: ProductionWastage, path: 'productionRequestId', ref: 'ProductionRequest' },
+    { model: MachineMaintenanceSchedule, path: 'frequency' },
+    { model: MachineMaintenanceLog, path: 'environmentalParameters.ambientWorkshopTempCelsius' },
+    { model: MachineRepairOrder, path: 'interruptedProduction.activeJobOrderId', ref: 'JobOrder' },
+    { model: CustomerFeedback, path: 'ratings.overallSatisfactionScore' },
+    { model: CustomerComplaint, path: 'targetResolutionDate' },
+    { model: WarrantyClaim, path: 'jobOrderId', ref: 'JobOrder' }
+  ];
+
+  for (const check of pathChecks) {
+    const schemaPath = check.model.schema.path(check.path);
+    if (!schemaPath) {
+      throw new Error(`Path check failed: ${check.model.modelName} missing path '${check.path}'`);
+    }
+    if (check.ref && schemaPath.options.ref !== check.ref) {
+      throw new Error(
+        `Path check failed: ${check.model.modelName}.${check.path} ref expected '${check.ref}', got '${schemaPath.options.ref}'`
+      );
+    }
+    console.log(`✓ Path check passed: ${check.model.modelName}.${check.path}`);
+  }
 }
 
 runTests()

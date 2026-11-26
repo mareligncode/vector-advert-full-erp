@@ -132,12 +132,10 @@ const machineRepairOrderSchema = new mongoose.Schema(
       failureCategory: {
         type: String,
         enum: MACHINE_FAILURE_CATEGORY_ENUM,
-        required: true,
         index: true
       },
       rootCauseSummary: {
         type: String,
-        required: true,
         trim: true
       },
       repairStrategy: {
@@ -164,7 +162,6 @@ const machineRepairOrderSchema = new mongoose.Schema(
     leadTechnician: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Employee',
-      required: true,
       index: true
     },
     assistingTechnicians: [
@@ -207,8 +204,7 @@ const machineRepairOrderSchema = new mongoose.Schema(
       certifiedReturnToServiceDate: { type: Date },
       certifiedBySupervisor: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Employee',
-        required: true
+        ref: 'Employee'
       },
       calibrationEvidenceId: {
         type: mongoose.Schema.Types.ObjectId,
