@@ -1,19 +1,20 @@
 import React from 'react';
-import { CheckCircle2, XCircle, Clock, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { CheckCircle2, XCircle, Clock } from 'lucide-react';
 
 export default function ApprovalTimeline({ stages = [] }) {
+  const { t } = useTranslation();
   if (!stages || stages.length === 0) return null;
 
   return (
     <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-[#152238]/60 border border-slate-200/80 dark:border-slate-800 space-y-3">
       <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-        Approval Lifecycle
+        {t('approval.lifecycle')}
       </h4>
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-2">
         {stages.map((stage, idx) => {
           const isApproved = stage.status === 'approved';
           const isRejected = stage.status === 'rejected';
-          const isPending = stage.status === 'pending';
 
           const icon = isApproved ? (
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
@@ -29,6 +30,9 @@ export default function ApprovalTimeline({ stages = [] }) {
             ? 'border-rose-300 dark:border-rose-800'
             : 'border-slate-200 dark:border-slate-700';
 
+          const statusKey = (stage.status || 'pending').toLowerCase().trim();
+          const statusLabel = t(`status.${statusKey}`, stage.status || 'Pending');
+
           return (
             <React.Fragment key={idx}>
               <div
@@ -40,7 +44,7 @@ export default function ApprovalTimeline({ stages = [] }) {
                     {stage.name}
                   </p>
                   <p className="text-[10px] text-slate-500 dark:text-slate-400 capitalize truncate">
-                    {stage.status || 'Pending'} {stage.by ? `by ${stage.by}` : ''}
+                    {statusLabel} {stage.by ? `${t('approval.by')} ${stage.by}` : ''}
                   </p>
                   {stage.date && (
                     <p className="text-[9px] text-slate-400 dark:text-slate-500">

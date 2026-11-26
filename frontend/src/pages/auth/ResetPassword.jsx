@@ -35,7 +35,7 @@ export default function ResetPassword() {
     setError('');
 
     if (!formData.email.trim() || !formData.code.trim() || !formData.newPassword) {
-      setError('Please fill in all fields');
+      setError(t('auth.fillAllFields'));
       return;
     }
 
@@ -61,7 +61,7 @@ export default function ResetPassword() {
         setSuccess(true);
       }
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Failed to reset password';
+      const msg = err.response?.data?.message || err.message || t('auth.resetFailed');
       setError(msg);
     } finally {
       setLoading(false);

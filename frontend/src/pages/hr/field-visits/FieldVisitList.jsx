@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MapPin, Plus } from 'lucide-react';
 import { fieldVisitService } from '../../../services/hrService';
 import StatusBadge from '../../../components/hr/StatusBadge';
 
 export default function FieldVisitList() {
+  const { t } = useTranslation();
   const [visits, setVisits] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,19 +30,19 @@ export default function FieldVisitList() {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <MapPin className="w-6 h-6 text-[#00ced1]" />
-            <span>Field Visits & Client Sites</span>
+            <span>{t('hrPages.fieldVisits.title')}</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Schedule on-site client visits, GPS check-in, and report notes.
+            {t('hrPages.fieldVisits.subtitle')}
           </p>
         </div>
       </div>
 
       <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-[#0e1626] border border-slate-200/90 dark:border-slate-800 shadow-xs p-6 text-center text-xs text-slate-400">
         {loading ? (
-          'Loading field visits...'
+          t('hrPages.fieldVisits.loading')
         ) : visits.length === 0 ? (
-          <p>No client field visits scheduled yet.</p>
+          <p>{t('hrPages.fieldVisits.empty')}</p>
         ) : (
           <div className="space-y-2">
             {visits.map((v) => (

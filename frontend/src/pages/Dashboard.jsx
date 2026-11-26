@@ -62,7 +62,7 @@ export default function Dashboard() {
       setTelegramLoading(true);
       const res = await authService.unlinkTelegram();
       if (res.success) {
-        setUnlinkSuccess(res.message || 'Telegram unlinked');
+        setUnlinkSuccess(res.message || t('dashboard.telegramUnlinked'));
         await refreshUser();
         await fetchTelegramInfo();
         setTimeout(() => setUnlinkSuccess(''), 3000);
@@ -79,42 +79,42 @@ export default function Dashboard() {
       title: t('dashboard.moduleAttendance'),
       icon: Clock,
       color: 'from-cyan-500 to-blue-600',
-      desc: 'GPS clock-in, overtime tracking & daily logs',
+      desc: t('dashboard.moduleAttendanceDesc'),
       to: '/hr/attendance'
     },
     {
       title: t('dashboard.moduleEmployees'),
       icon: Users,
       color: 'from-teal-500 to-emerald-600',
-      desc: 'Staff profiles, departments & documents',
+      desc: t('dashboard.moduleEmployeesDesc'),
       to: '/hr/employees'
     },
     {
       title: t('dashboard.moduleRecruitment'),
       icon: Briefcase,
       color: 'from-blue-600 to-indigo-600',
-      desc: 'Vacancies, applicants & interview scoring',
+      desc: t('dashboard.moduleRecruitmentDesc'),
       to: '/hr/recruitment'
     },
     {
       title: t('dashboard.moduleOvertime'),
       icon: Sparkles,
       color: 'from-amber-500 to-orange-600',
-      desc: 'Requests, multi-tier approvals & calculations',
+      desc: t('dashboard.moduleOvertimeDesc'),
       to: '/hr/overtime'
     },
     {
       title: t('dashboard.modulePlans'),
       icon: FileSpreadsheet,
       color: 'from-purple-600 to-pink-600',
-      desc: 'Strategic objectives, targets & progress',
+      desc: t('dashboard.modulePlansDesc'),
       to: '/hr/plans'
     },
     {
       title: t('dashboard.moduleTraining'),
       icon: Award,
       color: 'from-emerald-500 to-teal-600',
-      desc: 'Professional upgrades & skill development',
+      desc: t('dashboard.moduleTrainingDesc'),
       to: '/hr/training'
     }
   ];
@@ -126,7 +126,7 @@ export default function Dashboard() {
         <div className="relative z-10 max-w-2xl">
           <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold text-[#00ced1] bg-[#00ced1]/10 border border-[#00ced1]/20 mb-3 sm:mb-4">
             <Sparkles className="w-3.5 h-3.5 shrink-0" />
-            <span>Vector Advert ERP 2.0</span>
+            <span>{t('dashboard.badgeTitle')}</span>
           </div>
           <h1 className="text-xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight break-words">
             {t('dashboard.welcomeUser')}{' '}
@@ -195,7 +195,7 @@ export default function Dashboard() {
                 onClick={fetchTelegramInfo}
                 disabled={telegramLoading}
                 className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
-                title="Refresh"
+                title={t('common.refresh')}
               >
                 <RefreshCw className={`w-4 h-4 ${telegramLoading ? 'animate-spin' : ''}`} />
               </button>
@@ -217,7 +217,7 @@ export default function Dashboard() {
                 <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 dark:text-emerald-300 break-all">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                   <span>
-                    Linked account: @{telegramData?.telegramUsername || user?.telegramUsername || 'Telegram User'}
+                    {t('dashboard.linkedAccount')} @{telegramData?.telegramUsername || user?.telegramUsername || t('dashboard.telegramUser')}
                   </span>
                 </div>
                 <button
@@ -297,7 +297,7 @@ export default function Dashboard() {
                 style={{ backgroundColor: '#00ced1', color: '#020617' }}
               >
                 <UserPlus className="w-3.5 h-3.5" style={{ color: '#020617' }} />
-                <span style={{ color: '#020617' }}>Register Staff / User</span>
+                <span style={{ color: '#020617' }}>{t('dashboard.registerStaffUser')}</span>
               </Link>
             )}
           </div>

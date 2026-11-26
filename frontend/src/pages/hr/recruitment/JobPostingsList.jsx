@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Briefcase, Plus } from 'lucide-react';
 import { recruitmentService } from '../../../services/hrService';
 import StatusBadge from '../../../components/hr/StatusBadge';
 
 export default function JobPostingsList() {
+  const { t } = useTranslation();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,19 +30,19 @@ export default function JobPostingsList() {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <Briefcase className="w-6 h-6 text-[#00ced1]" />
-            <span>Recruitment & Talent Acquisition</span>
+            <span>{t('hrPages.recruitment.title')}</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Manage job vacancies, candidate review pipeline, and interview scoring.
+            {t('hrPages.recruitment.subtitle')}
           </p>
         </div>
       </div>
 
       <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-[#0e1626] border border-slate-200/90 dark:border-slate-800 shadow-xs p-6 text-center text-xs text-slate-400">
         {loading ? (
-          'Loading vacancies...'
+          t('hrPages.recruitment.loading')
         ) : jobs.length === 0 ? (
-          <p>No active job postings currently open.</p>
+          <p>{t('hrPages.recruitment.empty')}</p>
         ) : (
           <div className="space-y-2">
             {jobs.map((j) => (

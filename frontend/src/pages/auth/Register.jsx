@@ -79,7 +79,7 @@ export default function Register() {
           }
         }
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to verify registration permissions');
+        setError(err.response?.data?.message || t('auth.permissionsFailed'));
       } finally {
         setLoadingPermissions(false);
       }
@@ -101,12 +101,12 @@ export default function Register() {
     setError('');
 
     if (!email.trim()) {
-      setError('Please provide a valid email address');
+      setError(t('auth.invalidEmail'));
       return;
     }
 
     if (!autoGeneratePassword && customPassword.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError(t('auth.passwordTooShort'));
       return;
     }
 
@@ -116,7 +116,7 @@ export default function Register() {
       // If HR Manager is provisioning an employee with personal details:
       if (includeEmployeeDetails && (selectedRole === 'employee' || selectedRole === 'intern' || selectedRole === 'designer')) {
         if (!employeeDetails.firstName || !employeeDetails.lastName || !employeeDetails.primaryPhone) {
-          setError('First name, last name, and phone number are required for employee registration');
+          setError(t('auth.firstLastPhoneRequired'));
           setLoading(false);
           return;
         }
@@ -165,7 +165,7 @@ export default function Register() {
         }
       }
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Failed to register account';
+      const msg = err.response?.data?.message || err.message || t('auth.registerFailed');
       setError(msg);
     } finally {
       setLoading(false);
@@ -193,7 +193,7 @@ export default function Register() {
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 rounded-full border-3 border-[#00ced1]/20 border-t-[#00ced1] animate-spin" />
-          <p className="text-xs font-semibold text-slate-500">Checking leadership permissions...</p>
+          <p className="text-xs font-semibold text-slate-500">{t('auth.checkingPermissions')}</p>
         </div>
       </div>
     );
@@ -208,16 +208,16 @@ export default function Register() {
             <Shield className="w-6 h-6" />
           </div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-            Registration Restricted
+            {t('auth.regRestrictedTitle')}
           </h2>
           <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-            Public self-registration is disabled. Account provisioning is governed by the executive hierarchy:
+            {t('auth.regRestrictedSub')}
           </p>
           <div className="mt-4 p-3 bg-slate-50 dark:bg-[#152238] rounded-xl text-left text-xs space-y-1.5 text-slate-600 dark:text-slate-300">
-            <div>• <strong className="text-slate-900 dark:text-white">CEO</strong>: Registers CEO, CAO, COO</div>
-            <div>• <strong className="text-slate-900 dark:text-white">CAO</strong>: Registers HR Manager, Purchaser, Storekeeper, Finance</div>
-            <div>• <strong className="text-slate-900 dark:text-white">COO</strong>: Registers Operations Managers, Dept Heads, Designers</div>
-            <div>• <strong className="text-slate-900 dark:text-white">HR Manager</strong>: Registers Employees with full records</div>
+            <div>• {t('auth.hierarchyCeo')}</div>
+            <div>• {t('auth.hierarchyCao')}</div>
+            <div>• {t('auth.hierarchyCoo')}</div>
+            <div>• {t('auth.hierarchyHr')}</div>
           </div>
           <div className="mt-6">
             <button
@@ -225,7 +225,7 @@ export default function Register() {
               className="w-full py-2.5 px-4 rounded-xl text-xs font-bold hover:brightness-95 shadow-md transition-all cursor-pointer"
               style={{ backgroundColor: '#00ced1', color: '#020617' }}
             >
-              <span style={{ color: '#020617' }}>Return to Dashboard</span>
+              <span style={{ color: '#020617' }}>{t('auth.returnDashboard')}</span>
             </button>
           </div>
         </div>
@@ -249,10 +249,10 @@ export default function Register() {
               </div>
               <div>
                 <h1 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white leading-tight">
-                  Staff & User Registration Portal
+                  {t('auth.regPortalTitle')}
                 </h1>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Authorized as: <span className="font-semibold text-[#00ced1] uppercase">{user?.roles?.[0]}</span>
+                  {t('auth.authorizedAs')}: <span className="font-semibold text-[#00ced1] uppercase">{t(`roles.${user?.roles?.[0]}`, user?.roles?.[0])}</span>
                 </p>
               </div>
             </div>
@@ -261,7 +261,7 @@ export default function Register() {
               to="/dashboard"
               className="text-xs font-bold text-slate-500 hover:text-[#00ced1] transition-colors"
             >
-              Dashboard
+              {t('nav.dashboard')}
             </Link>
           </div>
 
@@ -273,27 +273,27 @@ export default function Register() {
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <h3 className="text-base font-bold text-emerald-900 dark:text-emerald-200">
-                  Account Provisioned Successfully!
+                  {t('auth.provisionSuccessTitle')}
                 </h3>
                 <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-1">
-                  A temporary password was generated. The user will be required to change it on their first login.
+                  {t('auth.provisionSuccessSub')}
                 </p>
 
                 {/* Credentials Display Card */}
                 <div className="mt-4 p-4 rounded-xl bg-white dark:bg-[#152238] border border-emerald-300 dark:border-emerald-700/80 text-left space-y-2.5">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-slate-500 dark:text-slate-400">Email:</span>
+                    <span className="font-semibold text-slate-500 dark:text-slate-400">{t('auth.emailLabel')}</span>
                     <span className="font-mono font-bold text-slate-900 dark:text-white">{createdResult.email}</span>
                   </div>
 
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-slate-500 dark:text-slate-400">Assigned Role:</span>
-                    <span className="font-bold text-[#00ced1] uppercase">{createdResult.roles?.join(', ')}</span>
+                    <span className="font-semibold text-slate-500 dark:text-slate-400">{t('auth.assignedRoleLabel')}</span>
+                    <span className="font-bold text-[#00ced1] uppercase">{createdResult.roles?.map((r) => t(`roles.${r}`, r)).join(', ')}</span>
                   </div>
 
                   {createdResult.employeeNumber && (
                     <div className="flex justify-between items-center text-xs">
-                      <span className="font-semibold text-slate-500 dark:text-slate-400">Employee ID:</span>
+                      <span className="font-semibold text-slate-500 dark:text-slate-400">{t('auth.employeeIdLabel')}</span>
                       <span className="font-mono font-bold text-slate-900 dark:text-white">{createdResult.employeeNumber}</span>
                     </div>
                   )}
@@ -301,7 +301,7 @@ export default function Register() {
                   {createdResult.temporaryPassword && (
                     <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
                       <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block mb-1">
-                        Temporary Password (Give this to the user):
+                        {t('auth.tempPasswordShareLabel')}
                       </span>
                       <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-slate-50 dark:bg-[#0e1626] border border-slate-200 dark:border-slate-700">
                         <span className="font-mono font-black text-sm text-[#00ced1] tracking-wider select-all">
@@ -313,7 +313,7 @@ export default function Register() {
                           className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold text-slate-950 bg-[#00ced1] hover:bg-[#00b5b8] transition-colors cursor-pointer"
                         >
                           {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                          <span>{copied ? 'Copied!' : 'Copy'}</span>
+                          <span>{copied ? t('common.copied') : t('common.copy')}</span>
                         </button>
                       </div>
                     </div>
@@ -328,14 +328,14 @@ export default function Register() {
                   className="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold hover:brightness-95 shadow-md transition-all cursor-pointer text-center"
                   style={{ backgroundColor: '#00ced1', color: '#020617' }}
                 >
-                  <span style={{ color: '#020617' }}>Register Another Account</span>
+                  <span style={{ color: '#020617' }}>{t('auth.registerAnother')}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate('/dashboard')}
                   className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                 >
-                  Dashboard
+                  {t('nav.dashboard')}
                 </button>
               </div>
             </div>
@@ -352,7 +352,7 @@ export default function Register() {
               {/* Role Selection */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                  Assign Account Role
+                  {t('auth.assignRoleLabel')}
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
                   {permissions.allowedRoles?.map((r) => {
@@ -368,7 +368,7 @@ export default function Register() {
                             : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#152238] text-slate-700 dark:text-slate-300 hover:border-slate-300'
                         }`}
                       >
-                        <span className="text-xs truncate">{ROLE_LABELS[r] || r}</span>
+                        <span className="text-xs truncate">{t(`roles.${r}`, ROLE_LABELS[r] || r)}</span>
                         {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
                       </button>
                     );
@@ -379,7 +379,7 @@ export default function Register() {
               {/* Email Address */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                  User Email Address
+                  {t('auth.userEmailLabel')}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -389,7 +389,7 @@ export default function Register() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="e.g. employee@vectoradvert.com"
+                    placeholder={t('auth.userEmailPlaceholder')}
                     required
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-[#152238] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:border-[#00ced1] focus:ring-2 focus:ring-[#00ced1]/20 transition-all duration-200"
                   />
@@ -402,7 +402,7 @@ export default function Register() {
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-[#00ced1]" />
                     <span className="text-xs font-bold text-slate-900 dark:text-white">
-                      Temporary Random Password
+                      {t('auth.tempRandomPassword')}
                     </span>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -417,8 +417,8 @@ export default function Register() {
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
                   {autoGeneratePassword
-                    ? 'A strong 10-character temporary password will be generated automatically and displayed for you to copy.'
-                    : 'Set a custom temporary password manually.'}
+                    ? t('auth.tempRandomDesc')
+                    : t('auth.customPasswordDesc')}
                 </p>
 
                 {!autoGeneratePassword && (
@@ -427,7 +427,7 @@ export default function Register() {
                       type="text"
                       value={customPassword}
                       onChange={(e) => setCustomPassword(e.target.value)}
-                      placeholder="Enter custom temporary password (min 6 chars)"
+                      placeholder={t('auth.customPasswordPlaceholder')}
                       className="w-full px-3 py-2 bg-white dark:bg-[#0e1626] border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-[#00ced1]"
                     />
                   </div>
@@ -441,7 +441,7 @@ export default function Register() {
                     <div className="flex items-center gap-2">
                       <Briefcase className="w-4 h-4 text-[#00ced1]" />
                       <span className="text-xs font-bold text-slate-900 dark:text-white">
-                        Include Employee Profile Details
+                        {t('auth.includeEmployeeDetails')}
                       </span>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -460,7 +460,7 @@ export default function Register() {
                       <div className="grid grid-cols-2 gap-2">
                         <input
                           type="text"
-                          placeholder="First Name *"
+                          placeholder={t('auth.firstNameReq')}
                           value={employeeDetails.firstName}
                           onChange={(e) =>
                             setEmployeeDetails((p) => ({ ...p, firstName: e.target.value }))
@@ -469,7 +469,7 @@ export default function Register() {
                         />
                         <input
                           type="text"
-                          placeholder="Last Name *"
+                          placeholder={t('auth.lastNameReq')}
                           value={employeeDetails.lastName}
                           onChange={(e) =>
                             setEmployeeDetails((p) => ({ ...p, lastName: e.target.value }))
@@ -480,7 +480,7 @@ export default function Register() {
                       <div className="grid grid-cols-2 gap-2">
                         <input
                           type="text"
-                          placeholder="Phone Number *"
+                          placeholder={t('auth.phoneReq')}
                           value={employeeDetails.primaryPhone}
                           onChange={(e) =>
                             setEmployeeDetails((p) => ({ ...p, primaryPhone: e.target.value }))
@@ -489,7 +489,7 @@ export default function Register() {
                         />
                         <input
                           type="text"
-                          placeholder="Department (e.g. Adtech, Print)"
+                          placeholder={t('auth.deptPlaceholder')}
                           value={employeeDetails.department}
                           onChange={(e) =>
                             setEmployeeDetails((p) => ({ ...p, department: e.target.value }))
@@ -516,12 +516,12 @@ export default function Register() {
                 {loading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
-                    <span style={{ color: '#020617' }}>Provisioning Account...</span>
+                    <span style={{ color: '#020617' }}>{t('auth.provisioning')}</span>
                   </>
                 ) : (
                   <>
                     <UserPlus className="w-4 h-4" style={{ color: '#020617' }} />
-                    <span style={{ color: '#020617' }}>Create User & Generate Temporary Password</span>
+                    <span style={{ color: '#020617' }}>{t('auth.createUserBtn')}</span>
                   </>
                 )}
               </button>

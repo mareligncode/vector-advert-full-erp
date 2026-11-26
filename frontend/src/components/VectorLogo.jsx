@@ -1,7 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import logoImg from '../assets/image.png';
 
 export default function VectorLogo({ size = 'md', showText = true, className = '' }) {
+  const { t } = useTranslation();
   const sizeMap = {
     sm: {
       img: 'h-6 sm:h-7',
@@ -53,7 +55,7 @@ export default function VectorLogo({ size = 'md', showText = true, className = '
             <span
               className={`font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 leading-tight whitespace-nowrap ${currentSize.sub}`}
             >
-              ERP Platform
+              {t('brand.erpPlatform')}
             </span>
           </div>
         </div>

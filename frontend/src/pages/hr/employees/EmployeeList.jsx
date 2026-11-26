@@ -100,7 +100,7 @@ export default function EmployeeList() {
       }
     } catch (err) {
       console.error('Failed to fetch employees:', err);
-      setMessage({ type: 'error', text: err.response?.data?.message || 'Failed to load employee directory' });
+      setMessage({ type: 'error', text: err.response?.data?.message || t('employee.loadFailed') });
     } finally {
       setLoading(false);
     }
@@ -138,17 +138,17 @@ export default function EmployeeList() {
   // Quick Delete handler
   const handleDeleteEmployee = async (emp) => {
     const fullName = emp.name ? `${emp.name.first || ''} ${emp.name.last || ''}`.trim() : emp.employeeNumber;
-    if (!window.confirm(`Are you sure you want to permanently delete employee #${emp.employeeNumber} (${fullName})?`)) return;
+    if (!window.confirm(t('employee.deleteConfirmDetailed', { num: emp.employeeNumber, name: fullName }))) return;
 
     try {
       const res = await employeeService.deleteEmployee(emp._id);
       if (res.success) {
-        setMessage({ type: 'success', text: `Employee #${emp.employeeNumber} deleted successfully.` });
+        setMessage({ type: 'success', text: t('employee.deletedSuccess', { num: emp.employeeNumber }) });
         fetchEmployees();
         setTimeout(() => setMessage({ type: '', text: '' }), 4000);
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete employee record');
+      alert(err.response?.data?.message || t('employee.deleteFailed'));
     }
   };
 
@@ -184,7 +184,7 @@ export default function EmployeeList() {
             onClick={() => fetchEmployees(pagination.page, pagination.limit)}
             disabled={loading}
             className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-            title="Refresh Directory"
+            title={t('employee.refreshDirectory')}
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -198,7 +198,7 @@ export default function EmployeeList() {
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">{isAmharic ? 'ጠቅላላ ሰራተኞች' : 'Total Staff'}</span>
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">{t('employee.totalStaff')}</span>
             <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
               {metrics.total}
             </span>
@@ -210,7 +210,7 @@ export default function EmployeeList() {
             <CheckCircle className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">{isAmharic ? 'ንቁ ሰራተኞች' : 'Active Staff'}</span>
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">{t('employee.activeStaff')}</span>
             <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
               {metrics.active}
             </span>
@@ -222,7 +222,7 @@ export default function EmployeeList() {
             <Clock className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">{isAmharic ? 'በሙከራ ላይ' : 'On Probation'}</span>
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">{t('employee.onProbation')}</span>
             <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
               {metrics.probation}
             </span>
@@ -234,7 +234,7 @@ export default function EmployeeList() {
             <Shield className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">{isAmharic ? 'ፋይዳ የተረጋገጠ' : 'Fayda Verified'}</span>
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">{t('employee.faydaVerified')}</span>
             <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
               {metrics.verifiedId}
             </span>
@@ -306,7 +306,7 @@ export default function EmployeeList() {
             onChange={(e) => setTypeFilter(e.target.value)}
             className="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#152238] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#00ced1] cursor-pointer"
           >
-            <option value="">{isAmharic ? 'ሁሉም የቅጥር አይነቶች' : 'All Types'}</option>
+            <option value="">{t('employee.allTypes')}</option>
             {EMPLOYMENT_TYPES.map((tItem) => (
               <option key={tItem.value} value={tItem.value}>
                 {isAmharic ? tItem.amLabel : tItem.label}
@@ -320,7 +320,7 @@ export default function EmployeeList() {
             onChange={(e) => setIdFilter(e.target.value)}
             className="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#152238] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#00ced1] cursor-pointer"
           >
-            <option value="">{isAmharic ? 'ፋይዳ ID፦ ሁሉም' : 'Fayda ID: All'}</option>
+            <option value="">{t('employee.faydaAll')}</option>
             <option value="verified">{t('employee.verifiedId', 'Fayda Verified')}</option>
             <option value="pending">{t('employee.pendingId', 'Verification Pending')}</option>
             <option value="missing">{t('employee.missingId', 'Not Uploaded')}</option>
@@ -336,7 +336,7 @@ export default function EmployeeList() {
                   ? 'bg-[#00ced1] text-[#020617]'
                   : 'bg-slate-50 dark:bg-[#152238] text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
-              title="Table View"
+              title={t('employee.tableView')}
             >
               <List className="w-4 h-4" />
             </button>
@@ -348,7 +348,7 @@ export default function EmployeeList() {
                   ? 'bg-[#00ced1] text-[#020617]'
                   : 'bg-slate-50 dark:bg-[#152238] text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
-              title="Cards View"
+              title={t('employee.cardsView')}
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
@@ -359,13 +359,13 @@ export default function EmployeeList() {
       {/* Directory Content: Table or Cards */}
       <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-[#0e1626] border border-slate-200/90 dark:border-slate-800 shadow-xs overflow-hidden">
         {loading ? (
-          <div className="py-20 text-center text-xs text-slate-400">Loading directory...</div>
+          <div className="py-20 text-center text-xs text-slate-400">{t('employee.loadingDirectory')}</div>
         ) : filteredEmployees.length === 0 ? (
           <div className="py-16 px-4 text-center space-y-3">
             <Users className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">No personnel records found</h3>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">{t('employee.noRecordsFoundTitle')}</h3>
             <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              No employees matched your current query or filters.
+              {t('employee.noRecordsFoundSub')}
             </p>
             {userCanCreate && (
               <button
@@ -374,7 +374,7 @@ export default function EmployeeList() {
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#00ced1] text-[#020617] shadow-sm hover:brightness-95 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
-                <span>Register First Employee</span>
+                <span>{t('employee.registerFirst')}</span>
               </button>
             )}
           </div>
@@ -390,14 +390,14 @@ export default function EmployeeList() {
                   <th className="py-3 px-4">{t('employee.employmentStatus', 'Status')}</th>
                   <th className="py-3 px-4">{t('employee.systemAccountTab', 'System User')}</th>
                   <th className="py-3 px-4">{t('employee.primaryPhone', 'Contact')}</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                  <th className="py-3 px-4 text-right">{t('employee.actionsCol')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
                 {filteredEmployees.map((emp) => {
                   const fullName = emp.name
                     ? `${emp.name.first || ''} ${emp.name.middle || ''} ${emp.name.last || ''}`.trim()
-                    : 'Unnamed';
+                    : t('employee.unnamed');
 
                   const isIdApproved = emp.nationalId?.status === 'approved' || !!emp.nationalId?.approvedBy;
                   const hasId = !!(emp.nationalId?.fanNumber || emp.nationalId?.finNumber || emp.nationalId?.frontImageUrl);
@@ -439,10 +439,10 @@ export default function EmployeeList() {
                       {/* Department & Role */}
                       <td className="py-3.5 px-4">
                         <span className="font-semibold text-slate-800 dark:text-slate-200 block">
-                          {emp.jobTitle || 'Staff Member'}
+                          {emp.jobTitle || t('employee.staffMember')}
                         </span>
                         <div className="flex flex-wrap items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">
-                          <span>{emp.department || 'General'}</span>
+                          <span>{emp.department || t('employee.generalDept')}</span>
                           {emp.branch && (
                             <>
                               <span>&bull;</span>
@@ -452,7 +452,7 @@ export default function EmployeeList() {
                         </div>
                         {emp.manager && (
                           <div className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
-                            <span className="font-semibold text-slate-500">Mgr:</span>
+                            <span className="font-semibold text-slate-500">{t('employee.mgrPrefix')}</span>
                             <span>
                               {typeof emp.manager === 'object'
                                 ? `${emp.manager.name?.first || ''} ${emp.manager.name?.last || ''}`.trim() || emp.manager.employeeNumber
@@ -474,10 +474,10 @@ export default function EmployeeList() {
                                 : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
                             }`}
                           >
-                            {isIdApproved ? 'Verified' : emp.nationalId?.status === 'rejected' ? 'Rejected' : 'Pending Verification'}
+                            {isIdApproved ? t('employee.verified') : emp.nationalId?.status === 'rejected' ? t('employee.rejected') : t('employee.pendingVerification')}
                           </span>
                         ) : (
-                          <span className="text-[10px] text-slate-400">Not Uploaded</span>
+                          <span className="text-[10px] text-slate-400">{t('employee.notUploaded')}</span>
                         )}
                       </td>
 
@@ -491,10 +491,10 @@ export default function EmployeeList() {
                         {isUserLinked ? (
                           <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
                             <CheckCircle className="w-3.5 h-3.5" />
-                            <span>Linked</span>
+                            <span>{t('employee.linked')}</span>
                           </span>
                         ) : (
-                          <span className="text-[11px] text-slate-400">No Account</span>
+                          <span className="text-[11px] text-slate-400">{t('employee.noAccount')}</span>
                         )}
                       </td>
 
@@ -524,7 +524,7 @@ export default function EmployeeList() {
                             type="button"
                             onClick={() => setSelectedEmployee(emp)}
                             className="p-1.5 rounded-lg text-slate-500 hover:text-[#00ced1] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                            title="View Full Profile"
+                            title={t('employee.viewProfile')}
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -535,7 +535,7 @@ export default function EmployeeList() {
                               type="button"
                               onClick={() => setEditingEmployee(emp)}
                               className="p-1.5 rounded-lg text-slate-500 hover:text-[#00ced1] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                              title="Edit Personnel"
+                              title={t('employee.editPersonnelTitle')}
                             >
                               <Edit className="w-4 h-4" />
                             </button>
@@ -546,7 +546,7 @@ export default function EmployeeList() {
                             type="button"
                             onClick={() => setEvidenceTarget(emp)}
                             className="p-1.5 rounded-lg text-slate-500 hover:text-[#00ced1] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                            title="Universal Attachments / Evidence"
+                            title={t('employee.evidenceTooltip')}
                           >
                             <Paperclip className="w-4 h-4" />
                           </button>
@@ -557,7 +557,7 @@ export default function EmployeeList() {
                               type="button"
                               onClick={() => handleDeleteEmployee(emp)}
                               className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
-                              title="Delete Record (Executive Authority)"
+                              title={t('employee.deleteExecutiveTitle')}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -576,7 +576,7 @@ export default function EmployeeList() {
             {filteredEmployees.map((emp) => {
               const fullName = emp.name
                 ? `${emp.name.first || ''} ${emp.name.middle || ''} ${emp.name.last || ''}`.trim()
-                : 'Unnamed';
+                : t('employee.unnamed');
 
               const isIdApproved = emp.nationalId?.status === 'approved' || !!emp.nationalId?.approvedBy;
 
@@ -611,9 +611,9 @@ export default function EmployeeList() {
                     </div>
 
                     <div className="space-y-1 text-xs">
-                      <p className="font-semibold text-slate-800 dark:text-slate-200">{emp.jobTitle || 'Staff Member'}</p>
+                      <p className="font-semibold text-slate-800 dark:text-slate-200">{emp.jobTitle || t('employee.staffMember')}</p>
                       <div className="flex flex-wrap items-center gap-1 text-[11px] text-slate-500">
-                        <span>{emp.department || 'General'}</span>
+                        <span>{emp.department || t('employee.generalDept')}</span>
                         {emp.branch && (
                           <>
                             <span>&bull;</span>
@@ -623,7 +623,7 @@ export default function EmployeeList() {
                       </div>
                       {emp.manager && (
                         <p className="text-[10px] text-slate-400">
-                          <span className="font-medium text-slate-500">Mgr:</span>{' '}
+                          <span className="font-medium text-slate-500">{t('employee.mgrPrefix')}</span>{' '}
                           {typeof emp.manager === 'object'
                             ? `${emp.manager.name?.first || ''} ${emp.manager.name?.last || ''}`.trim() || emp.manager.employeeNumber
                             : emp.manager}
@@ -655,7 +655,7 @@ export default function EmployeeList() {
                           : 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400'
                       }`}
                     >
-                      {isIdApproved ? 'Fayda Verified' : 'ID Pending'}
+                      {isIdApproved ? t('employee.faydaVerified') : t('employee.idPending')}
                     </span>
 
                     <div className="flex items-center gap-1">
@@ -663,7 +663,7 @@ export default function EmployeeList() {
                         type="button"
                         onClick={() => setSelectedEmployee(emp)}
                         className="p-1 rounded-lg text-slate-500 hover:text-[#00ced1]"
-                        title="View Profile"
+                        title={t('employee.viewDetails')}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -673,7 +673,7 @@ export default function EmployeeList() {
                           type="button"
                           onClick={() => setEditingEmployee(emp)}
                           className="p-1 rounded-lg text-slate-500 hover:text-[#00ced1]"
-                          title="Edit"
+                          title={t('employee.edit')}
                         >
                           <Edit className="w-4 h-4" />
                         </button>
@@ -683,7 +683,7 @@ export default function EmployeeList() {
                         type="button"
                         onClick={() => setEvidenceTarget(emp)}
                         className="p-1 rounded-lg text-slate-500 hover:text-[#00ced1]"
-                        title="Evidence"
+                        title={t('employee.evidenceShort')}
                       >
                         <Paperclip className="w-4 h-4" />
                       </button>
@@ -698,12 +698,11 @@ export default function EmployeeList() {
         {/* Pagination Bar */}
         <div className="p-3 sm:p-4 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-[#152238]/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
           <div>
-            Showing <span className="font-bold text-slate-800 dark:text-slate-200">{filteredEmployees.length}</span> of{' '}
-            <span className="font-bold text-slate-800 dark:text-slate-200">{pagination.total || employees.length}</span> personnel records
+            {t('employee.showingRange', { shown: filteredEmployees.length, total: pagination.total || employees.length })}
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-slate-400">Rows per page:</span>
+            <span className="text-[11px] text-slate-400">{t('employee.rowsPerPage')}</span>
             <select
               value={pagination.limit}
               onChange={(e) => fetchEmployees(1, Number(e.target.value))}
@@ -748,7 +747,7 @@ export default function EmployeeList() {
           employee={null}
           onSuccess={() => {
             fetchEmployees();
-            setMessage({ type: 'success', text: 'New employee registered successfully!' });
+            setMessage({ type: 'success', text: t('employee.createdSuccess') });
             setTimeout(() => setMessage({ type: '', text: '' }), 4000);
           }}
         />
@@ -766,7 +765,7 @@ export default function EmployeeList() {
             if (updated) {
               setSelectedEmployee(updated);
             }
-            setMessage({ type: 'success', text: `Employee #${updated?.employeeNumber || ''} updated successfully!` });
+            setMessage({ type: 'success', text: t('employee.updatedSuccess', { num: updated?.employeeNumber || '' }) });
             setTimeout(() => setMessage({ type: '', text: '' }), 4000);
           }}
         />
@@ -804,7 +803,7 @@ export default function EmployeeList() {
         entityTitle={
           evidenceTarget?.name
             ? `${evidenceTarget.name.first || ''} ${evidenceTarget.name.last || ''}`.trim()
-            : 'Personnel Record'
+            : t('employee.personnelRecord')
         }
       />
     </div>

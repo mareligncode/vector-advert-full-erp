@@ -45,7 +45,7 @@ export default function Login() {
       const res = await login(formData.email.trim(), formData.password);
       if (res.success) {
         if (res.data?.mustChangePassword) {
-          setSuccessMsg('Temporary password detected. Redirecting to password change...');
+          setSuccessMsg(t('auth.tempPasswordRedirect'));
           setTimeout(() => {
             navigate('/change-password');
           }, 600);
@@ -57,7 +57,7 @@ export default function Login() {
         }
       }
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Failed to authenticate';
+      const msg = err.response?.data?.message || err.message || t('auth.authFailed');
       setError(msg);
     } finally {
       setLoading(false);
@@ -202,7 +202,7 @@ export default function Login() {
           {/* Footer Notice */}
           <div className="mt-8 pt-6 border-t border-slate-200/80 dark:border-slate-800 text-center">
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Self-registration is restricted. Accounts and temporary passwords are provisioned exclusively by executive administration (CEO, CAO, COO, or HR Manager).
+              {t('auth.selfRegNotice')}
             </p>
           </div>
         </div>

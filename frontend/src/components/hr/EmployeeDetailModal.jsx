@@ -134,7 +134,7 @@ export default function EmployeeDetailModal({
 
   const fullName = employee.name
     ? `${employee.name.first || ''} ${employee.name.middle || ''} ${employee.name.last || ''}`.trim()
-    : 'Personnel Profile';
+    : t('employee.details');
 
   const isNationalIdApproved = employee.nationalId?.status === 'approved' || !!employee.nationalId?.approvedBy;
 
@@ -147,11 +147,11 @@ export default function EmployeeDetailModal({
       setLoading(true);
       const res = await employeeService.uploadProfilePhoto(employee._id, file);
       if (res.success) {
-        setActionMessage({ type: 'success', text: 'Profile photo updated successfully!' });
+        setActionMessage({ type: 'success', text: t('employee.photoUpdated') });
         await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
-      setActionMessage({ type: 'error', text: err.response?.data?.message || 'Failed to upload photo' });
+      setActionMessage({ type: 'error', text: err.response?.data?.message || t('employee.photoUploadFailed') });
     } finally {
       setLoading(false);
       setTimeout(() => setActionMessage({ type: '', text: '' }), 3500);
@@ -162,7 +162,7 @@ export default function EmployeeDetailModal({
   const handleUploadIdPhotos = async (e) => {
     e.preventDefault();
     if (!frontIdFile && !backIdFile) {
-      setActionMessage({ type: 'error', text: 'Select at least one ID photo to upload.' });
+      setActionMessage({ type: 'error', text: t('employee.selectIdPhotoError') });
       return;
     }
 
@@ -170,13 +170,13 @@ export default function EmployeeDetailModal({
       setLoading(true);
       const res = await employeeService.uploadNationalIdPhotos(employee._id, frontIdFile, backIdFile);
       if (res.success) {
-        setActionMessage({ type: 'success', text: 'National ID photos uploaded successfully!' });
+        setActionMessage({ type: 'success', text: t('employee.idPhotosSuccess') });
         setFrontIdFile(null);
         setBackIdFile(null);
         await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
-      setActionMessage({ type: 'error', text: err.response?.data?.message || 'Failed to upload ID photos' });
+      setActionMessage({ type: 'error', text: err.response?.data?.message || t('employee.idPhotosFailed') });
     } finally {
       setLoading(false);
       setTimeout(() => setActionMessage({ type: '', text: '' }), 3500);
@@ -187,7 +187,7 @@ export default function EmployeeDetailModal({
   const handleApproveId = async (status) => {
     let rejectionReason = '';
     if (status === 'rejected') {
-      rejectionReason = window.prompt('Enter reason for rejecting Fayda National ID:');
+      rejectionReason = window.prompt(t('employee.rejectIdPrompt'));
       if (rejectionReason === null) return;
     }
 
@@ -197,12 +197,12 @@ export default function EmployeeDetailModal({
       if (res.success) {
         setActionMessage({
           type: 'success',
-          text: `National ID marked as ${status} successfully!`
+          text: t('employee.idStatusUpdated', { status: t(`status.${status}`, status) })
         });
         await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
-      setActionMessage({ type: 'error', text: err.response?.data?.message || 'Verification update failed' });
+      setActionMessage({ type: 'error', text: err.response?.data?.message || t('employee.idVerifyFailed') });
     } finally {
       setLoading(false);
       setTimeout(() => setActionMessage({ type: '', text: '' }), 3500);
@@ -213,7 +213,7 @@ export default function EmployeeDetailModal({
   const handleUploadDocument = async (e) => {
     e.preventDefault();
     if (!docFile || !docTitle.trim()) {
-      setActionMessage({ type: 'error', text: 'Please provide document title and file.' });
+      setActionMessage({ type: 'error', text: t('employee.provideDocTitleFile') });
       return;
     }
 
@@ -221,13 +221,13 @@ export default function EmployeeDetailModal({
       setLoading(true);
       const res = await employeeService.addDocument(employee._id, docFile, docTitle.trim(), docType);
       if (res.success) {
-        setActionMessage({ type: 'success', text: 'Document uploaded successfully!' });
+        setActionMessage({ type: 'success', text: t('employee.docUploaded') });
         setDocFile(null);
         setDocTitle('');
         await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
-      setActionMessage({ type: 'error', text: err.response?.data?.message || 'Failed to add document' });
+      setActionMessage({ type: 'error', text: err.response?.data?.message || t('employee.docUploadFailed') });
     } finally {
       setLoading(false);
       setTimeout(() => setActionMessage({ type: '', text: '' }), 3500);
@@ -238,7 +238,7 @@ export default function EmployeeDetailModal({
   const handleApproveDocument = async (documentId, status) => {
     let rejectionReason = '';
     if (status === 'rejected') {
-      rejectionReason = window.prompt('Enter reason for document rejection:');
+      rejectionReason = window.prompt(t('employee.rejectDocPrompt'));
       if (rejectionReason === null) return;
     }
 
@@ -246,11 +246,11 @@ export default function EmployeeDetailModal({
       setLoading(true);
       const res = await employeeService.approveDocument(employee._id, documentId, status, rejectionReason);
       if (res.success) {
-        setActionMessage({ type: 'success', text: `Document marked as ${status}!` });
+        setActionMessage({ type: 'success', text: t('employee.docReviewed', { status: t(`status.${status}`, status) }) });
         await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
-      setActionMessage({ type: 'error', text: err.response?.data?.message || 'Document review failed' });
+      setActionMessage({ type: 'error', text: err.response?.data?.message || t('employee.docReviewFailed') });
     } finally {
       setLoading(false);
       setTimeout(() => setActionMessage({ type: '', text: '' }), 3500);
@@ -259,16 +259,16 @@ export default function EmployeeDetailModal({
 
   // Handle Document Deletion
   const handleDeleteDocument = async (documentId) => {
-    if (!window.confirm('Are you sure you want to delete this document?')) return;
+    if (!window.confirm(t('employee.docDeleteConfirm'))) return;
     try {
       setLoading(true);
       const res = await employeeService.removeDocument(employee._id, documentId);
       if (res.success) {
-        setActionMessage({ type: 'success', text: 'Document removed.' });
+        setActionMessage({ type: 'success', text: t('employee.docRemoved') });
         await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
-      setActionMessage({ type: 'error', text: err.response?.data?.message || 'Failed to delete document' });
+      setActionMessage({ type: 'error', text: err.response?.data?.message || t('employee.docDeleteFailed') });
     } finally {
       setLoading(false);
       setTimeout(() => setActionMessage({ type: '', text: '' }), 3500);
@@ -282,12 +282,12 @@ export default function EmployeeDetailModal({
       setLoading(true);
       const res = await employeeService.updateEmploymentStatus(employee._id, newStatus, statusNotes);
       if (res.success) {
-        setActionMessage({ type: 'success', text: `Employment status updated to ${newStatus}!` });
+        setActionMessage({ type: 'success', text: t('employee.statusUpdated', { status: t(`status.${newStatus}`, newStatus) }) });
         setStatusNotes('');
         await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
-      setActionMessage({ type: 'error', text: err.response?.data?.message || 'Failed to update status' });
+      setActionMessage({ type: 'error', text: err.response?.data?.message || t('employee.statusUpdateFailed') });
     } finally {
       setLoading(false);
       setTimeout(() => setActionMessage({ type: '', text: '' }), 3500);
@@ -298,7 +298,7 @@ export default function EmployeeDetailModal({
   const handleCreateUser = async (e) => {
     e.preventDefault();
     if (!newUserEmail.trim() || !newUserPassword.trim()) {
-      setActionMessage({ type: 'error', text: 'Email and password are required' });
+      setActionMessage({ type: 'error', text: t('employee.emailPasswordRequired') });
       return;
     }
 
@@ -310,12 +310,12 @@ export default function EmployeeDetailModal({
         roles: [newUserRole]
       });
       if (res.success) {
-        setActionMessage({ type: 'success', text: 'User account created and linked!' });
+        setActionMessage({ type: 'success', text: t('employee.userCreatedLinked') });
         setNewUserPassword('');
         await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
-      setActionMessage({ type: 'error', text: err.response?.data?.message || 'Failed to create user' });
+      setActionMessage({ type: 'error', text: err.response?.data?.message || t('employee.userCreateFailed') });
     } finally {
       setLoading(false);
       setTimeout(() => setActionMessage({ type: '', text: '' }), 3500);
@@ -324,16 +324,16 @@ export default function EmployeeDetailModal({
 
   // Handle Unlink User Account
   const handleUnlinkUser = async () => {
-    if (!window.confirm('Are you sure you want to unlink the system user account from this employee?')) return;
+    if (!window.confirm(t('employee.unlinkConfirm'))) return;
     try {
       setLoading(true);
       const res = await employeeService.unlinkUserAccount(employee._id);
       if (res.success) {
-        setActionMessage({ type: 'success', text: 'User account unlinked.' });
+        setActionMessage({ type: 'success', text: t('employee.userUnlinked') });
         await syncUpdatedEmployee(res.data);
       }
     } catch (err) {
-      setActionMessage({ type: 'error', text: err.response?.data?.message || 'Failed to unlink user' });
+      setActionMessage({ type: 'error', text: err.response?.data?.message || t('employee.userUnlinkFailed') });
     } finally {
       setLoading(false);
       setTimeout(() => setActionMessage({ type: '', text: '' }), 3500);
@@ -342,17 +342,17 @@ export default function EmployeeDetailModal({
 
   // Handle Delete Employee
   const handleDeleteEmployee = async () => {
-    if (!window.confirm(`PERMANENT ACTION: Are you sure you want to delete employee #${employee.employeeNumber} (${fullName})?`)) return;
+    if (!window.confirm(t('employee.deletePermanentConfirm', { num: employee.employeeNumber, name: fullName }))) return;
     try {
       setLoading(true);
       const res = await employeeService.deleteEmployee(employee._id);
       if (res.success) {
-        alert(`Employee #${employee.employeeNumber} deleted successfully.`);
+        alert(t('employee.deletedSuccess', { num: employee.employeeNumber }));
         onClose();
         if (onUpdate) onUpdate(null);
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete employee record');
+      alert(err.response?.data?.message || t('employee.deleteFailed'));
     } finally {
       setLoading(false);
     }
@@ -399,7 +399,7 @@ export default function EmployeeDetailModal({
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 <span className="font-mono font-bold text-[#00ced1]">#{employee.employeeNumber}</span> &bull;{' '}
-                {employee.jobTitle || 'Staff Member'} &bull; {employee.department || 'General'}
+                {employee.jobTitle || t('employee.staffMember')} &bull; {employee.department || t('employee.generalDept')}
               </p>
             </div>
           </div>
@@ -412,7 +412,7 @@ export default function EmployeeDetailModal({
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#00ced1] text-[#020617] hover:brightness-95 transition-all shadow-xs cursor-pointer"
               >
                 <Edit className="w-3.5 h-3.5" />
-                <span>Edit Profile</span>
+                <span>{t('employee.editProfile')}</span>
               </button>
             )}
 
@@ -453,7 +453,7 @@ export default function EmployeeDetailModal({
                 : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
           >
-            Overview & Bio
+            {t('employee.overviewTab')}
           </button>
           <button
             type="button"
@@ -463,7 +463,7 @@ export default function EmployeeDetailModal({
                 : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
           >
-            <span>Fayda National ID</span>
+            <span>{t('employee.faydaNationalId')}</span>
             {isNationalIdApproved ? (
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
             ) : (
@@ -479,7 +479,7 @@ export default function EmployeeDetailModal({
                   : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                 }`}
             >
-              Compensation & Bank
+              {t('employee.compensationTab')}
             </button>
           )}
           <button
@@ -490,7 +490,7 @@ export default function EmployeeDetailModal({
                 : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
           >
-            <span>Documents ({employee.employeeDocuments?.length || 0})</span>
+            <span>{t('employee.documentsCount', { count: employee.employeeDocuments?.length || 0 })}</span>
           </button>
           {canManageUserAccount(user) && (
             <button
@@ -501,7 +501,7 @@ export default function EmployeeDetailModal({
                   : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                 }`}
             >
-              System User Account
+              {t('employee.systemAccountTab')}
             </button>
           )}
           {canChangeEmploymentStatus(user) && (
@@ -513,7 +513,7 @@ export default function EmployeeDetailModal({
                   : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                 }`}
             >
-              Status & Lifecycle
+              {t('employee.statusLifecycleTab')}
             </button>
           )}
         </div>
@@ -574,19 +574,19 @@ export default function EmployeeDetailModal({
                 <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#152238] border border-slate-200/80 dark:border-slate-800">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block">{t('employee.religion', 'Religion')}</span>
                   <span className="font-bold text-slate-900 dark:text-white">
-                    {employee.religion || 'Not Specified'}
+                    {employee.religion || t('employee.notSpecified')}
                   </span>
                 </div>
                 <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#152238] border border-slate-200/80 dark:border-slate-800">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block">{t('employee.bloodGroup', 'Blood Group')}</span>
                   <span className="font-mono font-bold text-[#00ced1]">
-                    {employee.bloodGroup || 'Unknown'}
+                    {employee.bloodGroup || t('employee.unknown')}
                   </span>
                 </div>
                 <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#152238] border border-slate-200/80 dark:border-slate-800">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block">{t('employee.hireDate', 'Hire Date')}</span>
                   <span className="font-bold text-slate-900 dark:text-white">
-                    {employee.hireDate ? new Date(employee.hireDate).toLocaleDateString() : 'N/A'}
+                    {employee.hireDate ? new Date(employee.hireDate).toLocaleDateString() : t('common.notAvailable')}
                   </span>
                 </div>
               </div>
@@ -608,19 +608,19 @@ export default function EmployeeDetailModal({
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <span className="text-slate-400 text-[10px] block">{t('employee.fieldOfStudy', 'Field of Study / Major')}</span>
-                      <span className="font-bold text-slate-800 dark:text-slate-200">{employee.education.fieldOfStudy || 'N/A'}</span>
+                      <span className="font-bold text-slate-800 dark:text-slate-200">{employee.education.fieldOfStudy || t('common.notAvailable')}</span>
                     </div>
                     <div>
                       <span className="text-slate-400 text-[10px] block">{t('employee.institution', 'Institution / University')}</span>
-                      <span className="font-bold text-slate-800 dark:text-slate-200">{employee.education.institution || 'N/A'}</span>
+                      <span className="font-bold text-slate-800 dark:text-slate-200">{employee.education.institution || t('common.notAvailable')}</span>
                     </div>
                     <div>
                       <span className="text-slate-400 text-[10px] block">{t('employee.graduationYear', 'Graduation Date / Year')}</span>
-                      <span className="font-bold text-slate-800 dark:text-slate-200">{employee.education.graduationYear || 'N/A'}</span>
+                      <span className="font-bold text-slate-800 dark:text-slate-200">{employee.education.graduationYear || t('common.notAvailable')}</span>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-slate-400 italic">No formal education record documented.</p>
+                  <p className="text-slate-400 italic">{t('employee.noEducationRecord')}</p>
                 )}
               </div>
 
@@ -632,7 +632,7 @@ export default function EmployeeDetailModal({
                     <span>{t('employee.warrantyTitle', 'Warranty / Guarantor')}</span>
                   </h4>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-                    Legal Guarantee
+                    {t('employee.legalGuarantee')}
                   </span>
                 </div>
                 {employee.guarantors && employee.guarantors.length > 0 ? (
@@ -642,7 +642,7 @@ export default function EmployeeDetailModal({
                         <div className="flex items-center justify-between">
                           <p className="font-bold text-slate-800 dark:text-slate-200">{g.name}</p>
                           <span className="px-2 py-0.2 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                            {g.relationship || 'Guarantor'}
+                            {g.relationship || t('employee.guarantorDefault')}
                           </span>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
@@ -651,13 +651,13 @@ export default function EmployeeDetailModal({
                             <span className="font-mono text-slate-700 dark:text-slate-300">{g.phone || '—'}</span>
                           </div>
                           <div>
-                            <span className="text-[10px] text-slate-400 block">Fayda FAN</span>
+                            <span className="text-[10px] text-slate-400 block">{t('employee.faydaFanShort')}</span>
                             <span className="font-mono font-bold text-[#00ced1] text-[11px] truncate block">
                               {g.nationalId?.fanNumber || '—'}
                             </span>
                           </div>
                           <div>
-                            <span className="text-[10px] text-slate-400 block">Fayda FIN</span>
+                            <span className="text-[10px] text-slate-400 block">{t('employee.faydaFinShort')}</span>
                             <span className="font-mono font-bold text-slate-700 dark:text-slate-300 text-[11px] truncate block">
                               {g.nationalId?.finNumber || '—'}
                             </span>
@@ -667,7 +667,7 @@ export default function EmployeeDetailModal({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-slate-400 italic">No guarantor warranty registered for this personnel.</p>
+                  <p className="text-slate-400 italic">{t('employee.noGuarantor')}</p>
                 )}
               </div>
 
@@ -675,25 +675,25 @@ export default function EmployeeDetailModal({
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200 dark:border-slate-800 space-y-3">
                 <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                   <Phone className="w-4 h-4 text-[#00ced1]" />
-                  <span>Contact Information</span>
+                  <span>{t('employee.contactInformation')}</span>
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <span className="text-slate-400 text-[10px] block">Primary Phone</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-200">{employee.primaryPhone || 'N/A'}</span>
+                    <span className="text-slate-400 text-[10px] block">{t('employee.primaryPhone')}</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{employee.primaryPhone || t('common.notAvailable')}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 text-[10px] block">Alternative Phone</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-200">{employee.alternativePhone || 'N/A'}</span>
+                    <span className="text-slate-400 text-[10px] block">{t('employee.alternativePhone')}</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{employee.alternativePhone || t('common.notAvailable')}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 text-[10px] block">Email Address</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-200">{employee.email || 'N/A'}</span>
+                    <span className="text-slate-400 text-[10px] block">{t('employee.email')}</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{employee.email || t('common.notAvailable')}</span>
                   </div>
                 </div>
                 {employee.homeAddress && (
                   <div className="pt-1">
-                    <span className="text-slate-400 text-[10px] block">Residential Address</span>
+                    <span className="text-slate-400 text-[10px] block">{t('employee.homeAddress')}</span>
                     <span className="text-slate-700 dark:text-slate-300">{employee.homeAddress}</span>
                   </div>
                 )}
@@ -703,7 +703,7 @@ export default function EmployeeDetailModal({
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200 dark:border-slate-800 space-y-3">
                 <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                   <Shield className="w-4 h-4 text-[#00ced1]" />
-                  <span>Emergency Contacts</span>
+                  <span>{t('employee.emergencyContacts')}</span>
                 </h4>
                 {employee.emergencyContacts?.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -711,13 +711,13 @@ export default function EmployeeDetailModal({
                       <div key={i} className="p-3 rounded-xl bg-white dark:bg-[#0e1626] border border-slate-200 dark:border-slate-700">
                         <p className="font-bold text-slate-800 dark:text-slate-200">{c.name}</p>
                         <p className="text-[11px] text-slate-500">
-                          {c.phone} &bull; <span className="capitalize">{c.relationship || 'Emergency'}</span>
+                          {c.phone} &bull; <span className="capitalize">{t(`employee.emergencyRelations.${c.relationship}`, c.relationship || t('employee.emergencyDefault'))}</span>
                         </p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-slate-400">No emergency contacts registered.</p>
+                  <p className="text-slate-400">{t('employee.noEmergencyContacts')}</p>
                 )}
               </div>
             </div>
@@ -730,7 +730,7 @@ export default function EmployeeDetailModal({
                 <div className="flex items-center justify-between">
                   <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                     <Shield className="w-4 h-4 text-[#00ced1]" />
-                    <span>Fayda Ethiopian National ID Record</span>
+                    <span>{t('employee.faydaRecordTitle')}</span>
                   </h4>
                   <span
                     className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isNationalIdApproved
@@ -741,38 +741,38 @@ export default function EmployeeDetailModal({
                       }`}
                   >
                     {isNationalIdApproved
-                      ? 'Verified National ID'
+                      ? t('employee.verifiedId')
                       : employee.nationalId?.status === 'rejected'
-                        ? 'Verification Rejected'
-                        : 'Pending HR Verification'}
+                        ? t('employee.rejectedId')
+                        : t('employee.pendingId')}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div>
-                    <span className="text-slate-400 text-[10px] block">FAN (Fayda Identification Number - 16 Digits)</span>
+                    <span className="text-slate-400 text-[10px] block">{t('employee.fanNumber')}</span>
                     <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
-                      {employee.nationalId?.fanNumber || 'Not Provided'}
+                      {employee.nationalId?.fanNumber || t('employee.notProvided')}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 text-[10px] block">FIN (Fayda Individual Number - 12 Digits)</span>
+                    <span className="text-slate-400 text-[10px] block">{t('employee.finNumber')}</span>
                     <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
-                      {employee.nationalId?.finNumber || 'Not Provided'}
+                      {employee.nationalId?.finNumber || t('employee.notProvided')}
                     </span>
                   </div>
                 </div>
 
                 {employee.nationalId?.rejectionReason && (
                   <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs">
-                    <strong>Rejection Reason:</strong> {employee.nationalId.rejectionReason}
+                    <strong>{t('employee.rejectionReason')}</strong> {employee.nationalId.rejectionReason}
                   </div>
                 )}
 
                 {/* ID Images Preview */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                   <div className="border border-slate-200 dark:border-slate-700 rounded-2xl p-3 bg-white dark:bg-[#0e1626] text-center space-y-2">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">ID Card Front</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{t('employee.idCardFront')}</span>
                     {employee.nationalId?.frontImageUrl ? (
                       <a href={employee.nationalId.frontImageUrl} target="_blank" rel="noreferrer" className="block group relative">
                         <img
@@ -781,18 +781,18 @@ export default function EmployeeDetailModal({
                           className="h-36 w-full object-cover rounded-xl"
                         />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold rounded-xl transition-opacity">
-                          <ExternalLink className="w-4 h-4 mr-1" /> View Full
+                          <ExternalLink className="w-4 h-4 mr-1" /> {t('employee.viewFull')}
                         </div>
                       </a>
                     ) : (
                       <div className="h-36 flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-slate-400">
-                        No Front Photo
+                        {t('employee.noFrontPhoto')}
                       </div>
                     )}
                   </div>
 
                   <div className="border border-slate-200 dark:border-slate-700 rounded-2xl p-3 bg-white dark:bg-[#0e1626] text-center space-y-2">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">ID Card Back</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{t('employee.idCardBack')}</span>
                     {employee.nationalId?.backImageUrl ? (
                       <a href={employee.nationalId.backImageUrl} target="_blank" rel="noreferrer" className="block group relative">
                         <img
@@ -801,12 +801,12 @@ export default function EmployeeDetailModal({
                           className="h-36 w-full object-cover rounded-xl"
                         />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold rounded-xl transition-opacity">
-                          <ExternalLink className="w-4 h-4 mr-1" /> View Full
+                          <ExternalLink className="w-4 h-4 mr-1" /> {t('employee.viewFull')}
                         </div>
                       </a>
                     ) : (
                       <div className="h-36 flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-slate-400">
-                        No Back Photo
+                        {t('employee.noBackPhoto')}
                       </div>
                     )}
                   </div>
@@ -816,11 +816,11 @@ export default function EmployeeDetailModal({
                 {canEditEmployee(user) && (
                   <form onSubmit={handleUploadIdPhotos} className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2.5">
                     <span className="font-bold text-slate-800 dark:text-slate-200 block text-xs">
-                      Upload or Replace Fayda National ID Images
+                      {t('employee.uploadIdPhotosTitle')}
                     </span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-[10px] text-slate-400 block mb-1">Front Image File</label>
+                        <label className="text-[10px] text-slate-400 block mb-1">{t('employee.frontImageFile')}</label>
                         <input
                           type="file"
                           accept="image/*"
@@ -829,7 +829,7 @@ export default function EmployeeDetailModal({
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-slate-400 block mb-1">Back Image File</label>
+                        <label className="text-[10px] text-slate-400 block mb-1">{t('employee.backImageFile')}</label>
                         <input
                           type="file"
                           accept="image/*"
@@ -843,7 +843,7 @@ export default function EmployeeDetailModal({
                       disabled={loading || (!frontIdFile && !backIdFile)}
                       className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 transition-opacity disabled:opacity-40 cursor-pointer"
                     >
-                      {loading ? 'Uploading...' : 'Save ID Photos'}
+                      {loading ? t('employee.uploading') : t('employee.saveIdPhotos')}
                     </button>
                   </form>
                 )}
@@ -860,7 +860,7 @@ export default function EmployeeDetailModal({
                         style={{ backgroundColor: '#00ced1' }}
                       >
                         <UserCheck className="w-4 h-4" />
-                        <span>Verify & Approve National ID</span>
+                        <span>{t('employee.verifyApproveId')}</span>
                       </button>
                     )}
 
@@ -871,7 +871,7 @@ export default function EmployeeDetailModal({
                         disabled={loading}
                         className="px-4 py-2 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 hover:bg-rose-100 transition-colors cursor-pointer"
                       >
-                        Reject National ID
+                        {t('employee.rejectNationalId')}
                       </button>
                     )}
                   </div>
@@ -886,24 +886,24 @@ export default function EmployeeDetailModal({
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200 dark:border-slate-800 space-y-3">
                 <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                   <Banknote className="w-4 h-4 text-[#00ced1]" />
-                  <span>Salary & Compensation Structure</span>
+                  <span>{t('employee.salaryStructure')}</span>
                 </h4>
                 <div className="p-4 rounded-2xl bg-white dark:bg-[#0e1626] border border-slate-200 dark:border-slate-700/80 flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Basic Monthly Salary</span>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">{t('employee.basicSalary')}</span>
                     <span className="text-xl font-extrabold text-slate-900 dark:text-white">
-                      {employee.basicSalary ? `${employee.basicSalary.toLocaleString()} ETB` : '0 ETB'}
+                      {employee.basicSalary ? `${employee.basicSalary.toLocaleString()} ${t('common.currencyEtb')}` : `0 ${t('common.currencyEtb')}`}
                     </span>
                   </div>
                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#00ced1]/10 text-[#00ced1] border border-[#00ced1]/20">
-                    Gross Monthly Base
+                    {t('employee.grossMonthlyBase')}
                   </span>
                 </div>
               </div>
 
               {/* Bank Accounts */}
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200 dark:border-slate-800 space-y-3">
-                <h4 className="font-bold text-slate-900 dark:text-white">Disbursement Bank Accounts</h4>
+                <h4 className="font-bold text-slate-900 dark:text-white">{t('employee.disbursementBanks')}</h4>
                 {employee.bankAccounts?.length > 0 ? (
                   <div className="space-y-2">
                     {employee.bankAccounts.map((b, i) => (
@@ -916,7 +916,7 @@ export default function EmployeeDetailModal({
                           <span className="text-[11px] text-slate-400 block">{b.holderName}</span>
                           {b.isPrimary && (
                             <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
-                              Primary Account
+                              {t('employee.primaryAccount')}
                             </span>
                           )}
                         </div>
@@ -924,7 +924,7 @@ export default function EmployeeDetailModal({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-slate-400">No bank account recorded for payroll disbursement.</p>
+                  <p className="text-slate-400">{t('employee.noBankAccount')}</p>
                 )}
               </div>
             </div>
@@ -938,7 +938,7 @@ export default function EmployeeDetailModal({
                 <div className="flex items-center justify-between">
                   <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                     <FileCheck className="w-4 h-4 text-[#00ced1]" />
-                    <span>Compliance & Personnel Files</span>
+                    <span>{t('employee.complianceFiles')}</span>
                   </h4>
                   <button
                     type="button"
@@ -946,7 +946,7 @@ export default function EmployeeDetailModal({
                     className="text-xs font-bold text-[#00ced1] hover:underline flex items-center gap-1"
                   >
                     <Paperclip className="w-3.5 h-3.5" />
-                    <span>Open Universal Evidence Drawer</span>
+                    <span>{t('employee.openEvidenceDrawer')}</span>
                   </button>
                 </div>
 
@@ -958,7 +958,7 @@ export default function EmployeeDetailModal({
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-slate-800 dark:text-slate-200 truncate">{doc.title}</span>
                             <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500">
-                              {doc.type || 'Document'}
+                              {t(`employee.docCategories.${doc.type}`, doc.type || 'Document')}
                             </span>
                             <span
                               className={`px-2 py-0.2 rounded-full text-[9px] font-bold ${doc.status === 'approved'
@@ -968,11 +968,11 @@ export default function EmployeeDetailModal({
                                     : 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400'
                                 }`}
                             >
-                              {doc.status || 'pending'}
+                              {t(`status.${doc.status || 'pending'}`, doc.status || 'pending')}
                             </span>
                           </div>
                           <span className="text-[10px] text-slate-400">
-                            Uploaded {new Date(doc.uploadedAt).toLocaleDateString()}
+                            {t('employee.uploadedOn', { date: new Date(doc.uploadedAt).toLocaleDateString() })}
                           </span>
                         </div>
 
@@ -982,7 +982,7 @@ export default function EmployeeDetailModal({
                             target="_blank"
                             rel="noreferrer"
                             className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
-                            title="Open File"
+                            title={t('employee.openFile')}
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
@@ -993,7 +993,7 @@ export default function EmployeeDetailModal({
                               onClick={() => handleApproveDocument(doc._id, 'approved')}
                               className="px-2 py-1 rounded-lg text-[10px] font-bold bg-[#00ced1] text-[#020617] cursor-pointer"
                             >
-                              Approve
+                              {t('employee.approve')}
                             </button>
                           )}
 
@@ -1002,7 +1002,7 @@ export default function EmployeeDetailModal({
                               type="button"
                               onClick={() => handleDeleteDocument(doc._id)}
                               className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
-                              title="Delete Document"
+                              title={t('employee.deleteDocument')}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -1012,38 +1012,38 @@ export default function EmployeeDetailModal({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-slate-400">No personnel documents uploaded yet.</p>
+                  <p className="text-slate-400">{t('employee.noDocumentsYet')}</p>
                 )}
               </div>
 
               {/* Upload Document Form */}
               {canEditEmployee(user) && (
                 <form onSubmit={handleUploadDocument} className="p-4 rounded-2xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200 dark:border-slate-800 space-y-3">
-                  <h4 className="font-bold text-slate-900 dark:text-white">Upload New Document</h4>
+                  <h4 className="font-bold text-slate-900 dark:text-white">{t('employee.uploadNewDoc')}</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <label className="text-[10px] font-bold text-slate-400 block mb-1">Document Title</label>
+                      <label className="text-[10px] font-bold text-slate-400 block mb-1">{t('employee.docTitle')}</label>
                       <input
                         type="text"
                         value={docTitle}
                         onChange={(e) => setDocTitle(e.target.value)}
-                        placeholder="e.g. Employment Contract 2026"
+                        placeholder={t('employee.docTitlePlaceholder')}
                         className="brand-input"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-slate-400 block mb-1">Document Category</label>
+                      <label className="text-[10px] font-bold text-slate-400 block mb-1">{t('employee.docCategory')}</label>
                       <select value={docType} onChange={(e) => setDocType(e.target.value)} className="brand-input">
-                        <option value="Contract">Employment Contract</option>
-                        <option value="Certificate">Educational Certificate</option>
-                        <option value="Guarantor">Guarantor Letter</option>
-                        <option value="CV">Resume / CV</option>
-                        <option value="ID">Identity Document</option>
-                        <option value="Other">Other Compliance</option>
+                        <option value="Contract">{t('employee.docCategories.Contract')}</option>
+                        <option value="Certificate">{t('employee.docCategories.Certificate')}</option>
+                        <option value="Guarantor">{t('employee.docCategories.Guarantor')}</option>
+                        <option value="CV">{t('employee.docCategories.CV')}</option>
+                        <option value="ID">{t('employee.docCategories.ID')}</option>
+                        <option value="Other">{t('employee.docCategories.Other')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-slate-400 block mb-1">File Attachment</label>
+                      <label className="text-[10px] font-bold text-slate-400 block mb-1">{t('employee.fileAttachment')}</label>
                       <input
                         type="file"
                         onChange={(e) => setDocFile(e.target.files?.[0] || null)}
@@ -1056,7 +1056,7 @@ export default function EmployeeDetailModal({
                     disabled={loading || !docFile || !docTitle.trim()}
                     className="px-4 py-2 rounded-xl text-xs font-bold bg-[#00ced1] text-[#020617] disabled:opacity-40 cursor-pointer shadow-sm hover:brightness-95"
                   >
-                    {loading ? 'Uploading...' : 'Upload Document'}
+                    {loading ? t('employee.uploading') : t('employee.uploadDocument')}
                   </button>
                 </form>
               )}
@@ -1070,15 +1070,15 @@ export default function EmployeeDetailModal({
                 <div className="flex items-center justify-between">
                   <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                     <Key className="w-4 h-4 text-[#00ced1]" />
-                    <span>ERP System Login Account</span>
+                    <span>{t('employee.erpLoginAccount')}</span>
                   </h4>
                   {employee.user ? (
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                      Account Linked
+                      {t('employee.accountLinked')}
                     </span>
                   ) : (
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
-                      No Login Account Linked
+                      {t('employee.noLoginLinked')}
                     </span>
                   )}
                 </div>
@@ -1088,13 +1088,13 @@ export default function EmployeeDetailModal({
                     <div className="p-3.5 rounded-xl bg-white dark:bg-[#0e1626] border border-slate-200 dark:border-slate-700/80 space-y-2">
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
-                          <span className="text-[10px] text-slate-400 block font-bold">Email Login</span>
+                          <span className="text-[10px] text-slate-400 block font-bold">{t('employee.emailLogin')}</span>
                           <span className="font-bold text-slate-900 dark:text-white">
                             {typeof employee.user === 'object' ? employee.user.email : employee.email}
                           </span>
                         </div>
                         <div>
-                          <span className="text-[10px] text-slate-400 block font-bold">Assigned Roles</span>
+                          <span className="text-[10px] text-slate-400 block font-bold">{t('employee.assignedRoles')}</span>
                           <div className="flex flex-wrap gap-1 mt-0.5">
                             {(typeof employee.user === 'object' && employee.user.roles ? employee.user.roles : ['employee']).map(
                               (r) => (
@@ -1102,7 +1102,7 @@ export default function EmployeeDetailModal({
                                   key={r}
                                   className="px-2 py-0.2 rounded-full text-[9px] font-bold uppercase bg-[#00ced1]/15 text-[#00ced1]"
                                 >
-                                  {r}
+                                  {t(`roles.${r}`, r)}
                                 </span>
                               )
                             )}
@@ -1117,39 +1117,39 @@ export default function EmployeeDetailModal({
                       disabled={loading}
                       className="px-3.5 py-2 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 hover:bg-rose-100 transition-colors cursor-pointer"
                     >
-                      Unlink User Account
+                      {t('employee.unlinkAccount')}
                     </button>
                   </div>
                 ) : (
                   <form onSubmit={handleCreateUser} className="space-y-3 pt-2">
                     <p className="text-slate-600 dark:text-slate-400 text-xs">
-                      This personnel record does not have a system login. Provision credentials below to grant system access.
+                      {t('employee.noLoginDesc')}
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
-                        <label className="text-[10px] font-bold text-slate-400 block mb-1">Login Email</label>
+                        <label className="text-[10px] font-bold text-slate-400 block mb-1">{t('employee.loginEmail')}</label>
                         <input
                           type="email"
                           required
                           value={newUserEmail}
                           onChange={(e) => setNewUserEmail(e.target.value)}
-                          placeholder="e.g. employee@vector.com"
+                          placeholder={t('employee.loginEmailPlaceholder')}
                           className="brand-input"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold text-slate-400 block mb-1">Temporary Password</label>
+                        <label className="text-[10px] font-bold text-slate-400 block mb-1">{t('employee.tempPassword')}</label>
                         <input
                           type="text"
                           required
                           value={newUserPassword}
                           onChange={(e) => setNewUserPassword(e.target.value)}
-                          placeholder="Enter temporary password"
+                          placeholder={t('employee.tempPasswordPlaceholder')}
                           className="brand-input font-mono"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold text-slate-400 block mb-1">Assigned Role</label>
+                        <label className="text-[10px] font-bold text-slate-400 block mb-1">{t('employee.assignedRole')}</label>
                         <select
                           value={newUserRole}
                           onChange={(e) => setNewUserRole(e.target.value)}
@@ -1157,7 +1157,7 @@ export default function EmployeeDetailModal({
                         >
                           {ALL_ROLES.map((r) => (
                             <option key={r} value={r}>
-                              {r.toUpperCase()}
+                              {t(`roles.${r}`, r.toUpperCase())}
                             </option>
                           ))}
                         </select>
@@ -1168,7 +1168,7 @@ export default function EmployeeDetailModal({
                       disabled={loading}
                       className="px-4 py-2 rounded-xl text-xs font-bold bg-[#00ced1] text-[#020617] shadow-sm hover:brightness-95 cursor-pointer"
                     >
-                      {loading ? 'Creating...' : 'Create & Link User Account'}
+                      {loading ? t('employee.creating') : t('employee.createLinkAccount')}
                     </button>
                   </form>
                 )}
@@ -1182,11 +1182,11 @@ export default function EmployeeDetailModal({
               <form onSubmit={handleStatusUpdate} className="p-4 rounded-2xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200 dark:border-slate-800 space-y-3">
                 <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                   <RefreshCw className="w-4 h-4 text-[#00ced1]" />
-                  <span>Update Employment Status</span>
+                  <span>{t('employee.updateEmploymentStatus')}</span>
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 block mb-1">New Employment Status</label>
+                    <label className="text-[10px] font-bold text-slate-400 block mb-1">{t('employee.newEmploymentStatus')}</label>
                     <select
                       value={newStatus}
                       onChange={(e) => setNewStatus(e.target.value)}
@@ -1194,18 +1194,18 @@ export default function EmployeeDetailModal({
                     >
                       {EMPLOYMENT_STATUSES.map((s) => (
                         <option key={s.value} value={s.value}>
-                          {s.label}
+                          {isAmharic ? s.amLabel : s.label}
                         </option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 block mb-1">Status Change Notes / Reason</label>
+                    <label className="text-[10px] font-bold text-slate-400 block mb-1">{t('employee.statusNotesLabel')}</label>
                     <input
                       type="text"
                       value={statusNotes}
                       onChange={(e) => setStatusNotes(e.target.value)}
-                      placeholder="e.g. Probation review passed"
+                      placeholder={t('employee.statusNotesPlaceholder')}
                       className="brand-input"
                     />
                   </div>
@@ -1215,7 +1215,7 @@ export default function EmployeeDetailModal({
                   disabled={loading || newStatus === employee.employmentStatus}
                   className="px-4 py-2 rounded-xl text-xs font-bold bg-[#00ced1] text-[#020617] disabled:opacity-40 cursor-pointer shadow-sm hover:brightness-95"
                 >
-                  {loading ? 'Updating...' : 'Confirm Status Change'}
+                  {loading ? t('employee.updating') : t('employee.confirmStatusChange')}
                 </button>
               </form>
 
@@ -1224,10 +1224,10 @@ export default function EmployeeDetailModal({
                 <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 space-y-3">
                   <h4 className="font-bold text-rose-700 dark:text-rose-400 flex items-center gap-1.5">
                     <Trash2 className="w-4 h-4" />
-                    <span>Danger Zone: Permanent Record Deletion</span>
+                    <span>{t('employee.dangerZoneTitle')}</span>
                   </h4>
                   <p className="text-xs text-rose-600 dark:text-rose-300">
-                    Deleting this employee record will remove their employment profile and historical documents. Only Executive Leadership roles (Super Admin, CEO, CAO, COO, HR Manager) have this authority.
+                    {t('employee.dangerZoneDesc')}
                   </p>
                   <button
                     type="button"
@@ -1235,7 +1235,7 @@ export default function EmployeeDetailModal({
                     disabled={loading}
                     className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 transition-colors cursor-pointer shadow-sm"
                   >
-                    Delete Personnel Record
+                    {t('employee.deletePersonnelRecord')}
                   </button>
                 </div>
               )}
@@ -1252,7 +1252,7 @@ export default function EmployeeDetailModal({
               className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
             >
               <Paperclip className="w-3.5 h-3.5" />
-              <span>Evidence Drawer</span>
+              <span>{t('employee.evidenceDrawerBtn')}</span>
             </button>
           </div>
 
@@ -1261,7 +1261,7 @@ export default function EmployeeDetailModal({
             onClick={onClose}
             className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors cursor-pointer"
           >
-            Close Profile
+            {t('employee.closeProfile')}
           </button>
         </div>
       </div>

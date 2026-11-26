@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Award } from 'lucide-react';
 import { trainingService } from '../../../services/hrService';
 import StatusBadge from '../../../components/hr/StatusBadge';
 
 export default function TrainingList() {
+  const { t } = useTranslation();
   const [trainings, setTrainings] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,19 +30,19 @@ export default function TrainingList() {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <Award className="w-6 h-6 text-[#00ced1]" />
-            <span>Training & Skill Development</span>
+            <span>{t('hrPages.training.title')}</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Workshops, skill development programs, and certifications.
+            {t('hrPages.training.subtitle')}
           </p>
         </div>
       </div>
 
       <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-[#0e1626] border border-slate-200/90 dark:border-slate-800 shadow-xs p-6 text-center text-xs text-slate-400">
         {loading ? (
-          'Loading training programs...'
+          t('hrPages.training.loading')
         ) : trainings.length === 0 ? (
-          <p>No enrolled trainings at this moment.</p>
+          <p>{t('hrPages.training.empty')}</p>
         ) : (
           <div className="space-y-2">
             {trainings.map((t) => (

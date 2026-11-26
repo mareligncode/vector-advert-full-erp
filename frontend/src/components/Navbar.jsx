@@ -154,7 +154,7 @@ export default function Navbar() {
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 rounded-xl text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00ced1]/40 transition-all cursor-pointer"
-            aria-label="Toggle navigation menu"
+            aria-label={t('nav.toggleMenu')}
             aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? (

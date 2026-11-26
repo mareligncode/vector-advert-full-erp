@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   X,
   Paperclip,
@@ -20,9 +21,11 @@ export default function EvidenceDrawer({
   onClose,
   entityType,
   entityId,
-  entityTitle = 'Record'
+  entityTitle
 }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
+  const displayTitle = entityTitle || t('evidence.defaultRecord');
   const [evidence, setEvidence] = useState(null);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -74,14 +77,14 @@ export default function EvidenceDrawer({
         title: fileTitle || selectedFiles[0].name,
         description: fileDescription
       });
-      setSuccess('Attachment uploaded successfully!');
+      setSuccess(t('evidence.uploadSuccess'));
       setSelectedFiles([]);
       setFileTitle('');
       setFileDescription('');
       fetchEvidence();
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to upload attachment');
+      setError(err.response?.data?.message || t('evidence.uploadFailed'));
     } finally {
       setUploading(false);
     }
@@ -92,17 +95,17 @@ export default function EvidenceDrawer({
       await evidenceService.reviewAttachment(entityType, entityId, attachmentId, status, rejectionReason);
       fetchEvidence();
     } catch (err) {
-      setError(err.response?.data?.message || 'Review action failed');
+      setError(err.response?.data?.message || t('evidence.reviewFailed'));
     }
   };
 
   const handleDeleteAttachment = async (attachmentId) => {
-    if (!window.confirm('Are you sure you want to delete this attachment?')) return;
+    if (!window.confirm(t('evidence.deleteConfirm'))) return;
     try {
       await evidenceService.deleteAttachment(entityType, entityId, attachmentId);
       fetchEvidence();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to delete attachment');
+      setError(err.response?.data?.message || t('evidence.deleteFailed'));
     }
   };
 
@@ -115,7 +118,7 @@ export default function EvidenceDrawer({
       setNewNote('');
       fetchEvidence();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to post note');
+      setError(err.response?.data?.message || t('evidence.postNoteFailed'));
     } finally {
       setAddingNote(false);
     }
@@ -134,10 +137,10 @@ export default function EvidenceDrawer({
             </div>
             <div>
               <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-                Universal Evidence & Attachments
+                {t('evidence.title')}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {entityType} &bull; {entityTitle}
+                {entityType} &bull; {displayTitle}
               </p>
             </div>
           </div>
@@ -169,12 +172,12 @@ export default function EvidenceDrawer({
           <form onSubmit={handleFileUpload} className="p-4 rounded-2xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200 dark:border-slate-700/80 space-y-3">
             <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
               <UploadCloud className="w-4 h-4 text-[#00ced1]" />
-              <span>Upload New Document or Evidence</span>
+              <span>{t('evidence.uploadTitle')}</span>
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <input
                 type="text"
-                placeholder="Document Title (e.g. Medical Cert)"
+                placeholder={t('evidence.docTitlePlaceholder')}
                 value={fileTitle}
                 onChange={(e) => setFileTitle(e.target.value)}
                 className="px-3 py-2 text-xs rounded-xl bg-white dark:bg-[#0e1626] border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#00ced1]"
@@ -187,7 +190,7 @@ export default function EvidenceDrawer({
               />
             </div>
             <textarea
-              placeholder="Description or context notes..."
+              placeholder={t('evidence.docDescPlaceholder')}
               value={fileDescription}
               onChange={(e) => setFileDescription(e.target.value)}
               rows={2}
@@ -199,21 +202,21 @@ export default function EvidenceDrawer({
               className="w-full py-2 px-3 rounded-xl text-xs font-bold text-slate-950 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
               style={{ backgroundColor: '#00ced1' }}
             >
-              {uploading ? 'Uploading...' : 'Submit Attachment'}
+              {uploading ? t('evidence.uploading') : t('evidence.submitAttachment')}
             </button>
           </form>
 
           {/* Attachments List */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
-              Attached Files ({evidence?.attachments?.length || 0})
+              {t('evidence.attachedFiles', { count: evidence?.attachments?.length || 0 })}
             </h4>
 
             {loading ? (
-              <div className="py-8 text-center text-xs text-slate-400">Loading evidence...</div>
+              <div className="py-8 text-center text-xs text-slate-400">{t('evidence.loading')}</div>
             ) : !evidence || evidence.attachments?.length === 0 ? (
               <div className="p-6 text-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-xs text-slate-400">
-                No attachments uploaded yet.
+                {t('evidence.noAttachments')}
               </div>
             ) : (
               evidence.attachments.map((att) => (
@@ -245,7 +248,7 @@ export default function EvidenceDrawer({
                           : 'bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800'
                       }`}
                     >
-                      {att.status}
+                      {t(`status.${att.status || 'pending'}`, att.status)}
                     </span>
                   </div>
 
@@ -262,7 +265,7 @@ export default function EvidenceDrawer({
                       rel="noopener noreferrer"
                       className="text-xs font-bold text-[#00ced1] hover:underline flex items-center gap-1"
                     >
-                      <span>View / Download</span>
+                      <span>{t('evidence.viewDownload')}</span>
                       <ExternalLink className="w-3 h-3" />
                     </a>
 
@@ -273,18 +276,18 @@ export default function EvidenceDrawer({
                             type="button"
                             onClick={() => handleReviewAttachment(att._id, 'verified')}
                             className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
-                            title="Verify"
+                            title={t('evidence.verify')}
                           >
                             <CheckCircle className="w-4 h-4" />
                           </button>
                           <button
                             type="button"
                             onClick={() => {
-                              const reason = window.prompt('Reason for rejection:');
+                              const reason = window.prompt(t('evidence.rejectPrompt'));
                               if (reason) handleReviewAttachment(att._id, 'rejected', reason);
                             }}
                             className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-                            title="Reject"
+                            title={t('evidence.reject')}
                           >
                             <XCircle className="w-4 h-4" />
                           </button>
@@ -295,7 +298,7 @@ export default function EvidenceDrawer({
                         type="button"
                         onClick={() => handleDeleteAttachment(att._id)}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 transition-colors"
-                        title="Delete"
+                        title={t('evidence.delete')}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -310,13 +313,13 @@ export default function EvidenceDrawer({
           <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
             <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
               <MessageSquare className="w-4 h-4 text-[#00ced1]" />
-              <span>Audit Commentary & Verification Notes</span>
+              <span>{t('evidence.auditNotesTitle')}</span>
             </h4>
 
             <form onSubmit={handleAddNote} className="flex gap-2">
               <input
                 type="text"
-                placeholder="Add a remark or verification note..."
+                placeholder={t('evidence.addNotePlaceholder')}
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
                 className="flex-1 px-3 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-[#152238] border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#00ced1]"
@@ -327,7 +330,7 @@ export default function EvidenceDrawer({
                 className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-950 shrink-0"
                 style={{ backgroundColor: '#00ced1' }}
               >
-                Post
+                {t('evidence.post')}
               </button>
             </form>
 
@@ -335,7 +338,7 @@ export default function EvidenceDrawer({
               {evidence?.notes?.map((n) => (
                 <div key={n._id} className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#152238] text-xs space-y-1">
                   <div className="flex items-center justify-between text-[11px] text-slate-400">
-                    <span>{n.author?.email || 'System'}</span>
+                    <span>{n.author?.email || t('evidence.systemAuthor')}</span>
                     <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {new Date(n.createdAt).toLocaleDateString()}
@@ -354,7 +357,7 @@ export default function EvidenceDrawer({
             onClick={onClose}
             className="px-4 py-2 text-xs font-bold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors"
           >
-            Close
+            {t('common.close')}
           </button>
         </div>
       </div>

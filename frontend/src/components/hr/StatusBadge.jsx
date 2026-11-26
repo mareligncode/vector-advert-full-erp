@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const STATUS_MAP = {
   // General / Employment
@@ -35,15 +36,16 @@ const STATUS_MAP = {
 };
 
 export default function StatusBadge({ status, customLabel, size = 'md' }) {
+  const { t } = useTranslation();
   const normalized = (status || '').toLowerCase().trim();
   const config = STATUS_MAP[normalized] || {
-    label: status || 'Unknown',
+    label: status || t('status.unknown'),
     bg: 'bg-slate-100 dark:bg-slate-800/60',
     text: 'text-slate-700 dark:text-slate-300',
     border: 'border-slate-200 dark:border-slate-700'
   };
 
-  const label = customLabel || config.label;
+  const label = customLabel || (STATUS_MAP[normalized] ? t(`status.${normalized}`, config.label) : config.label);
   const sizeClasses =
     size === 'sm'
       ? 'px-2 py-0.5 text-[10px]'

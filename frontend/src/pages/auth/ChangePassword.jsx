@@ -34,22 +34,22 @@ export default function ChangePassword() {
     setSuccessMsg('');
 
     if (!formData.currentPassword || !formData.newPassword) {
-      setError('Please provide both current and new password');
+      setError(t('auth.provideBothPasswords'));
       return;
     }
 
     if (formData.newPassword.length < 6) {
-      setError('New password must be at least 6 characters long');
+      setError(t('auth.passwordTooShort'));
       return;
     }
 
     if (formData.newPassword !== formData.confirmPassword) {
-      setError('New password and confirmation do not match');
+      setError(t('auth.passwordsDoNotMatch'));
       return;
     }
 
     if (formData.currentPassword === formData.newPassword) {
-      setError('New password cannot be identical to your temporary password');
+      setError(t('auth.samePasswordError'));
       return;
     }
 
@@ -62,13 +62,13 @@ export default function ChangePassword() {
       );
 
       if (res.success) {
-        setSuccessMsg(res.message || 'Password changed successfully!');
+        setSuccessMsg(res.message || t('auth.changePasswordSuccess'));
         setTimeout(() => {
           navigate('/dashboard');
         }, 800);
       }
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Failed to change password';
+      const msg = err.response?.data?.message || err.message || t('auth.changePasswordFailed');
       setError(msg);
     } finally {
       setLoading(false);
@@ -93,14 +93,14 @@ export default function ChangePassword() {
               </div>
             </div>
             <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-              Change Your Password
+              {t('auth.changePasswordTitle')}
             </h1>
             <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-              For security compliance, you must set a new permanent password before accessing the system.
+              {t('auth.changePasswordSub')}
             </p>
             {user?.email && (
               <div className="mt-2 text-xs font-semibold text-[#00ced1]">
-                Signed in as: {user.email}
+                {t('auth.signedInAs')}: {user.email}
               </div>
             )}
           </div>
@@ -109,7 +109,7 @@ export default function ChangePassword() {
           <div className="mb-5 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 flex items-start gap-2.5 text-amber-800 dark:text-amber-300 text-xs">
             <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
             <span>
-              Your account was created with a temporary password. Choose a strong password that you do not share.
+              {t('auth.tempPasswordNotice')}
             </span>
           </div>
 
@@ -134,7 +134,7 @@ export default function ChangePassword() {
             {/* Current / Temporary Password */}
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                Temporary / Current Password
+                {t('auth.currentPasswordLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -145,7 +145,7 @@ export default function ChangePassword() {
                   name="currentPassword"
                   value={formData.currentPassword}
                   onChange={handleChange}
-                  placeholder="Enter temporary password"
+                  placeholder={t('auth.currentPasswordPlaceholder')}
                   required
                   className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-[#152238] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:border-[#00ced1] focus:ring-2 focus:ring-[#00ced1]/20 transition-all duration-200"
                 />
@@ -162,7 +162,7 @@ export default function ChangePassword() {
             {/* New Password */}
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                New Password
+                {t('auth.newPasswordLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -173,7 +173,7 @@ export default function ChangePassword() {
                   name="newPassword"
                   value={formData.newPassword}
                   onChange={handleChange}
-                  placeholder="Enter new permanent password (min 6 characters)"
+                  placeholder={t('auth.newPasswordPlaceholder')}
                   required
                   minLength={6}
                   className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-[#152238] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:border-[#00ced1] focus:ring-2 focus:ring-[#00ced1]/20 transition-all duration-200"
@@ -191,7 +191,7 @@ export default function ChangePassword() {
             {/* Confirm New Password */}
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                Confirm New Password
+                {t('auth.confirmNewPasswordLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -202,7 +202,7 @@ export default function ChangePassword() {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  placeholder="Re-enter new password"
+                  placeholder={t('auth.confirmNewPasswordPlaceholder')}
                   required
                   minLength={6}
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-[#152238] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:border-[#00ced1] focus:ring-2 focus:ring-[#00ced1]/20 transition-all duration-200"
@@ -223,11 +223,11 @@ export default function ChangePassword() {
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
-                  <span>Updating Password...</span>
+                  <span>{t('auth.resetting')}</span>
                 </>
               ) : (
                 <>
-                  <span>Save Password & Continue</span>
+                  <span>{t('auth.savePasswordContinue')}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -245,7 +245,7 @@ export default function ChangePassword() {
               className="inline-flex items-center gap-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>Sign out / Return to Login</span>
+              <span>{t('auth.signOutReturnLogin')}</span>
             </button>
           </div>
         </div>

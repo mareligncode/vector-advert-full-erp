@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { GraduationCap, Plus } from 'lucide-react';
 import { internshipService } from '../../../services/hrService';
 import StatusBadge from '../../../components/hr/StatusBadge';
 
 export default function InternshipList() {
+  const { t } = useTranslation();
   const [internships, setInternships] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,19 +30,19 @@ export default function InternshipList() {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <GraduationCap className="w-6 h-6 text-[#00ced1]" />
-            <span>Internship Programs</span>
+            <span>{t('hrPages.internships.title')}</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            University intern profiles, supervisor evaluations, and staff conversion.
+            {t('hrPages.internships.subtitle')}
           </p>
         </div>
       </div>
 
       <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-[#0e1626] border border-slate-200/90 dark:border-slate-800 shadow-xs p-6 text-center text-xs text-slate-400">
         {loading ? (
-          'Loading intern records...'
+          t('hrPages.internships.loading')
         ) : internships.length === 0 ? (
-          <p>No active interns enrolled.</p>
+          <p>{t('hrPages.internships.empty')}</p>
         ) : (
           <div className="space-y-2">
             {internships.map((i) => (

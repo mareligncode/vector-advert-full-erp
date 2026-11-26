@@ -270,13 +270,13 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
     setError('');
 
     if (!formData.firstName.trim() || !formData.lastName.trim()) {
-      setError(isAmharic ? 'የመጀመሪያ እና የአያት ስም የግዴታ ነው።' : 'First and last names are mandatory.');
+      setError(t('employee.firstLastMandatory'));
       setActiveTab('personal');
       return;
     }
 
     if (!formData.primaryPhone.trim()) {
-      setError(isAmharic ? 'ዋና ስልክ ቁጥር የግዴታ ነው።' : 'Primary phone number is required.');
+      setError(t('employee.primaryPhoneRequired'));
       setActiveTab('personal');
       return;
     }
@@ -396,7 +396,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
       // User account inline provisioning (Create mode only)
       if (!isEditMode && formData.createUserAccount) {
         if (!formData.email.trim()) {
-          setError(isAmharic ? 'የስርዓት መለያ ለመክፈት ኢሜይል ማስገባት ያስፈልጋል።' : 'Email is required when creating a system login account.');
+          setError(t('employee.emailRequiredForAccount'));
           setActiveTab('personal');
           setLoading(false);
           return;
@@ -433,7 +433,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
       }
     } catch (err) {
       console.error('Save employee error:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to save employee profile');
+      setError(err.response?.data?.message || err.message || t('employee.saveFailed'));
     } finally {
       setLoading(false);
     }
@@ -456,8 +456,8 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {isEditMode
-                  ? 'Update employee profile details, hierarchy, warranty & qualifications'
-                  : 'Add a new employee with auto-assigned ID, guarantor warranty & qualifications'}
+                  ? t('employee.editSub')
+                  : t('employee.createSub')}
               </p>
             </div>
           </div>
@@ -477,26 +477,26 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
             <div className="p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 space-y-4">
               <div className="flex items-center gap-2.5 text-emerald-700 dark:text-emerald-300">
                 <Check className="w-5 h-5 shrink-0" />
-                <h3 className="text-sm font-bold">Personnel Created & Login Account Provisioned!</h3>
+                <h3 className="text-sm font-bold">{t('employee.createdWithAccountTitle')}</h3>
               </div>
               <p className="text-xs text-emerald-800 dark:text-emerald-200 leading-relaxed">
-                A system login account has been successfully linked to this employee. Please securely copy and share these temporary credentials with the staff member.
+                {t('employee.createdWithAccountSub')}
               </p>
 
               <div className="p-4 rounded-xl bg-white dark:bg-[#0e1626] border border-emerald-300 dark:border-emerald-800/80 space-y-2.5 font-mono text-xs">
                 <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-sans font-bold">Login Email</span>
+                  <span className="text-slate-400 block text-[10px] uppercase font-sans font-bold">{t('employee.loginEmail')}</span>
                   <span className="text-slate-900 dark:text-white font-bold">{createdCredentials.email}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-sans font-bold">Temporary Password</span>
+                  <span className="text-slate-400 block text-[10px] uppercase font-sans font-bold">{t('employee.tempPassword')}</span>
                   <span className="text-[#00ced1] font-bold text-sm tracking-wider select-all">
                     {createdCredentials.temporaryPassword}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-sans font-bold">Assigned Role</span>
-                  <span className="capitalize text-slate-700 dark:text-slate-300">{createdCredentials.roles?.[0]}</span>
+                  <span className="text-slate-400 block text-[10px] uppercase font-sans font-bold">{t('employee.assignedRole')}</span>
+                  <span className="capitalize text-slate-700 dark:text-slate-300">{t(`roles.${createdCredentials.roles?.[0]}`, createdCredentials.roles?.[0])}</span>
                 </div>
               </div>
 
@@ -507,7 +507,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-[#00ced1] text-[#020617] hover:brightness-95 transition-all cursor-pointer shadow-sm"
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  <span>{copied ? 'Credentials Copied!' : 'Copy Credentials'}</span>
+                  <span>{copied ? t('employee.credentialsCopied') : t('employee.copyCredentials')}</span>
                 </button>
 
                 <button
@@ -607,7 +607,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                         required
                         value={formData.firstName}
                         onChange={handleChange}
-                        placeholder="e.g. Abebe / አበበ"
+                        placeholder={t('employee.firstNamePlaceholder')}
                         className="brand-input"
                       />
                     </div>
@@ -620,7 +620,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                         name="middleName"
                         value={formData.middleName}
                         onChange={handleChange}
-                        placeholder="e.g. Kebede / ከበደ"
+                        placeholder={t('employee.middleNamePlaceholder')}
                         className="brand-input"
                       />
                     </div>
@@ -634,7 +634,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                         required
                         value={formData.lastName}
                         onChange={handleChange}
-                        placeholder="e.g. Tadesse / ታደሰ"
+                        placeholder={t('employee.lastNamePlaceholder')}
                         className="brand-input"
                       />
                     </div>
@@ -652,7 +652,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                         required
                         value={formData.primaryPhone}
                         onChange={handleChange}
-                        placeholder="e.g. 0911234567"
+                        placeholder={t('employee.phonePlaceholder')}
                         className="brand-input"
                       />
                     </div>
@@ -665,7 +665,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                         name="alternativePhone"
                         value={formData.alternativePhone}
                         onChange={handleChange}
-                        placeholder="e.g. 0922334455"
+                        placeholder={t('employee.altPhonePlaceholder')}
                         className="brand-input"
                       />
                     </div>
@@ -678,7 +678,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        placeholder="e.g. abebe@vectoradvert.com"
+                        placeholder={t('employee.emailPlaceholder')}
                         className="brand-input"
                       />
                     </div>
@@ -712,10 +712,10 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                         {t('employee.maritalStatus', 'Marital Status')}
                       </label>
                       <select name="maritalStatus" value={formData.maritalStatus} onChange={handleChange} className="brand-input">
-                        <option value="single">Single / ያላገባ</option>
-                        <option value="married">Married / ያገባ</option>
-                        <option value="divorced">Divorced / የተፋታ</option>
-                        <option value="widowed">Widowed / የሞተበት</option>
+                        <option value="single">{t('employee.maritalOptions.single')}</option>
+                        <option value="married">{t('employee.maritalOptions.married')}</option>
+                        <option value="divorced">{t('employee.maritalOptions.divorced')}</option>
+                        <option value="widowed">{t('employee.maritalOptions.widowed')}</option>
                       </select>
                     </div>
                     <div>
@@ -773,7 +773,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                       name="homeAddress"
                       value={formData.homeAddress}
                       onChange={handleChange}
-                      placeholder="e.g. Bole Subcity, Woreda 03, House #142 / ቦሌ ክፍለ ከተማ፣ ወረዳ 03"
+                      placeholder={t('employee.addressPlaceholder')}
                       className="brand-input"
                     />
                   </div>
@@ -824,7 +824,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                         required
                         value={formData.jobTitle}
                         onChange={handleChange}
-                        placeholder="e.g. Senior Graphic Designer"
+                        placeholder={t('employee.jobTitlePlaceholder')}
                         className="brand-input"
                       />
                     </div>
@@ -853,7 +853,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                       })}
                     </select>
                     <p className="text-[10px] text-slate-400 mt-1">
-                      Select the employee's direct reporting supervisor for approval workflows.
+                      {t('employee.managerHelp')}
                     </p>
                   </div>
 
@@ -976,7 +976,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                     <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#152238]/60 border border-slate-200 dark:border-slate-800 space-y-3">
                       <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-xs">
                         <Banknote className="w-4 h-4 text-[#00ced1]" />
-                        <span>Compensation & Banking (Confidential)</span>
+                        <span>{t('employee.compensationConfidential')}</span>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -991,7 +991,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                             name="basicSalary"
                             value={formData.basicSalary}
                             onChange={handleChange}
-                            placeholder="e.g. 25000"
+                            placeholder={t('employee.salaryPlaceholder')}
                             className="brand-input font-bold"
                           />
                         </div>
@@ -1000,15 +1000,15 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                             {t('employee.bankName', 'Bank Name')}
                           </label>
                           <select name="bankName" value={formData.bankName} onChange={handleChange} className="brand-input">
-                            <option value="Commercial Bank of Ethiopia">Commercial Bank of Ethiopia (CBE)</option>
-                            <option value="Awash Bank">Awash Bank</option>
-                            <option value="Dashen Bank">Dashen Bank</option>
-                            <option value="Bank of Abyssinia">Bank of Abyssinia</option>
-                            <option value="Nib International Bank">Nib International Bank</option>
-                            <option value="Hibret Bank">Hibret Bank</option>
-                            <option value="Cooperative Bank of Oromia">Cooperative Bank of Oromia (Coop)</option>
-                            <option value="Zemen Bank">Zemen Bank</option>
-                            <option value="Telebirr">Telebirr SuperApp</option>
+                            <option value="Commercial Bank of Ethiopia">{t('employee.banks.Commercial Bank of Ethiopia')}</option>
+                            <option value="Awash Bank">{t('employee.banks.Awash Bank')}</option>
+                            <option value="Dashen Bank">{t('employee.banks.Dashen Bank')}</option>
+                            <option value="Bank of Abyssinia">{t('employee.banks.Bank of Abyssinia')}</option>
+                            <option value="Nib International Bank">{t('employee.banks.Nib International Bank')}</option>
+                            <option value="Hibret Bank">{t('employee.banks.Hibret Bank')}</option>
+                            <option value="Cooperative Bank of Oromia">{t('employee.banks.Cooperative Bank of Oromia')}</option>
+                            <option value="Zemen Bank">{t('employee.banks.Zemen Bank')}</option>
+                            <option value="Telebirr">{t('employee.banks.Telebirr')}</option>
                           </select>
                         </div>
                         <div>
@@ -1020,7 +1020,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                             name="bankHolderName"
                             value={formData.bankHolderName}
                             onChange={handleChange}
-                            placeholder="Full name as on bank passbook"
+                            placeholder={t('employee.bankHolderPlaceholder')}
                             className="brand-input"
                           />
                         </div>
@@ -1036,18 +1036,18 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                             name="bankAccountNumber"
                             value={formData.bankAccountNumber}
                             onChange={handleChange}
-                            placeholder="e.g. 100012345678"
+                            placeholder={t('employee.bankAccountPlaceholder')}
                             className="brand-input font-mono"
                           />
                         </div>
                         <div className="flex items-center text-[11px] text-slate-400 pt-5">
-                          <span>Salaries and payroll transfers will be disbursed to this verified bank account.</span>
+                          <span>{t('employee.bankDisbursementNote')}</span>
                         </div>
                       </div>
                     </div>
                   ) : (
                     <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 text-amber-700 dark:text-amber-300 text-xs">
-                      Financial compensation details are restricted to HR Executives and Finance officers.
+                      {t('employee.financialsRestricted')}
                     </div>
                   )}
 
@@ -1087,7 +1087,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                       </div>
                     </div>
                     <p className="text-[11px] text-slate-500">
-                      National ID card photos (Front & Back) can be uploaded on the employee profile page after registration.
+                      {t('employee.faydaPhotoNote')}
                     </p>
                   </div>
                 </div>
@@ -1116,7 +1116,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                           name="guarantorName"
                           value={formData.guarantorName}
                           onChange={handleChange}
-                          placeholder="e.g. Girma Tesfaye / ግርማ ተስፋዬ"
+                          placeholder={t('employee.guarantorNamePlaceholder')}
                           className="brand-input"
                         />
                       </div>
@@ -1130,7 +1130,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                           name="guarantorPhone"
                           value={formData.guarantorPhone}
                           onChange={handleChange}
-                          placeholder="e.g. 0911554433"
+                          placeholder={t('employee.phonePlaceholder')}
                           className="brand-input"
                         />
                       </div>
@@ -1205,7 +1205,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                           onChange={handleChange}
                           className="brand-input"
                         >
-                          <option value="">-- Select Education Level --</option>
+                          <option value="">{t('employee.selectEducationLevel')}</option>
                           {EDUCATION_LEVELS.map((ed) => (
                             <option key={ed.value} value={ed.value}>
                               {isAmharic ? ed.amLabel : ed.label}
@@ -1223,7 +1223,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                           name="fieldOfStudy"
                           value={formData.fieldOfStudy}
                           onChange={handleChange}
-                          placeholder="e.g. Graphic Design, Marketing, Accounting"
+                          placeholder={t('employee.fieldOfStudyPlaceholder')}
                           className="brand-input"
                         />
                       </div>
@@ -1239,7 +1239,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                           name="institution"
                           value={formData.institution}
                           onChange={handleChange}
-                          placeholder="e.g. Addis Ababa University"
+                          placeholder={t('employee.institutionPlaceholder')}
                           className="brand-input"
                         />
                       </div>
@@ -1253,7 +1253,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                           name="graduationYear"
                           value={formData.graduationYear}
                           onChange={handleChange}
-                          placeholder="e.g. 2023 / 2015 E.C."
+                          placeholder={t('employee.graduationYearPlaceholder')}
                           className="brand-input"
                         />
                       </div>
@@ -1280,7 +1280,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                           name="emergencyName"
                           value={formData.emergencyName}
                           onChange={handleChange}
-                          placeholder="e.g. Tigist Haile"
+                          placeholder={t('employee.emergencyNamePlaceholder')}
                           className="brand-input"
                         />
                       </div>
@@ -1293,7 +1293,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                           name="emergencyPhone"
                           value={formData.emergencyPhone}
                           onChange={handleChange}
-                          placeholder="e.g. 0911998877"
+                          placeholder={t('employee.phonePlaceholder')}
                           className="brand-input"
                         />
                       </div>
@@ -1302,11 +1302,11 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                           {t('employee.emergencyRelation', 'Relationship')}
                         </label>
                         <select name="emergencyRelation" value={formData.emergencyRelation} onChange={handleChange} className="brand-input">
-                          <option value="Spouse">Spouse</option>
-                          <option value="Parent">Parent</option>
-                          <option value="Sibling">Sibling</option>
-                          <option value="Child">Child</option>
-                          <option value="Friend">Friend / Colleague</option>
+                          <option value="Spouse">{t('employee.emergencyRelations.Spouse')}</option>
+                          <option value="Parent">{t('employee.emergencyRelations.Parent')}</option>
+                          <option value="Sibling">{t('employee.emergencyRelations.Sibling')}</option>
+                          <option value="Child">{t('employee.emergencyRelations.Child')}</option>
+                          <option value="Friend">{t('employee.emergencyRelations.Friend')}</option>
                         </select>
                       </div>
                     </div>
@@ -1319,7 +1319,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                         <div className="flex items-center gap-2">
                           <Key className="w-4 h-4 text-[#00ced1]" />
                           <span className="font-bold text-slate-900 dark:text-white text-xs">
-                            System Login Account Provisioning
+                            {t('employee.systemAccountProvisioning')}
                           </span>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
@@ -1338,31 +1338,31 @@ export default function EmployeeFormModal({ isOpen, onClose, employee, onSuccess
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                           <div>
                             <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                              ERP System Role
+                              {t('employee.erpSystemRole')}
                             </label>
                             <select name="userRole" value={formData.userRole} onChange={handleChange} className="brand-input">
                               {ALL_ROLES.map((role) => (
                                 <option key={role} value={role}>
-                                  {role.toUpperCase()}
+                                  {t(`roles.${role}`, role.toUpperCase())}
                                 </option>
                               ))}
                             </select>
                           </div>
                           <div>
                             <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                              Custom Password (leave blank for random)
+                              {t('employee.customPasswordLabel')}
                             </label>
                             <input
                               type="text"
                               name="customPassword"
                               value={formData.customPassword}
                               onChange={handleChange}
-                              placeholder="Auto-generated secure password"
+                              placeholder={t('employee.customPasswordPlaceholder')}
                               className="brand-input font-mono"
                             />
                           </div>
                           <p className="text-[10px] text-slate-400 sm:col-span-2">
-                            The user will be required to change their temporary password upon first login to the ERP.
+                            {t('employee.firstLoginChangeNote')}
                           </p>
                         </div>
                       )}

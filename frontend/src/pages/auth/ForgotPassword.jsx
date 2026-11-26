@@ -31,7 +31,7 @@ export default function ForgotPassword() {
         setSuccessInfo(res);
       }
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Failed to request reset code';
+      const msg = err.response?.data?.message || err.message || t('auth.requestCodeFailed');
       setError(msg);
     } finally {
       setLoading(false);
