@@ -19,6 +19,7 @@ import {
   getStockAdjustments,
   createStockAdjustment,
   approveStockAdjustment,
+  rejectStockAdjustment,
   getStockTransfers,
   createStockTransfer,
   receiveStockTransfer,
@@ -96,6 +97,11 @@ router.put(
   '/adjustments/:id/approve',
   authorizeRoles(...MANAGEMENT_ROLES),
   approveStockAdjustment
+);
+router.put(
+  '/adjustments/:id/reject',
+  authorizeRoles(...MANAGEMENT_ROLES),
+  rejectStockAdjustment
 );
 
 router.get('/transfers', getStockTransfers);

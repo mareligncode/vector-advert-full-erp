@@ -929,7 +929,10 @@ export const components = {
         adjustmentDate: { type: 'string', format: 'date-time' },
         reason: { type: 'string' },
         items: { type: 'array', items: { type: 'object' } },
-        status: { type: 'string', enum: ['pending_approval', 'approved', 'rejected'] }
+        status: { type: 'string', enum: ['draft', 'pending_approval', 'approved', 'rejected'] },
+        approvalComment: { type: 'string' },
+        rejectionReason: { type: 'string' },
+        notes: { type: 'string' }
       }
     },
     StockTransfer: {
@@ -940,7 +943,8 @@ export const components = {
         sourceWarehouseId: { $ref: '#/components/schemas/ObjectId' },
         destinationWarehouseId: { $ref: '#/components/schemas/ObjectId' },
         items: { type: 'array', items: { type: 'object' } },
-        status: { type: 'string', enum: ['pending_approval', 'in_transit', 'received', 'cancelled'] }
+        status: { type: 'string', enum: ['pending_approval', 'in_transit', 'received', 'cancelled'] },
+        notes: { type: 'string' }
       }
     },
     StockCount: {
@@ -952,6 +956,7 @@ export const components = {
         countDate: { type: 'string', format: 'date-time' },
         items: { type: 'array', items: { type: 'object' } },
         status: { type: 'string', enum: ['in_progress', 'completed', 'reconciled', 'cancelled'] },
+        approvalComment: { type: 'string' },
         notes: { type: 'string' }
       }
     },
@@ -1036,7 +1041,10 @@ export const components = {
         requiredDate: { type: 'string', format: 'date' },
         purpose: { type: 'string' },
         approvalStatus: { $ref: '#/components/schemas/ApprovalStatusEnum' },
-        issuedStatus: { type: 'string', enum: ['not_issued', 'partially_issued', 'fully_issued'] },
+        approvalComment: { type: 'string' },
+        rejectionReason: { type: 'string' },
+        issuedStatus: { type: 'string', enum: ['unissued', 'partially_issued', 'fully_issued'] },
+        notes: { type: 'string' },
         items: { type: 'array', items: { type: 'object' } }
       }
     },
@@ -1096,6 +1104,8 @@ export const components = {
         departmentId: { type: 'string' },
         jobOrderId: { type: 'string' },
         approvalStatus: { $ref: '#/components/schemas/ApprovalStatusEnum' },
+        approvalComment: { type: 'string' },
+        rejectionReason: { type: 'string' },
         procurementStatus: { type: 'string' },
         items: { type: 'array', items: { type: 'object' } },
         purpose: { type: 'string' },

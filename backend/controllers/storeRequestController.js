@@ -178,7 +178,7 @@ export const createStaffRequest = async (req, res) => {
 export const approveStaffRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const { items = [] } = req.body;
+    const { items = [], approvalComment, comments, notes } = req.body || {};
 
     const staffRequest = await StaffRequest.findById(id);
     if (!staffRequest) {
@@ -231,6 +231,10 @@ export const approveStaffRequest = async (req, res) => {
         : 'rejected';
     staffRequest.approvedBy = req.user._id;
     staffRequest.approvedAt = new Date();
+    const reviewNote = approvalComment || comments || notes;
+    if (reviewNote) {
+      staffRequest.approvalComment = reviewNote;
+    }
 
     // Atomic reservation of stock to prevent double-allocation
     await withTransaction(async (session) => {
@@ -254,7 +258,9 @@ export const approveStaffRequest = async (req, res) => {
 export const rejectStaffRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const { rejectionReason = 'Requisition rejected by Storekeeper / Management' } = req.body;
+    const { rejectionReason: bodyReason, comments } = req.body || {};
+    const rejectionReason =
+      bodyReason || comments || 'Requisition rejected by Storekeeper / Management';
 
     const staffRequest = await StaffRequest.findById(id);
     if (!staffRequest) {

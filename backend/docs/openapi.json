@@ -2540,10 +2540,20 @@
           "status": {
             "type": "string",
             "enum": [
+              "draft",
               "pending_approval",
               "approved",
               "rejected"
             ]
+          },
+          "approvalComment": {
+            "type": "string"
+          },
+          "rejectionReason": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
           }
         }
       },
@@ -2577,6 +2587,9 @@
               "received",
               "cancelled"
             ]
+          },
+          "notes": {
+            "type": "string"
           }
         }
       },
@@ -2611,6 +2624,9 @@
               "reconciled",
               "cancelled"
             ]
+          },
+          "approvalComment": {
+            "type": "string"
           },
           "notes": {
             "type": "string"
@@ -2864,13 +2880,22 @@
           "approvalStatus": {
             "$ref": "#/components/schemas/ApprovalStatusEnum"
           },
+          "approvalComment": {
+            "type": "string"
+          },
+          "rejectionReason": {
+            "type": "string"
+          },
           "issuedStatus": {
             "type": "string",
             "enum": [
-              "not_issued",
+              "unissued",
               "partially_issued",
               "fully_issued"
             ]
+          },
+          "notes": {
+            "type": "string"
           },
           "items": {
             "type": "array",
@@ -3019,6 +3044,12 @@
           },
           "approvalStatus": {
             "$ref": "#/components/schemas/ApprovalStatusEnum"
+          },
+          "approvalComment": {
+            "type": "string"
+          },
+          "rejectionReason": {
+            "type": "string"
           },
           "procurementStatus": {
             "type": "string"
@@ -15153,6 +15184,27 @@
             "$ref": "#/components/parameters/IdParam"
           }
         ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "approvalComment": {
+                    "type": "string"
+                  },
+                  "comments": {
+                    "type": "string"
+                  },
+                  "notes": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Adjustment approved",
@@ -15181,6 +15233,82 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/inventory/adjustments/{id}/reject": {
+      "put": {
+        "tags": [
+          "Inventory"
+        ],
+        "summary": "Reject a pending stock adjustment request with reason",
+        "description": "Requires `Authorization: Bearer <token>` with one of roles: `superadmin`, `ceo`, `cao`, `coo`, `hrmanager`, `hrofficer`, `departmenthead`, `manager`.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdParam"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rejectionReason": {
+                    "type": "string"
+                  },
+                  "comments": {
+                    "type": "string"
+                  },
+                  "notes": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Adjustment rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/StockAdjustment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
           }
         }
       }
@@ -15316,6 +15444,27 @@
             "$ref": "#/components/parameters/IdParam"
           }
         ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "receiverComment": {
+                    "type": "string"
+                  },
+                  "comments": {
+                    "type": "string"
+                  },
+                  "notes": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Transfer received",
@@ -15456,6 +15605,27 @@
             "$ref": "#/components/parameters/IdParam"
           }
         ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "approvalComment": {
+                    "type": "string"
+                  },
+                  "comments": {
+                    "type": "string"
+                  },
+                  "notes": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Stock count reconciled",
@@ -16609,6 +16779,15 @@
                         }
                       }
                     }
+                  },
+                  "approvalComment": {
+                    "type": "string"
+                  },
+                  "comments": {
+                    "type": "string"
+                  },
+                  "notes": {
+                    "type": "string"
                   }
                 }
               }
@@ -17423,6 +17602,27 @@
             "$ref": "#/components/parameters/IdParam"
           }
         ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "approvalComment": {
+                    "type": "string"
+                  },
+                  "comments": {
+                    "type": "string"
+                  },
+                  "notes": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Purchase request approved",
@@ -17448,6 +17648,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
           }
         }
       }
@@ -17477,6 +17680,12 @@
                 "type": "object",
                 "properties": {
                   "rejectionReason": {
+                    "type": "string"
+                  },
+                  "comments": {
+                    "type": "string"
+                  },
+                  "notes": {
                     "type": "string"
                   }
                 }
@@ -17509,6 +17718,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
           }
         }
       }

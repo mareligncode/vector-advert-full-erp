@@ -160,6 +160,14 @@ const purchaseRequestSchema = new mongoose.Schema(
     approvedAt: {
       type: Date
     },
+    approvalComment: {
+      type: String,
+      trim: true
+    },
+    rejectionReason: {
+      type: String,
+      trim: true
+    },
     procurementStatus: {
       type: String,
       enum: [

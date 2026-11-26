@@ -99,6 +99,24 @@ const stockAdjustmentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     },
+    approvedAt: {
+      type: Date
+    },
+    approvalComment: {
+      type: String,
+      trim: true
+    },
+    rejectedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    rejectedAt: {
+      type: Date
+    },
+    rejectionReason: {
+      type: String,
+      trim: true
+    },
     status: {
       type: String,
       enum: ['draft', 'pending_approval', 'approved', 'rejected'],

@@ -475,6 +475,9 @@ export const createStockAdjustment = async (req, res) => {
 
 export const approveStockAdjustment = async (req, res) => {
   try {
+    const { approvalComment, comments, notes } = req.body || {};
+    const reviewNote = approvalComment || comments || notes;
+
     const adjustment = await StockAdjustment.findById(req.params.id);
     if (!adjustment) {
       return res.status(404).json({ success: false, message: 'Adjustment not found' });
@@ -482,6 +485,9 @@ export const approveStockAdjustment = async (req, res) => {
 
     if (adjustment.status === 'approved') {
       return res.status(400).json({ success: false, message: 'Already approved' });
+    }
+    if (adjustment.status === 'rejected') {
+      return res.status(400).json({ success: false, message: 'Cannot approve a rejected adjustment' });
     }
 
     await withTransaction(async (session) => {
@@ -519,7 +525,7 @@ export const approveStockAdjustment = async (req, res) => {
             baseUnit: item.baseUnit || 'pcs',
             performedBy: req.user._id,
             movementDate: new Date(),
-            notes: `Stock Adjustment: ${adjustment.reason}`
+            notes: `Stock Adjustment: ${adjustment.reason}${reviewNote ? ` (${reviewNote})` : ''}`
           });
           await movement.save(opts);
         }
@@ -527,10 +533,42 @@ export const approveStockAdjustment = async (req, res) => {
 
       adjustment.status = 'approved';
       adjustment.approvedBy = req.user._id;
+      adjustment.approvedAt = new Date();
+      if (reviewNote) {
+        adjustment.approvalComment = reviewNote;
+      }
       await adjustment.save(opts);
     });
 
     res.json({ success: true, message: 'Adjustment approved and stock updated', data: adjustment });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const rejectStockAdjustment = async (req, res) => {
+  try {
+    const { rejectionReason, comments, notes } = req.body || {};
+    const adjustment = await StockAdjustment.findById(req.params.id);
+    if (!adjustment) {
+      return res.status(404).json({ success: false, message: 'Adjustment not found' });
+    }
+
+    if (adjustment.status === 'approved') {
+      return res.status(400).json({ success: false, message: 'Cannot reject an already approved adjustment' });
+    }
+    if (adjustment.status === 'rejected') {
+      return res.status(400).json({ success: false, message: 'Adjustment is already rejected' });
+    }
+
+    adjustment.status = 'rejected';
+    adjustment.rejectionReason =
+      rejectionReason || comments || notes || 'Stock adjustment rejected by Management';
+    adjustment.rejectedBy = req.user._id;
+    adjustment.rejectedAt = new Date();
+    await adjustment.save();
+
+    res.json({ success: true, message: 'Stock adjustment rejected', data: adjustment });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -587,6 +625,9 @@ export const createStockTransfer = async (req, res) => {
 
 export const receiveStockTransfer = async (req, res) => {
   try {
+    const { notes, receiverComment, comments } = req.body || {};
+    const receiveNote = receiverComment || comments || notes;
+
     const transfer = await StockTransfer.findById(req.params.id);
     if (!transfer) {
       return res.status(404).json({ success: false, message: 'Transfer not found' });
@@ -676,6 +717,9 @@ export const receiveStockTransfer = async (req, res) => {
       transfer.status = 'received';
       transfer.receivedBy = req.user._id;
       transfer.receivedDate = new Date();
+      if (receiveNote) {
+        transfer.notes = transfer.notes ? `${transfer.notes} | Receiver note: ${receiveNote}` : receiveNote;
+      }
       await transfer.save(opts);
     });
 
@@ -720,6 +764,9 @@ export const createStockCount = async (req, res) => {
 
 export const reconcileStockCount = async (req, res) => {
   try {
+    const { approvalComment, comments, notes } = req.body || {};
+    const reconcileNote = approvalComment || comments || notes;
+
     const count = await StockCount.findById(req.params.id);
     if (!count) {
       return res.status(404).json({ success: false, message: 'Stock count not found' });
@@ -743,6 +790,10 @@ export const reconcileStockCount = async (req, res) => {
 
       count.status = 'reconciled';
       count.approvedBy = req.user._id;
+      count.approvedAt = new Date();
+      if (reconcileNote) {
+        count.approvalComment = reconcileNote;
+      }
       await count.save(opts);
     });
 

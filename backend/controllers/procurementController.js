@@ -162,14 +162,19 @@ export const createPurchaseRequest = async (req, res) => {
 
 export const approvePurchaseRequest = async (req, res) => {
   try {
+    const { approvalComment, comments, notes } = req.body || {};
     const pr = await PurchaseRequest.findById(req.params.id);
     if (!pr) {
       return res.status(404).json({ success: false, message: 'Purchase request not found' });
     }
 
+    const reviewComment = approvalComment || comments || notes;
     pr.approvalStatus = 'approved';
     pr.approvedBy = req.user._id;
     pr.approvedAt = new Date();
+    if (reviewComment) {
+      pr.approvalComment = reviewComment;
+    }
     await pr.save();
 
     res.json({ success: true, message: 'Purchase request approved', data: pr });
@@ -180,13 +185,20 @@ export const approvePurchaseRequest = async (req, res) => {
 
 export const rejectPurchaseRequest = async (req, res) => {
   try {
+    const {
+      rejectionReason,
+      comments,
+      notes
+    } = req.body || {};
     const pr = await PurchaseRequest.findById(req.params.id);
     if (!pr) {
       return res.status(404).json({ success: false, message: 'Purchase request not found' });
     }
 
+    const reason = rejectionReason || comments || notes || 'Purchase request rejected';
     pr.approvalStatus = 'rejected';
-    pr.notes = req.body.rejectionReason || pr.notes;
+    pr.rejectionReason = reason;
+    pr.notes = rejectionReason || comments || notes || pr.notes;
     pr.approvedBy = req.user._id;
     pr.approvedAt = new Date();
     await pr.save();

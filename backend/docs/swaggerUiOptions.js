@@ -617,7 +617,7 @@ const customJsStr = `
     var dot = document.createElement('span');
     dot.className = 'va-pill-dot';
     var pillLabel = document.createElement('span');
-    pillLabel.textContent = '20 Modules · 237 Endpoints';
+    pillLabel.textContent = '20 Modules · 238 Endpoints';
     pill.appendChild(dot);
     pill.appendChild(pillLabel);
 
@@ -647,7 +647,7 @@ const customJsStr = `
 
     var filterInput = document.querySelector('.swagger-ui .operation-filter-input');
     if (filterInput) {
-      filterInput.setAttribute('placeholder', 'Search 237 endpoints by tag, route path, or keyword...');
+      filterInput.setAttribute('placeholder', 'Search 238 endpoints by tag, route path, or keyword...');
     }
 
     var saved = 'light';

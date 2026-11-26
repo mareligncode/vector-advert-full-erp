@@ -238,7 +238,10 @@ export const supplyChainPaths = {
                       rejectionReason: { type: 'string' }
                     }
                   }
-                }
+                },
+                approvalComment: { type: 'string' },
+                comments: { type: 'string' },
+                notes: { type: 'string' }
               }
             }
           }
@@ -462,9 +465,25 @@ export const supplyChainPaths = {
       description: bearerAuthNote(ROLE_GROUPS.MANAGEMENT),
       security: [{ bearerAuth: [] }],
       parameters: [{ $ref: '#/components/parameters/IdParam' }],
+      requestBody: {
+        required: false,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                approvalComment: { type: 'string' },
+                comments: { type: 'string' },
+                notes: { type: 'string' }
+              }
+            }
+          }
+        }
+      },
       responses: {
         200: jsonSuccessRef('Purchase request approved', '#/components/schemas/PurchaseRequest'),
-        403: { $ref: '#/components/responses/Forbidden' }
+        403: { $ref: '#/components/responses/Forbidden' },
+        404: { $ref: '#/components/responses/NotFound' }
       }
     }
   },
@@ -477,11 +496,23 @@ export const supplyChainPaths = {
       parameters: [{ $ref: '#/components/parameters/IdParam' }],
       requestBody: {
         required: false,
-        content: { 'application/json': { schema: { type: 'object', properties: { rejectionReason: { type: 'string' } } } } }
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                rejectionReason: { type: 'string' },
+                comments: { type: 'string' },
+                notes: { type: 'string' }
+              }
+            }
+          }
+        }
       },
       responses: {
         200: jsonSuccessRef('Purchase request rejected', '#/components/schemas/PurchaseRequest'),
-        403: { $ref: '#/components/responses/Forbidden' }
+        403: { $ref: '#/components/responses/Forbidden' },
+        404: { $ref: '#/components/responses/NotFound' }
       }
     }
   },

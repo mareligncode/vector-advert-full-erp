@@ -276,10 +276,56 @@ export const inventoryPaths = {
       description: bearerAuthNote(ROLE_GROUPS.MANAGEMENT),
       security: [{ bearerAuth: [] }],
       parameters: [{ $ref: '#/components/parameters/IdParam' }],
+      requestBody: {
+        required: false,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                approvalComment: { type: 'string' },
+                comments: { type: 'string' },
+                notes: { type: 'string' }
+              }
+            }
+          }
+        }
+      },
       responses: {
         200: jsonSuccessRef('Adjustment approved', '#/components/schemas/StockAdjustment'),
         400: { $ref: '#/components/responses/BadRequest' },
-        403: { $ref: '#/components/responses/Forbidden' }
+        403: { $ref: '#/components/responses/Forbidden' },
+        404: { $ref: '#/components/responses/NotFound' }
+      }
+    }
+  },
+  '/api/inventory/adjustments/{id}/reject': {
+    put: {
+      tags: ['Inventory'],
+      summary: 'Reject a pending stock adjustment request with reason',
+      description: bearerAuthNote(ROLE_GROUPS.MANAGEMENT),
+      security: [{ bearerAuth: [] }],
+      parameters: [{ $ref: '#/components/parameters/IdParam' }],
+      requestBody: {
+        required: false,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                rejectionReason: { type: 'string' },
+                comments: { type: 'string' },
+                notes: { type: 'string' }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        200: jsonSuccessRef('Adjustment rejected', '#/components/schemas/StockAdjustment'),
+        400: { $ref: '#/components/responses/BadRequest' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        404: { $ref: '#/components/responses/NotFound' }
       }
     }
   },
@@ -315,6 +361,21 @@ export const inventoryPaths = {
       description: bearerAuthNote(STORE_OPS_ROLES),
       security: [{ bearerAuth: [] }],
       parameters: [{ $ref: '#/components/parameters/IdParam' }],
+      requestBody: {
+        required: false,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                receiverComment: { type: 'string' },
+                comments: { type: 'string' },
+                notes: { type: 'string' }
+              }
+            }
+          }
+        }
+      },
       responses: {
         200: jsonSuccessRef('Transfer received', '#/components/schemas/StockTransfer'),
         403: { $ref: '#/components/responses/Forbidden' },
@@ -349,6 +410,21 @@ export const inventoryPaths = {
       description: bearerAuthNote(ROLE_GROUPS.MANAGEMENT),
       security: [{ bearerAuth: [] }],
       parameters: [{ $ref: '#/components/parameters/IdParam' }],
+      requestBody: {
+        required: false,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                approvalComment: { type: 'string' },
+                comments: { type: 'string' },
+                notes: { type: 'string' }
+              }
+            }
+          }
+        }
+      },
       responses: {
         200: jsonSuccessRef('Stock count reconciled', '#/components/schemas/StockCount'),
         403: { $ref: '#/components/responses/Forbidden' }

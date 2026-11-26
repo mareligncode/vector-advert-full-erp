@@ -79,6 +79,13 @@ const stockCountSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     },
+    approvedAt: {
+      type: Date
+    },
+    approvalComment: {
+      type: String,
+      trim: true
+    },
     items: [stockCountItemSchema],
     totalItems: {
       type: Number,

@@ -185,6 +185,10 @@ const staffRequestSchema = new mongoose.Schema(
     approvedAt: {
       type: Date
     },
+    approvalComment: {
+      type: String,
+      trim: true
+    },
     issuedStatus: {
       type: String,
       enum: ['unissued', 'partially_issued', 'fully_issued'],
