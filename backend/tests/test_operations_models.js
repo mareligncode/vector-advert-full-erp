@@ -87,7 +87,7 @@ async function runTests() {
     primaryPhone: '+251911556677',
     address: {
       subcity: 'Bole',
-      landmark: 'Next to Mega Building'
+      landmark: 'Next to Awash Towers'
     },
     contactPersons: [
       {
@@ -140,16 +140,16 @@ async function runTests() {
     siteContactPerson: {
       phone: '+251911556677'
     },
-    wallSurfaceType: 'concrete_rendered',
-    accessEquipmentRequired: 'scaffolding_fixed',
     measurements: {
-      facadeWidthMeters: 12,
-      facadeHeightMeters: 4,
-      installationHeightFromGround: 6
+      facadeWidthMeters: 10,
+      facadeHeightMeters: 3,
+      installationHeightFromGround: 4
     },
+    wallSurfaceType: 'reinforced_concrete',
     electricalInspection: {
-      powerSourceDistanceMeters: 8
+      powerSourceDistanceMeters: 5
     },
+    accessEquipmentRequired: 'scaffolding_tower',
     createdBy: oid()
   });
   await survey.validate();
@@ -159,14 +159,14 @@ async function runTests() {
     orderNumber: 'ORD-2026-0001',
     clientId: client._id,
     projectTitle: 'Main Branch 3D Illuminated Facade',
-    orderType: 'channel_letters_3d_led',
-    salesAccountManager: oid(),
+    orderType: '3d_channel_letters_acrylic',
     estimatedCompletionDate: new Date(Date.now() + 14 * 86400000),
     requestedItems: [
       {
-        productCategory: 'channel_letters_3d_led',
+        itemCode: 'ITEM-01',
+        productCategory: '3d_channel_letters_acrylic',
         itemTitle: 'Awash Bank 3D Channel Letters',
-        dimensions: { widthCm: 400, heightCm: 80, depthReturnCm: 10 },
+        dimensions: { widthCm: 400, heightCm: 80, depthReturnCm: 10, totalAreaSqM: 3.2 },
         quantity: 1,
         unitPrice: 120000,
         totalPrice: 120000
@@ -174,11 +174,11 @@ async function runTests() {
     ],
     commercial: {
       subtotal: 120000,
-      taxableAmount: 120000,
       vatAmount: 18000,
       grandTotal: 138000,
       advanceDepositAmountRequired: 69000
     },
+    salesAccountManager: oid(),
     createdBy: oid()
   });
   await order.validate();
