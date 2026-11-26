@@ -83,6 +83,23 @@ const staffReturnSchema = new mongoose.Schema(
       uppercase: true,
       index: true
     },
+    jobOrderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'JobOrder',
+      default: null,
+      index: true
+    },
+    jobOrderNumber: {
+      type: String,
+      trim: true,
+      uppercase: true
+    },
+    productionRequestId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ProductionRequest',
+      default: null,
+      index: true
+    },
     sivId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'StoreIssueVoucher',
@@ -136,5 +153,9 @@ const staffReturnSchema = new mongoose.Schema(
     timestamps: true
   }
 );
+
+staffReturnSchema.index({ jobOrderId: 1, status: 1 });
+staffReturnSchema.index({ productionRequestId: 1, status: 1 });
+staffReturnSchema.index({ sivId: 1, warehouseId: 1 });
 
 export default mongoose.models.StaffReturn || mongoose.model('StaffReturn', staffReturnSchema);

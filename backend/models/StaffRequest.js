@@ -102,7 +102,24 @@ const staffRequestSchema = new mongoose.Schema(
     },
     jobOrderId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'JobOrder',
       default: null,
+      index: true
+    },
+    jobOrderNumber: {
+      type: String,
+      trim: true,
+      uppercase: true
+    },
+    productionRequestId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ProductionRequest',
+      default: null,
+      index: true
+    },
+    isSupplemental: {
+      type: Boolean,
+      default: false,
       index: true
     },
     requestedBy: {
@@ -188,6 +205,8 @@ const staffRequestSchema = new mongoose.Schema(
 );
 
 staffRequestSchema.index({ requestType: 1, jobOrderId: 1 });
+staffRequestSchema.index({ productionRequestId: 1, approvalStatus: 1 });
+staffRequestSchema.index({ isSupplemental: 1, approvalStatus: 1 });
 staffRequestSchema.index({ requestedBy: 1, approvalStatus: 1 });
 
 export default mongoose.models.StaffRequest || mongoose.model('StaffRequest', staffRequestSchema);
