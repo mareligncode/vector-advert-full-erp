@@ -354,38 +354,48 @@ export const components = {
       type: 'object',
       properties: {
         _id: { $ref: '#/components/schemas/ObjectId' },
-        officeLocation: {
-          type: 'object',
-          properties: {
-            lat: { type: 'number', example: 9.0192 },
-            long: { type: 'number', example: 38.7525 },
-            radiusMeters: { type: 'number', example: 200 }
-          }
-        },
-        shifts: {
-          type: 'object',
-          properties: {
-            morning: {
-              type: 'object',
-              properties: {
-                startTime: { type: 'string', example: '08:30' },
-                endTime: { type: 'string', example: '12:30' },
-                graceMinutes: { type: 'number', example: 15 }
-              }
-            },
-            afternoon: {
-              type: 'object',
-              properties: {
-                startTime: { type: 'string', example: '13:30' },
-                endTime: { type: 'string', example: '17:30' },
-                graceMinutes: { type: 'number', example: 15 }
-              }
+        locationReferences: {
+          type: 'array',
+          description: 'Configured office branches/locations used for geofence proximity validation',
+          items: {
+            type: 'object',
+            required: ['officeName', 'location'],
+            properties: {
+              _id: { $ref: '#/components/schemas/ObjectId' },
+              officeName: { type: 'string', example: 'Headquarters - Addis Ababa' },
+              address: { type: 'string', example: 'Bole Road, Vector Tower, Addis Ababa, Ethiopia' },
+              location: {
+                type: 'object',
+                required: ['lat', 'long'],
+                properties: {
+                  lat: { type: 'number', example: 9.005401 },
+                  long: { type: 'number', example: 38.784015 }
+                }
+              },
+              radiusMeters: { type: 'number', default: 200, example: 250 }
             }
           }
         },
-        requireSelfie: { type: 'boolean', example: true },
-        requireGeofence: { type: 'boolean', example: true },
-        isActive: { type: 'boolean', example: true }
+        morningTime: {
+          type: 'object',
+          properties: {
+            startTime: { type: 'string', example: '08:30' },
+            endTime: { type: 'string', example: '12:30' }
+          }
+        },
+        afternoonTime: {
+          type: 'object',
+          properties: {
+            startTime: { type: 'string', example: '13:30' },
+            endTime: { type: 'string', example: '17:30' }
+          }
+        },
+        isSelfieRequired: { type: 'boolean', default: true },
+        isLocationRequired: { type: 'boolean', default: true },
+        autoOvertimeAllow: { type: 'boolean', default: false },
+        lateAllowedMinutes: { type: 'number', default: 15 },
+        maxAllowedDistanceMeters: { type: 'number', default: 200, example: 250 },
+        isActive: { type: 'boolean', default: true }
       }
     },
     AttendanceRecord: {
@@ -393,14 +403,25 @@ export const components = {
       properties: {
         _id: { $ref: '#/components/schemas/ObjectId' },
         employee: { type: 'object' },
-        date: { type: 'string', format: 'date-time' },
-        status: { type: 'string', enum: ['present', 'absent', 'late', 'half_day', 'on_leave', 'holiday'] },
-        morningShift: { type: 'object' },
-        afternoonShift: { type: 'object' },
-        totalWorkHours: { type: 'number', example: 8 },
-        isLate: { type: 'boolean', example: false },
-        lateMinutes: { type: 'number', example: 0 },
-        overtimeHours: { type: 'number', example: 0 },
+        internship: { type: 'string', nullable: true },
+        attendanceDate: { type: 'string', format: 'date-time' },
+        morningCheck: { type: 'object' },
+        afternoonCheck: { type: 'object' },
+        attendanceStatus: { type: 'string', enum: ['present', 'half_day', 'absent', 'on_leave', 'field_visit', 'holiday'] },
+        late: {
+          type: 'object',
+          properties: {
+            isLate: { type: 'boolean', example: false },
+            minutesLate: { type: 'number', example: 0 }
+          }
+        },
+        overtime: {
+          type: 'object',
+          properties: {
+            hasOvertime: { type: 'boolean', example: false },
+            numberOfHours: { type: 'number', example: 0 }
+          }
+        },
         notes: { type: 'string' }
       }
     },
