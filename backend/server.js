@@ -25,6 +25,9 @@ import grvRoutes from './routes/grvRoutes.js';
 import storeRequestRoutes from './routes/storeRequestRoutes.js';
 import procurementRoutes from './routes/procurementRoutes.js';
 import supplierCreditRoutes from './routes/supplierCreditRoutes.js';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './docs/swagger.js';
+import swaggerUiOptions from './docs/swaggerUiOptions.js';
 import { initTelegramBot } from './utils/telegramService.js';
 
 dotenv.config();
@@ -75,11 +78,24 @@ app.use('/api/store-requests', storeRequestRoutes);
 app.use('/api/procurement', procurementRoutes);
 app.use('/api/supplier-credits', supplierCreditRoutes);
 
+// OpenAPI JSON spec and interactive Swagger UI
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, swaggerUiOptions)
+);
+
 app.get('/', (req, res) => {
   res.json({
     status: 'online',
     message: 'Vector Advert Full ERP - HR Backend API is running',
-    version: '1.0.0'
+    version: '1.0.0',
+    docsUrl: '/api-docs',
+    openApiSpecUrl: '/api-docs.json'
   });
 });
 

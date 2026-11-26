@@ -13,7 +13,9 @@
     "test:recruitment": "node tests/recruitmentApi.test.js",
     "test:evidence": "node tests/evidenceApi.test.js",
     "test:clearance": "node tests/clearanceApi.test.js",
-    "test:payroll": "node tests/payrollUnit.test.js"
+    "test:payroll": "node tests/payrollUnit.test.js",
+    "swagger:validate": "node docs/validateSwagger.js",
+    "swagger:export": "node docs/validateSwagger.js --write"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +30,7 @@
     "mongoose": "^9.12.1",
     "multer": "^2.5.0",
     "nodemailer": "^10.6.0",
+    "swagger-ui-express": "^5.0.1",
     "telegraf": "^4.16.3"
   },
   "devDependencies": {

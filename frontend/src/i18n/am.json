@@ -1,19 +1,19 @@
 {
   "brand": {
-    "name": "ቬክተር አድቨርት",
-    "tagline": "የድርጅት አስተዳደር መድረክ (ERP)",
+    "name": "ቬክተር ማስታወቂያ እና ማምረቻ",
+    "tagline": "የድርጅት አስተዳደር መምሪያ ድረገጽ (ERP)",
     "slogan": "ትክክለኛነት፣ ፈጠራ እና የኮርፖሬት ብቃት",
-    "erpPlatform": "የኢአርፒ መድረክ"
+    "erpPlatform": "ሶፍትዌር መድረክ"
   },
   "nav": {
     "home": "ዋና ገጽ",
-    "dashboard": "ዳሽቦርድ",
+    "dashboard": "ክለሳ",
     "login": "ግባ",
     "register": "ተመዝገብ",
     "logout": "ውጣ",
     "profile": "የግል መረጃ",
     "settings": "ቅንብሮች",
-    "hrPortal": "የሰው ሀብት ፖርታል",
+    "hrPortal": "የሰው ሀብት አስተዳደር",
     "hrPortalTooltip": "የቬክተር የሰው ሀብት ክፍልን ይክፈቱ",
     "registerStaff": "ሰራተኛ መዝግብ",
     "registerStaffTooltip": "የተጠቃሚ እና የሰራተኛ መለያዎችን ይፍጠሩ",
