@@ -7,13 +7,14 @@ export const UNIT_ENUM = [
   'liter',
   'set',
   'pack',
-  'cm',
+  'centimeter',
   'gallon',
   'box',
-  'sheet'
+  'sheet',
+  'milimeter'
 ];
 
-export const REQUEST_TYPE_ENUM = ['office', 'workshop', 'store_replenishment'];
+export const REQUEST_TYPE_ENUM = ['office', 'workshop', 'store_replenishment','external'];
 
 export const ITEM_TYPE_ENUM = ['inventory', 'non_inventory', 'service'];
 
