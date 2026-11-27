@@ -41,6 +41,11 @@ import billingCreditRoutes, {
   paymentCollectionRoutes,
   customerCreditRoutes
 } from './routes/billingCreditRoutes.js';
+import productionRoutes, {
+  jobOrderRoutes,
+  productionMachineRoutes,
+  productionRequestRoutes
+} from './routes/productionRoutes.js';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './docs/swagger.js';
 import swaggerUiOptions from './docs/swaggerUiOptions.js';
@@ -106,6 +111,10 @@ app.use('/api/billing-credit', billingCreditRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/payment-collections', paymentCollectionRoutes);
 app.use('/api/customer-credit', customerCreditRoutes);
+app.use('/api/production', productionRoutes);
+app.use('/api/job-orders', jobOrderRoutes);
+app.use('/api/production-machines', productionMachineRoutes);
+app.use('/api/production-requests', productionRequestRoutes);
 
 // OpenAPI JSON spec and interactive Swagger UI
 app.get('/api-docs.json', (req, res) => {
