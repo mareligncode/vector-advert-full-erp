@@ -54,6 +54,14 @@ const staffReturnItemSchema = new mongoose.Schema(
       type: Number,
       default: 1
     },
+    unitCost: {
+      type: Number,
+      default: 0
+    },
+    totalCost: {
+      type: Number,
+      default: 0
+    },
     condition: {
       type: String,
       enum: ['good', 'damaged', 'defective'],

@@ -2,6 +2,7 @@ import express from 'express';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 import { ROLES } from '../constants/roles.js';
 import * as productionController from '../controllers/productionController.js';
+import { getJobOrderCostAnalysisHandler } from '../controllers/productionWastageController.js';
 import {
   verifyProductionReleaseGate,
   validateMachineInput,
@@ -34,6 +35,12 @@ jobOrderRoutes.post(
 jobOrderRoutes
   .route('/:id')
   .get(protect, productionController.getJobOrderById);
+
+jobOrderRoutes.get(
+  '/:id/cost-summary',
+  protect,
+  getJobOrderCostAnalysisHandler
+);
 
 jobOrderRoutes.patch(
   '/:id/status',

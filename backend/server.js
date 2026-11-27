@@ -46,6 +46,10 @@ import productionRoutes, {
   productionMachineRoutes,
   productionRequestRoutes
 } from './routes/productionRoutes.js';
+import productionWastageRoutes, {
+  staffReturnJobRoutes,
+  workshopRequisitionRoutes
+} from './routes/productionWastageRoutes.js';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './docs/swagger.js';
 import swaggerUiOptions from './docs/swaggerUiOptions.js';
@@ -115,6 +119,9 @@ app.use('/api/production', productionRoutes);
 app.use('/api/job-orders', jobOrderRoutes);
 app.use('/api/production-machines', productionMachineRoutes);
 app.use('/api/production-requests', productionRequestRoutes);
+app.use('/api/production-wastage', productionWastageRoutes);
+app.use('/api/staff-returns', staffReturnJobRoutes);
+app.use('/api/store-requests', workshopRequisitionRoutes);
 
 // OpenAPI JSON spec and interactive Swagger UI
 app.get('/api-docs.json', (req, res) => {
