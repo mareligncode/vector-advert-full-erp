@@ -35,8 +35,8 @@ export const notifyUser = async ({ recipient, subject, message, html, channels =
   // 1. Send Email if channel requested
   if (channels.includes('email') && targetEmail) {
     const formattedHtml = html || `
-      <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-        <h3 style="color: #1e293b;">${subject}</h3>
+      <div style="font-family: 'Inter', sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; color: #1e293b;">${subject}</h3>
         <p style="color: #334155; line-height: 1.5;">${message.replace(/\n/g, '<br/>')}</p>
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-top: 20px;" />
         <p style="font-size: 12px; color: #94a3b8;">Vector Advert ERP Automated Notification</p>

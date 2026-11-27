@@ -485,12 +485,21 @@ export const renderHtmlPayslip = (payslip, companyConfig = {}) => {
   <meta charset="UTF-8">
   <title>Payslip - ${payslip.payslipNumber}</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Inter', sans-serif;
       margin: 0;
       padding: 30px;
       color: #1e293b;
       background: #f8fafc;
+    }
+    h1, h2, h3, h4, h5, h6, .company-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+    }
+    button {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
     }
     .payslip-container {
       max-width: 850px;

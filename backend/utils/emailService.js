@@ -72,8 +72,8 @@ export const sendPasswordResetEmail = async (email, resetCode) => {
   const subject = 'Vector Advert ERP - Password Reset Code';
   const text = `Hello,\n\nYou requested a password reset for your Vector Advert ERP account.\nYour 6-digit verification code is: ${resetCode}\nThis code will expire in 15 minutes.\n\nIf you did not request this, please ignore this email.`;
   const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-      <h2 style="color: #1e293b; text-align: center;">Vector Advert ERP</h2>
+    <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+      <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; color: #1e293b; text-align: center;">Vector Advert ERP</h2>
       <hr style="border: 0; border-top: 1px solid #e2e8f0;" />
       <p style="font-size: 16px; color: #334155;">Hello,</p>
       <p style="font-size: 15px; color: #334155;">You requested a password reset for your account. Please use the verification code below:</p>

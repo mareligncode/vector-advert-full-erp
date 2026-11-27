@@ -2,6 +2,8 @@ const customFavicon =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%232563eb'/%3E%3Cstop offset='100%25' stop-color='%234f46e5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M17 20l10 24h5l10-24h-5.8L29.5 37.8 22.8 20H17zm24 24h6l-4.5-11-3 7.2L41 44z' fill='%23fff'/%3E%3C/svg%3E";
 
 const customCss = `
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 :root {
   --va-bg: #f8fafc;
   --va-surface: #ffffff;
@@ -34,13 +36,33 @@ body.va-dark {
 html, body {
   background: var(--va-bg) !important;
   color: var(--va-text) !important;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif !important;
+  font-family: 'Inter', sans-serif !important;
   -webkit-font-smoothing: antialiased;
+}
+
+.swagger-ui h1,
+.swagger-ui h2,
+.swagger-ui h3,
+.swagger-ui h4,
+.swagger-ui h5,
+.swagger-ui h6,
+.swagger-ui .info .title,
+.swagger-ui .opblock-tag,
+.va-brand-title {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-weight: 700 !important;
+}
+
+.swagger-ui button,
+.swagger-ui .btn,
+.va-action-btn {
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 600 !important;
 }
 
 .swagger-ui {
   color: var(--va-text) !important;
-  font-family: inherit !important;
+  font-family: 'Inter', sans-serif !important;
 }
 
 /* Custom Sticky Topbar */
