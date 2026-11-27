@@ -8,6 +8,7 @@ import {
   validateDesignProofInput,
   verifyProofNotLocked
 } from '../middleware/orderDesignValidationMiddleware.js';
+import { checkCreditHold } from '../middleware/billingCreditValidationMiddleware.js';
 
 // ==========================================
 // 1. Client Orders Router
@@ -131,6 +132,7 @@ designProofRoutes.post(
     ROLES.FRONTDESK,
     ROLES.EMPLOYEE
   ),
+  checkCreditHold,
   orderDesignController.lockProofForProduction
 );
 

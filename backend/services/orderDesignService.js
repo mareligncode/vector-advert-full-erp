@@ -22,7 +22,7 @@ export async function createClientOrder(orderData, userId) {
   const requestedItems = (orderData.requestedItems || []).map((item, index) => {
     const quantity = Number(item.quantity) || 1;
     const unitPrice = Number(item.unitPrice) || 0;
-    const totalPrice = Number(item.totalPrice) !== undefined ? Number(item.totalPrice) : quantity * unitPrice;
+    const totalPrice = item.totalPrice !== undefined && !isNaN(Number(item.totalPrice)) ? Number(item.totalPrice) : quantity * unitPrice;
     const widthCm = Number(item.dimensions?.widthCm) || 0;
     const heightCm = Number(item.dimensions?.heightCm) || 0;
     const depthReturnCm = Number(item.dimensions?.depthReturnCm) || 0;
@@ -521,8 +521,10 @@ export async function lockProofForProduction(proofId, userId) {
     order.status = 'design_agreed';
 
     // Rule 1: Check if financial clearance is also satisfied
-    if (order.productionClearance?.financialClearanceStatus === 'cleared_for_production') {
+    const validClearances = ['cleared_for_production', 'corporate_credit_approved', 'advance_deposit_cleared', 'fully_prepaid'];
+    if (validClearances.includes(order.productionClearance?.financialClearanceStatus)) {
       order.productionClearance.isProductionAuthorized = true;
+      order.productionAuthorizedDate = new Date();
       order.status = 'production_authorized';
     }
 

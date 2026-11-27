@@ -100,7 +100,7 @@ export function calculateMovingAverageCost({
  */
 export async function generateCode(prefix, Model, fieldName = 'code') {
   const currentYear = new Date().getFullYear();
-  const searchPattern = new RegExp(`^${prefix}-${currentYear}-(\\d+)$`);
+  const searchPattern = new RegExp(`^${prefix}-${currentYear}-(\\d+)`);
 
   const latest = await Model.findOne({ [fieldName]: searchPattern })
     .sort({ createdAt: -1 })
