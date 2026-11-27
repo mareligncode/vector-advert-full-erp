@@ -17,6 +17,10 @@ const attendanceConfigSchema = new mongoose.Schema(
       startTime: { type: String, default: '08:30' }, // HH:mm (24hr)
       endTime: { type: String, default: '12:30' }
     },
+    lunchTime: {
+      startTime: { type: String, default: '12:30' },
+      endTime: { type: String, default: '13:30' }
+    },
     afternoonTime: {
       startTime: { type: String, default: '13:30' },
       endTime: { type: String, default: '17:30' }
@@ -34,6 +38,10 @@ const attendanceConfigSchema = new mongoose.Schema(
       default: false
     },
     lateAllowedMinutes: {
+      type: Number,
+      default: 15
+    },
+    earlyLeaveAllowedMinutes: {
       type: Number,
       default: 15
     },

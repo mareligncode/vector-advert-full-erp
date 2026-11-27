@@ -42,6 +42,7 @@ import {
   canDeleteEmployee,
   canChangeEmploymentStatus,
   canViewFinancials,
+  canViewAllEmployees,
   DEPARTMENTS,
   EMPLOYMENT_STATUSES,
   EMPLOYMENT_TYPES
@@ -80,6 +81,7 @@ export default function EmployeeList() {
   const userCanDelete = canDeleteEmployee(user);
   const userCanChangeStatus = canChangeEmploymentStatus(user);
   const userCanViewFinancials = canViewFinancials(user);
+  const userCanViewAll = canViewAllEmployees(user);
 
   // Fetch Employees from API
   const fetchEmployees = async (page = pagination.page, limit = pagination.limit) => {
@@ -151,6 +153,201 @@ export default function EmployeeList() {
       alert(err.response?.data?.message || t('employee.deleteFailed'));
     }
   };
+
+  // If user only has employee/intern roles (non-management), they are strictly restricted to their own profile
+  if (!userCanViewAll) {
+    const myEmp = employees[0];
+    const fullName = myEmp?.name
+      ? `${myEmp.name.first || ''} ${myEmp.name.middle || ''} ${myEmp.name.last || ''}`.trim()
+      : myEmp?.employeeNumber || 'Employee Profile';
+
+    return (
+      <div className="space-y-6 animate-in fade-in duration-200">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-2xl bg-[#00ced1]/15 text-[#00ced1] flex items-center justify-center">
+                <Users className="w-5 h-5" />
+              </div>
+              <span>{t('hrPages.attendance.myProfileTitle', 'My Employee Profile')}</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+              {t('hrPages.attendance.myProfileSubtitle', 'Your personal employment records, department assignment, and Fayda National ID status.')}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => fetchEmployees(1, 10)}
+            disabled={loading}
+            className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer self-start sm:self-auto"
+            title="Refresh"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#00ced1]' : ''}`} />
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="p-16 rounded-3xl bg-white dark:bg-[#0e1626] border border-slate-200 dark:border-slate-800 text-center text-slate-400">
+            <RefreshCw className="w-7 h-7 animate-spin mx-auto text-[#00ced1] mb-2" />
+            <p className="text-xs">Loading your employee profile...</p>
+          </div>
+        ) : !myEmp ? (
+          <div className="p-8 rounded-3xl bg-white dark:bg-[#0e1626] border border-slate-200 dark:border-slate-800 text-center space-y-3">
+            <UserX className="w-12 h-12 text-amber-500 mx-auto" />
+            <h3 className="font-bold text-slate-900 dark:text-white text-base">
+              {t('hrPages.attendance.noProfileLinked', 'No employee profile is linked to your user account.')}
+            </h3>
+            <p className="text-xs text-slate-500 max-w-md mx-auto">
+              Please contact the Human Resources Department to register or connect your staff profile.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Top Showcase Profile Card */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#0e1626] border border-slate-200/90 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-[#00ced1]/40 bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                  {myEmp.profilePhoto ? (
+                    <img src={myEmp.profilePhoto} alt={fullName} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl font-black text-[#00ced1]">
+                      {myEmp.name?.first ? myEmp.name.first[0].toUpperCase() : 'E'}
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
+                      {fullName}
+                    </h2>
+                    <StatusBadge status={myEmp.employmentStatus} size="sm" />
+                  </div>
+
+                  <p className="text-xs text-slate-500 flex items-center gap-2 flex-wrap">
+                    <span className="font-mono font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                      {myEmp.employeeNumber}
+                    </span>
+                    <span>•</span>
+                    <span className="font-semibold text-[#00ced1]">{myEmp.jobTitle || 'Staff Member'}</span>
+                    <span>•</span>
+                    <span>{myEmp.department || 'Department'}</span>
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedEmployee(myEmp)}
+                className="py-2.5 px-5 rounded-2xl text-xs font-bold bg-[#00ced1] text-slate-950 hover:brightness-95 flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+              >
+                <Eye className="w-4 h-4" />
+                <span>{t('hrPages.attendance.viewFullProfile', 'View Full Profile Details')}</span>
+              </button>
+            </div>
+
+            {/* Profile Overview Details Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Card 1: Contact & Assignment */}
+              <div className="p-5 rounded-3xl bg-white dark:bg-[#0e1626] border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-3">
+                <span className="text-[10px] uppercase font-bold text-[#00ced1] tracking-wider block">
+                  Contact & Placement
+                </span>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+                    <span className="text-slate-500">Phone</span>
+                    <span className="font-mono font-semibold text-slate-900 dark:text-white">{myEmp.primaryPhone || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+                    <span className="text-slate-500">Email</span>
+                    <span className="font-semibold text-slate-900 dark:text-white truncate max-w-[180px]">{myEmp.email || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+                    <span className="text-slate-500">Work Location</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">{myEmp.workLocation || 'Headquarters'}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1">
+                    <span className="text-slate-500">Branch</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">{myEmp.branch || 'Main Branch'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Employment Terms */}
+              <div className="p-5 rounded-3xl bg-white dark:bg-[#0e1626] border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-3">
+                <span className="text-[10px] uppercase font-bold text-[#00ced1] tracking-wider block">
+                  Employment Terms
+                </span>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+                    <span className="text-slate-500">Employment Type</span>
+                    <span className="font-semibold text-slate-900 dark:text-white capitalize">{myEmp.employmentType || 'Full-Time'}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+                    <span className="text-slate-500">Date of Joining</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">
+                      {myEmp.dateOfJoining ? new Date(myEmp.dateOfJoining).toLocaleDateString() : '—'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+                    <span className="text-slate-500">Reporting Manager</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">
+                      {myEmp.manager?.name ? `${myEmp.manager.name.first || ''} ${myEmp.manager.name.last || ''}`.trim() : '—'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-1">
+                    <span className="text-slate-500">Status</span>
+                    <StatusBadge status={myEmp.employmentStatus} size="sm" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Fayda National ID */}
+              <div className="p-5 rounded-3xl bg-white dark:bg-[#0e1626] border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-3">
+                <span className="text-[10px] uppercase font-bold text-[#00ced1] tracking-wider block">
+                  Fayda National ID
+                </span>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+                    <span className="text-slate-500">Verification</span>
+                    <StatusBadge status={myEmp.nationalId?.status || 'unverified'} size="sm" />
+                  </div>
+                  <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+                    <span className="text-slate-500">FAN Number</span>
+                    <span className="font-mono font-semibold text-slate-900 dark:text-white">
+                      {myEmp.nationalId?.fanNumber || '—'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+                    <span className="text-slate-500">FIN Number</span>
+                    <span className="font-mono font-semibold text-slate-900 dark:text-white">
+                      {myEmp.nationalId?.finNumber || '—'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-1">
+                    <span className="text-slate-500">Documents Attached</span>
+                    <span className="font-bold text-[#00ced1]">
+                      {myEmp.employeeDocuments?.length || 0} file(s)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal */}
+        <EmployeeDetailModal
+          isOpen={Boolean(selectedEmployee)}
+          onClose={() => setSelectedEmployee(null)}
+          employee={selectedEmployee}
+          onUpdate={() => fetchEmployees(1, 10)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">

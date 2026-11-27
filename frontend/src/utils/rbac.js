@@ -73,6 +73,10 @@ export const canManageUserAccount = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
 export const canApproveNationalId = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
 export const canApproveDocuments = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
 export const canViewFinancials = (user) => hasAnyRole(user, FINANCIAL_VIEW_ROLES);
+export const canViewAllEmployees = (user) => hasAnyRole(user, MANAGEMENT_ROLES);
+export const canViewAllAttendance = (user) => hasAnyRole(user, MANAGEMENT_ROLES);
+export const canAdjustAttendance = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
+export const canConfigureAttendance = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
 
 export const DEPARTMENTS = [
   'Executive Leadership',

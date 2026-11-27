@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import Employee from '../models/Employee.js';
 import User from '../models/User.js';
-import { ALL_ROLES, ROLES, HR_ADMIN_ROLES } from '../constants/roles.js';
+import { ALL_ROLES, ROLES, HR_ADMIN_ROLES, MANAGEMENT_ROLES } from '../constants/roles.js';
 import { deleteLocalFile, formatFileUrl } from '../utils/fileUtils.js';
 import { generateRandomTemporaryPassword } from './authController.js';
 
@@ -229,6 +229,13 @@ export const getEmployees = async (req, res) => {
       query.user = null;
     }
 
+    // Directory access restriction:
+    // Users with only employee/intern roles (non-management) are strictly limited to their own profile
+    const isManagementOrHr = req.user && Array.isArray(req.user.roles) && req.user.roles.some((r) => MANAGEMENT_ROLES.includes(r));
+    if (!isManagementOrHr) {
+      query.user = req.user._id;
+    }
+
     if (search) {
       const searchRegex = new RegExp(search, 'i');
       query.$or = [
@@ -333,6 +340,7 @@ export const getEmployeeById = async (req, res) => {
       .populate('employeeDocuments.approvedBy', 'email roles');
 
     const hasHrPrivileges = isHrOrAdmin(req.user);
+    const isManagementOrHr = req.user && Array.isArray(req.user.roles) && req.user.roles.some((r) => MANAGEMENT_ROLES.includes(r));
 
     const employee = await employeeQuery;
     if (!employee) {
@@ -342,8 +350,15 @@ export const getEmployeeById = async (req, res) => {
       });
     }
 
-    // Check if requester is self or has HR privileges
+    // Check if requester is self or has HR/management privileges
     const isSelf = employee.user && employee.user._id.toString() === req.user._id.toString();
+    if (!isManagementOrHr && !isSelf) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied: You are only authorized to view your own employee profile'
+      });
+    }
+
     if (!hasHrPrivileges && !isSelf) {
       employee.basicSalary = undefined;
       employee.bankAccounts = undefined;

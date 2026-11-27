@@ -304,8 +304,6 @@ export const checkOut = async (req, res) => {
     // 3. Determine Shift
     const now = new Date();
     const currentHour = now.getHours();
-    const targetShift = shift || (currentHour < 13 ? 'morning' : 'afternoon');
-
     const todayDate = getDayStart(now);
 
     const attendance = await Attendance.findOne({
@@ -318,6 +316,27 @@ export const checkOut = async (req, res) => {
         success: false,
         message: 'No attendance record found for today. You must check in first before checking out.'
       });
+    }
+
+    // Determine target shift for check-out intelligently:
+    // If shift is specified, prioritize it unless it's afternoon without afternoon check-in but with open morning check-in.
+    let targetShift = shift;
+    if (!targetShift) {
+      if (attendance.afternoonCheck?.checkIn?.time && !attendance.afternoonCheck?.checkOut?.time) {
+        targetShift = 'afternoon';
+      } else if (attendance.morningCheck?.checkIn?.time && !attendance.morningCheck?.checkOut?.time) {
+        targetShift = 'morning';
+      } else {
+        targetShift = currentHour < 13 ? 'morning' : 'afternoon';
+      }
+    } else if (
+      targetShift === 'afternoon' &&
+      !attendance.afternoonCheck?.checkIn?.time &&
+      attendance.morningCheck?.checkIn?.time &&
+      !attendance.morningCheck?.checkOut?.time
+    ) {
+      // Employee checked in in the morning and is now checking out during afternoon hours
+      targetShift = 'morning';
     }
 
     const shiftProperty = targetShift === 'morning' ? 'morningCheck' : 'afternoonCheck';
@@ -342,14 +361,15 @@ export const checkOut = async (req, res) => {
     // 4. Calculate Early Leave / Overtime
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
     const shiftEndMinutes = timeStringToMinutes(shiftConfig.endTime);
+    const earlyLeaveBuffer = config.earlyLeaveAllowedMinutes ?? 15;
 
     let checkOutStatus = 'normal';
-    if (currentMinutes < shiftEndMinutes - 15) {
+    if (currentMinutes < shiftEndMinutes - earlyLeaveBuffer) {
       checkOutStatus = 'early_leave';
     }
 
     // Automatic Overtime Calculation for afternoon shift
-    if (config.autoOvertimeAllow && targetShift === 'afternoon') {
+    if (config.autoOvertimeAllow && (targetShift === 'afternoon' || currentHour >= 17)) {
       const overtimeMinutes = currentMinutes - shiftEndMinutes;
       if (overtimeMinutes >= 30) {
         const extraHours = Math.round((overtimeMinutes / 60) * 10) / 10;
@@ -372,6 +392,8 @@ export const checkOut = async (req, res) => {
     const afternoonDone = Boolean(attendance.afternoonCheck?.checkIn?.time && attendance.afternoonCheck?.checkOut?.time);
 
     if (morningDone && afternoonDone) {
+      attendance.attendanceStatus = 'present';
+    } else if (morningDone && !attendance.afternoonCheck?.checkIn?.time && currentHour >= 16) {
       attendance.attendanceStatus = 'present';
     } else {
       attendance.attendanceStatus = 'half_day';
