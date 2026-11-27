@@ -25,6 +25,34 @@ import grvRoutes from './routes/grvRoutes.js';
 import storeRequestRoutes from './routes/storeRequestRoutes.js';
 import procurementRoutes from './routes/procurementRoutes.js';
 import supplierCreditRoutes from './routes/supplierCreditRoutes.js';
+import crmRoutes, {
+  leadRoutes,
+  clientRoutes,
+  followUpRoutes,
+  siteSurveyRoutes
+} from './routes/crmRoutes.js';
+import orderDesignRoutes, {
+  clientOrderRoutes,
+  designTaskRoutes,
+  designProofRoutes
+} from './routes/orderDesignRoutes.js';
+import billingCreditRoutes, {
+  invoiceRoutes,
+  paymentCollectionRoutes,
+  customerCreditRoutes
+} from './routes/billingCreditRoutes.js';
+import productionRoutes, {
+  jobOrderRoutes,
+  productionMachineRoutes,
+  productionRequestRoutes
+} from './routes/productionRoutes.js';
+import productionWastageRoutes, {
+  staffReturnJobRoutes,
+  workshopRequisitionRoutes
+} from './routes/productionWastageRoutes.js';
+import siteInstallationRoutes from './routes/installationRoutes.js';
+import machineMaintenanceRoutes, { repairRouter as machineRepairRoutes } from './routes/machineMaintenanceRoutes.js';
+import feedbackRouter, { complaintRouter, warrantyRouter } from './routes/postSalesRoutes.js';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './docs/swagger.js';
 import swaggerUiOptions from './docs/swaggerUiOptions.js';
@@ -77,6 +105,32 @@ app.use('/api/grv', grvRoutes);
 app.use('/api/store-requests', storeRequestRoutes);
 app.use('/api/procurement', procurementRoutes);
 app.use('/api/supplier-credits', supplierCreditRoutes);
+app.use('/api/crm', crmRoutes);
+app.use('/api/leads', leadRoutes);
+app.use('/api/clients', clientRoutes);
+app.use('/api/follow-ups', followUpRoutes);
+app.use('/api/site-surveys', siteSurveyRoutes);
+app.use('/api/orders-design', orderDesignRoutes);
+app.use('/api/client-orders', clientOrderRoutes);
+app.use('/api/design-tasks', designTaskRoutes);
+app.use('/api/design-proofs', designProofRoutes);
+app.use('/api/billing-credit', billingCreditRoutes);
+app.use('/api/invoices', invoiceRoutes);
+app.use('/api/payment-collections', paymentCollectionRoutes);
+app.use('/api/customer-credit', customerCreditRoutes);
+app.use('/api/production', productionRoutes);
+app.use('/api/job-orders', jobOrderRoutes);
+app.use('/api/production-machines', productionMachineRoutes);
+app.use('/api/production-requests', productionRequestRoutes);
+app.use('/api/production-wastage', productionWastageRoutes);
+app.use('/api/staff-returns', staffReturnJobRoutes);
+app.use('/api/store-requests', workshopRequisitionRoutes);
+app.use('/api/site-installations', siteInstallationRoutes);
+app.use('/api/machine-maintenance', machineMaintenanceRoutes);
+app.use('/api/machine-repairs', machineRepairRoutes);
+app.use('/api/customer-feedback', feedbackRouter);
+app.use('/api/customer-complaints', complaintRouter);
+app.use('/api/warranty-claims', warrantyRouter);
 
 // OpenAPI JSON spec and interactive Swagger UI
 app.get('/api-docs.json', (req, res) => {
