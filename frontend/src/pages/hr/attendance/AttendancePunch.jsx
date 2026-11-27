@@ -163,6 +163,8 @@ export default function AttendancePunch() {
             config={config}
             todayLog={todayLog}
             onAttendanceChanged={fetchInitialData}
+            onNavigateToConfig={() => setActiveTab('config')}
+            canConfig={canConfig}
           />
         )}
 

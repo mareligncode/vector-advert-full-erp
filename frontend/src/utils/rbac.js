@@ -58,8 +58,20 @@ export const FINANCIAL_VIEW_ROLES = [
  * Check if the user has any of the specified roles
  */
 export const hasAnyRole = (user, allowedRoles) => {
-  if (!user || !Array.isArray(user.roles)) return false;
-  return user.roles.some((r) => allowedRoles.includes(r));
+  if (!user) return false;
+  const userRoles = (
+    Array.isArray(user.roles)
+      ? user.roles
+      : user.role
+      ? [user.role]
+      : []
+  ).map((r) => String(r).toLowerCase().trim());
+
+  const normalizedAllowed = (Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles])
+    .flat(Infinity)
+    .map((r) => String(r).toLowerCase().trim());
+
+  return userRoles.some((r) => normalizedAllowed.includes(r));
 };
 
 /**
@@ -77,6 +89,10 @@ export const canViewAllEmployees = (user) => hasAnyRole(user, MANAGEMENT_ROLES);
 export const canViewAllAttendance = (user) => hasAnyRole(user, MANAGEMENT_ROLES);
 export const canAdjustAttendance = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
 export const canConfigureAttendance = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
+export const canViewAllLeave = (user) => hasAnyRole(user, MANAGEMENT_ROLES);
+export const canReviewLeave = (user) => hasAnyRole(user, MANAGEMENT_ROLES);
+export const canAdjustLeaveBalance = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
+export const canInitializeLeave = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
 
 export const DEPARTMENTS = [
   'Executive Leadership',
@@ -157,3 +173,22 @@ export const GUARANTOR_RELATIONSHIPS = [
   { value: 'Friend', label: 'Friend / Guarantor', amLabel: 'ጓደኛ / ዋስ' },
   { value: 'Other', label: 'Other', amLabel: 'ሌላ' }
 ];
+
+/**
+ * Universal helper to safely format employee name from string or object { first, middle, last }
+ */
+export const getEmployeeFullName = (emp) => {
+  if (!emp) return 'Staff Member';
+  if (typeof emp === 'string') return emp;
+  if (typeof emp.name === 'string') return emp.name;
+  if (emp.name && typeof emp.name === 'object') {
+    const full = `${emp.name.first || ''} ${emp.name.middle || ''} ${emp.name.last || ''}`.trim();
+    if (full) return full;
+  }
+  return emp.employeeNumber || emp.email || 'Staff Member';
+};
+
+export const getEmployeeInitial = (emp) => {
+  const name = getEmployeeFullName(emp);
+  return name ? name.charAt(0).toUpperCase() : 'E';
+};

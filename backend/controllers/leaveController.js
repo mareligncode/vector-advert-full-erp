@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import LeaveBalance from '../models/LeaveBalance.js';
 import LeaveRequest from '../models/LeaveRequest.js';
+import LeaveConfig from '../models/LeaveConfig.js';
 import Employee from '../models/Employee.js';
 import { HR_ADMIN_ROLES, MANAGEMENT_ROLES, EXECUTIVE_ROLES } from '../constants/roles.js';
 import { canApproveAsManager, canApproveAsHR } from '../utils/approvalUtils.js';
@@ -11,6 +12,57 @@ import { canApproveAsManager, canApproveAsHR } from '../utils/approvalUtils.js';
 const isPrivileged = (user, allowedRoles = MANAGEMENT_ROLES) => {
   if (!user || !Array.isArray(user.roles)) return false;
   return user.roles.some((r) => allowedRoles.includes(r));
+};
+
+// ==========================================
+// LEAVE POLICY CONFIGURATION
+// ==========================================
+
+/**
+ * @desc    Get active leave policy configuration
+ * @route   GET /api/leave/config
+ * @access  Private
+ */
+export const getLeaveConfig = async (req, res) => {
+  try {
+    const config = await LeaveConfig.getActiveConfig();
+    return res.status(200).json({
+      success: true,
+      data: config
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Update leave policy configuration
+ * @route   PUT /api/leave/config
+ * @access  Private (HR/Admin)
+ */
+export const updateLeaveConfig = async (req, res) => {
+  try {
+    const config = await LeaveConfig.getActiveConfig();
+
+    const updatedConfig = await LeaveConfig.findByIdAndUpdate(
+      config._id,
+      {
+        $set: {
+          ...req.body,
+          updatedBy: req.user._id
+        }
+      },
+      { returnDocument: 'after', runValidators: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Leave policy configuration updated successfully',
+      data: updatedConfig
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
 };
 
 // ==========================================
@@ -34,6 +86,12 @@ export const getMyLeaveBalance = async (req, res) => {
 
     const year = req.query.year ? parseInt(req.query.year, 10) : new Date().getFullYear();
     const balance = await LeaveBalance.getOrCreateForEmployee(employee._id, year);
+
+    // Synchronize monthly accrual up to current month based on hire date and active config
+    const config = await LeaveConfig.getActiveConfig();
+    const customSchedule = config?.isCustomScheduleActive ? config.customMonthlyAccrualSchedule : null;
+    balance.recalculateMonthlyAccrual(new Date(), employee.hireDate, customSchedule);
+    await balance.save();
 
     return res.status(200).json({
       success: true,
@@ -118,8 +176,12 @@ export const getEmployeeLeaveBalances = async (req, res) => {
  */
 export const initializeYearBalances = async (req, res) => {
   try {
+    const config = await LeaveConfig.getActiveConfig();
     const targetYear = req.body.year ? parseInt(req.body.year, 10) : new Date().getFullYear();
-    const carryForwardMax = req.body.carryForwardMax !== undefined ? parseInt(req.body.carryForwardMax, 10) : 5;
+    const carryForwardMax =
+      req.body.carryForwardMax !== undefined
+        ? parseInt(req.body.carryForwardMax, 10)
+        : (config.maxCarryForwardDays !== undefined ? config.maxCarryForwardDays : 5);
 
     const activeEmployees = await Employee.find({
       employmentStatus: { $in: ['active', 'probation'] }
@@ -127,6 +189,9 @@ export const initializeYearBalances = async (req, res) => {
 
     let createdCount = 0;
     let existingCount = 0;
+
+    const annualTotal = config.annualEntitlementDefault || 16;
+    const monthlyRate = Number((annualTotal / 12).toFixed(2));
 
     for (const emp of activeEmployees) {
       const existing = await LeaveBalance.findOne({ employee: emp._id, year: targetYear });
@@ -145,7 +210,37 @@ export const initializeYearBalances = async (req, res) => {
       const newBalance = new LeaveBalance({
         employee: emp._id,
         year: targetYear,
-        carriedForwardDays: carryForward
+        annualLeave: {
+          annualTotalEntitlement: annualTotal,
+          annualAccruedDays: annualTotal,
+          accruedMonths: 12,
+          monthlyAccrualRate: monthlyRate,
+          annualUsedDays: 0,
+          annualRemainingDays: annualTotal + carryForward
+        },
+        sickLeave: {
+          sickEntitlement: config.sickEntitlementDefault || 15,
+          sickUsedDays: 0,
+          sickRemainingDays: config.sickEntitlementDefault || 15
+        },
+        casualLeave: {
+          casualEntitlement: config.casualEntitlementDefault || 5,
+          maxDaysPerMonth: config.casualMaxDaysPerMonth || 2,
+          casualUsedDays: 0,
+          casualRemainingDays: config.casualEntitlementDefault || 5
+        },
+        maternityLeave: {
+          maternityEntitlement: config.maternityEntitlementDefault || 120,
+          maternityUsedDays: 0,
+          maternityRemainingDays: config.maternityEntitlementDefault || 120
+        },
+        paternityLeave: {
+          paternityEntitlement: config.paternityEntitlementDefault || 10,
+          paternityUsedDays: 0,
+          paternityRemainingDays: config.paternityEntitlementDefault || 10
+        },
+        carriedForwardDays: carryForward,
+        enforceMonthlyAccrual: config.enforceMonthlyAccrual !== false
       });
       newBalance.recalculateBalances();
       await newBalance.save();
@@ -227,7 +322,8 @@ export const createLeaveRequest = async (req, res) => {
       totalLeaveDays,
       requestReason,
       supportingAttachments,
-      employeeId
+      employeeId,
+      isAdvanceLeave = false
     } = req.body;
 
     if (!leaveType || !startDate || !endDate || !totalLeaveDays || !requestReason) {
@@ -249,8 +345,10 @@ export const createLeaveRequest = async (req, res) => {
 
     // Resolve target employee
     let targetEmployeeId = null;
+    let targetEmployee = null;
     if (employeeId && isPrivileged(req.user, HR_ADMIN_ROLES)) {
       targetEmployeeId = employeeId;
+      targetEmployee = await Employee.findById(employeeId);
     } else {
       const selfEmp = await Employee.findOne({ user: req.user._id });
       if (!selfEmp) {
@@ -260,6 +358,21 @@ export const createLeaveRequest = async (req, res) => {
         });
       }
       targetEmployeeId = selfEmp._id;
+      targetEmployee = selfEmp;
+    }
+
+    // Probation period restriction for annual leave
+    const config = await LeaveConfig.getActiveConfig();
+    if (
+      config.restrictProbationEmployees !== false &&
+      targetEmployee.employmentStatus === 'probation' &&
+      leaveType === 'annual' &&
+      !isPrivileged(req.user, HR_ADMIN_ROLES)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Annual leave cannot be taken during the probation period according to company policy without HR approval.'
+      });
     }
 
     // Check for overlapping active requests
@@ -284,42 +397,108 @@ export const createLeaveRequest = async (req, res) => {
     const requestYear = start.getFullYear();
     const balance = await LeaveBalance.getOrCreateForEmployee(targetEmployeeId, requestYear);
 
-    // Validate available remaining days
-    const daysRequested = Number(totalLeaveDays);
-    let remainingDays = 0;
+    // Synchronize monthly accrual as of request start date with HR custom schedule
+    const customSchedule = config?.isCustomScheduleActive ? config.customMonthlyAccrualSchedule : null;
+    balance.recalculateMonthlyAccrual(start, targetEmployee.hireDate, customSchedule);
+    await balance.save();
 
-    switch (leaveType) {
-      case 'annual':
-        remainingDays = balance.annualLeave?.annualRemainingDays || 0;
-        break;
-      case 'sick':
-        remainingDays = balance.sickLeave?.sickRemainingDays || 0;
-        break;
-      case 'casual':
-        remainingDays = balance.casualLeave?.casualRemainingDays || 0;
-        break;
-      case 'maternity':
-        remainingDays = balance.maternityLeave?.maternityRemainingDays || 0;
-        break;
-      case 'paternity':
-        remainingDays = balance.paternityLeave?.paternityRemainingDays || 0;
-        break;
-      case 'unpaid':
-      case 'other':
-        remainingDays = Infinity;
-        break;
-      default:
+    const daysRequested = Number(totalLeaveDays);
+    let isAdvance = Boolean(isAdvanceLeave);
+    let accruedDaysAtRequest = 0;
+
+    // Monthly restriction: Casual Leave cap per calendar month (dynamically configured)
+    if (leaveType === 'casual') {
+      const startOfMonth = new Date(start.getFullYear(), start.getMonth(), 1);
+      const endOfMonth = new Date(start.getFullYear(), start.getMonth() + 1, 0, 23, 59, 59);
+      const monthlyCasualRequests = await LeaveRequest.find({
+        employee: targetEmployeeId,
+        leaveType: 'casual',
+        requestStatus: { $in: ['approved', 'pending_manager', 'pending_hr'] },
+        startDate: { $gte: startOfMonth, $lte: endOfMonth }
+      });
+      const daysUsedThisMonth = monthlyCasualRequests.reduce((sum, r) => sum + r.totalLeaveDays, 0);
+      const maxMonthlyCasual = balance.casualLeave?.maxDaysPerMonth || config.casualMaxDaysPerMonth || 2;
+
+      if (daysUsedThisMonth + daysRequested > maxMonthlyCasual && !isPrivileged(req.user, HR_ADMIN_ROLES)) {
         return res.status(400).json({
           success: false,
-          message: `Invalid leave type: ${leaveType}`
+          message: `Monthly casual leave restriction: Casual leave is limited to a maximum of ${maxMonthlyCasual} days in a single calendar month according to company policy. You have already requested/used ${daysUsedThisMonth} day(s) this month.`
         });
+      }
     }
 
-    if (leaveType !== 'unpaid' && leaveType !== 'other' && daysRequested > remainingDays) {
-      return res.status(400).json({
-        success: false,
-        message: `Insufficient leave balance: You requested ${daysRequested} days, but have only ${remainingDays} day(s) remaining for ${leaveType} leave.`
-      });
+    // Monthly restriction: Annual Leave Pro-Rata Accrual vs Yearly Limit
+    if (leaveType === 'annual') {
+      const yearlyAvailable =
+        (balance.annualLeave?.annualTotalEntitlement || config.annualEntitlementDefault || 16) +
+        (balance.carriedForwardDays || 0) -
+        (balance.annualLeave?.annualUsedDays || 0);
+      const monthlyAccruedAvailable = balance.annualLeave?.annualRemainingDays || 0;
+
+      if (daysRequested > yearlyAvailable) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient yearly leave balance: You requested ${daysRequested} days, but have only ${yearlyAvailable} days remaining for this entire year.`
+        });
+      }
+
+      // Check monthly accrual enforcement from policy
+      const isMonthlyAccrualEnforced =
+        config.enforceMonthlyAccrual !== false && balance.enforceMonthlyAccrual !== false;
+
+      if (isMonthlyAccrualEnforced && daysRequested > monthlyAccruedAvailable) {
+        if (!config.allowAdvanceLeave && !isPrivileged(req.user, HR_ADMIN_ROLES)) {
+          return res.status(400).json({
+            success: false,
+            message: `Policy restriction: Your request of ${daysRequested} days exceeds your current monthly accrued balance (${monthlyAccruedAvailable} days). Advance leave is currently not permitted by company policy.`
+          });
+        }
+
+        if (!isAdvance && !isPrivileged(req.user, HR_ADMIN_ROLES)) {
+          return res.status(400).json({
+            success: false,
+            requiresAdvanceConfirmation: true,
+            accruedAvailable: monthlyAccruedAvailable,
+            yearlyAvailable,
+            message: `Monthly accrual restriction: As of month ${balance.annualLeave?.accruedMonths || (start.getMonth() + 1)}, you have accrued ${monthlyAccruedAvailable} days of annual leave. Requesting ${daysRequested} days exceeds your current monthly accrual. Please submit as an "Advance Leave Request" for HR Manager/CEO approval.`
+          });
+        }
+        isAdvance = true;
+      }
+      accruedDaysAtRequest = monthlyAccruedAvailable;
+    } else {
+      // Validate non-annual balances
+      let remainingDays = 0;
+      switch (leaveType) {
+        case 'sick':
+          remainingDays = balance.sickLeave?.sickRemainingDays || 0;
+          break;
+        case 'casual':
+          remainingDays = balance.casualLeave?.casualRemainingDays || 0;
+          break;
+        case 'maternity':
+          remainingDays = balance.maternityLeave?.maternityRemainingDays || 0;
+          break;
+        case 'paternity':
+          remainingDays = balance.paternityLeave?.paternityRemainingDays || 0;
+          break;
+        case 'unpaid':
+        case 'other':
+          remainingDays = Infinity;
+          break;
+        default:
+          return res.status(400).json({
+            success: false,
+            message: `Invalid leave type: ${leaveType}`
+          });
+      }
+
+      if (leaveType !== 'unpaid' && leaveType !== 'other' && daysRequested > remainingDays) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient leave balance: You requested ${daysRequested} days, but have only ${remainingDays} day(s) remaining for ${leaveType} leave.`
+        });
+      }
     }
 
     const leaveRequest = await LeaveRequest.create({
@@ -331,6 +510,8 @@ export const createLeaveRequest = async (req, res) => {
       endDate: end,
       endDayPeriod,
       totalLeaveDays: daysRequested,
+      isAdvanceLeave: isAdvance,
+      accruedDaysAtRequest,
       requestReason,
       supportingAttachments: supportingAttachments || [],
       requestStatus: 'pending_manager',

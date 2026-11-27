@@ -193,7 +193,7 @@ export default function AttendanceConfigTab({ initialConfig, onConfigUpdated }) 
     );
   };
 
-  const handleSaveEditOffice = () => {
+  const handleSaveEditOffice = async (persistToServer = true) => {
     if (!editingOffice.officeName.trim() || editingOffice.lat === '' || editingOffice.long === '') {
       setError('Please provide office name and valid GPS coordinates (latitude & longitude)');
       return;
@@ -212,6 +212,40 @@ export default function AttendanceConfigTab({ initialConfig, onConfigUpdated }) 
     setOffices(updated);
     setEditingIndex(null);
     setError('');
+
+    if (persistToServer) {
+      try {
+        setLoading(true);
+        const payload = {
+          morningTime: { startTime: morningStart, endTime: morningEnd },
+          lunchTime: { startTime: lunchStart, endTime: lunchEnd },
+          afternoonTime: { startTime: afternoonStart, endTime: afternoonEnd },
+          isSelfieRequired,
+          isLocationRequired,
+          autoOvertimeAllow,
+          lateAllowedMinutes: Number(lateAllowedMinutes),
+          earlyLeaveAllowedMinutes: Number(earlyLeaveAllowedMinutes),
+          maxAllowedDistanceMeters: Number(maxAllowedDistanceMeters),
+          locationReferences: updated.map((o) => ({
+            officeName: o.officeName,
+            address: o.address,
+            location: { lat: Number(o.lat), long: Number(o.long) },
+            radiusMeters: Number(o.radiusMeters) || 200
+          }))
+        };
+
+        const res = await attendanceService.updateConfig(payload);
+        if (res.success) {
+          setMessage(`Office "${editingOffice.officeName}" updated and saved successfully!`);
+          onConfigUpdated?.(res.data);
+          setTimeout(() => setMessage(''), 4000);
+        }
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to update attendance configuration');
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   const handleSaveConfig = async (e) => {

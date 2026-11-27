@@ -77,15 +77,27 @@ export const optionalProtect = async (req, res, next) => {
  */
 export const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
-    if (!req.user || !req.user.roles) {
+    if (!req.user || (!req.user.roles && !req.user.role)) {
       return res.status(403).json({
         success: false,
         message: 'Access denied: user role not found'
       });
     }
 
-    const hasPermission = req.user.roles.some((role) =>
-      allowedRoles.includes(role)
+    const userRoles = (
+      Array.isArray(req.user.roles)
+        ? req.user.roles
+        : req.user.role
+        ? [req.user.role]
+        : []
+    ).map((r) => String(r).toLowerCase().trim());
+
+    const normalizedAllowed = allowedRoles
+      .flat(Infinity)
+      .map((r) => String(r).toLowerCase().trim());
+
+    const hasPermission = userRoles.some((role) =>
+      normalizedAllowed.includes(role)
     );
 
     if (!hasPermission) {
@@ -93,7 +105,7 @@ export const authorizeRoles = (...allowedRoles) => {
         success: false,
         message: `Forbidden: required roles [${allowedRoles.join(
           ', '
-        )}], but your roles are [${req.user.roles.join(', ')}]`
+        )}], but your roles are [${(req.user.roles || [req.user.role]).join(', ')}]`
       });
     }
 

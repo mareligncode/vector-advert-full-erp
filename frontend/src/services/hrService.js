@@ -168,6 +168,16 @@ export const attendanceService = {
 // 3. LEAVE SERVICE
 // ============================================================================
 export const leaveService = {
+  getConfig: async () => {
+    const res = await api.get('/leave/config');
+    return res.data;
+  },
+
+  updateConfig: async (configData) => {
+    const res = await api.put('/leave/config', configData);
+    return res.data;
+  },
+
   getMyBalance: async () => {
     const res = await api.get('/leave/balances/me');
     return res.data;
@@ -183,8 +193,9 @@ export const leaveService = {
     return res.data;
   },
 
-  initializeYearBalances: async (year) => {
-    const res = await api.post('/leave/balances/initialize', { year });
+  initializeYearBalances: async (data = {}) => {
+    const payload = typeof data === 'number' ? { year: data } : data;
+    const res = await api.post('/leave/balances/initialize', payload);
     return res.data;
   },
 
@@ -213,8 +224,8 @@ export const leaveService = {
     return res.data;
   },
 
-  reviewRequest: async (id, action, comments) => {
-    const res = await api.patch(`/leave/requests/${id}/review`, { action, comments });
+  reviewRequest: async (id, action, comments, options = {}) => {
+    const res = await api.patch(`/leave/requests/${id}/review`, { action, comments, ...options });
     return res.data;
   },
 

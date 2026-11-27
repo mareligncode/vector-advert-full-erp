@@ -1,9 +1,12 @@
 import mongoose from 'mongoose';
+import LeaveConfig from './LeaveConfig.js';
 
 const annualLeaveSchema = new mongoose.Schema(
   {
     annualTotalEntitlement: { type: Number, default: 16, min: 0 },
     annualAccruedDays: { type: Number, default: 16, min: 0 },
+    accruedMonths: { type: Number, default: 12, min: 0, max: 12 },
+    monthlyAccrualRate: { type: Number, default: 1.33, min: 0 },
     annualUsedDays: { type: Number, default: 0, min: 0 },
     annualRemainingDays: { type: Number, default: 16, min: 0 }
   },
@@ -22,6 +25,7 @@ const sickLeaveSchema = new mongoose.Schema(
 const casualLeaveSchema = new mongoose.Schema(
   {
     casualEntitlement: { type: Number, default: 5, min: 0 },
+    maxDaysPerMonth: { type: Number, default: 2, min: 0 }, // Monthly limit restriction
     casualUsedDays: { type: Number, default: 0, min: 0 },
     casualRemainingDays: { type: Number, default: 5, min: 0 }
   },
@@ -83,6 +87,10 @@ const leaveBalanceSchema = new mongoose.Schema(
       default: 0,
       min: 0
     },
+    enforceMonthlyAccrual: {
+      type: Boolean,
+      default: true
+    },
     lastRecalculatedAt: {
       type: Date,
       default: Date.now
@@ -97,11 +105,77 @@ const leaveBalanceSchema = new mongoose.Schema(
 leaveBalanceSchema.index({ employee: 1, year: 1 }, { unique: true });
 
 /**
+ * Method to compute and synchronize monthly pro-rata accrual
+ * Elapsed months in the current year determines the accrued portion of annual leave
+ * Supports custom monthly progression configured by HR and hire/registration date anchoring
+ */
+leaveBalanceSchema.methods.recalculateMonthlyAccrual = function (
+  asOfDate = new Date(),
+  hireDate = null,
+  customSchedule = null
+) {
+  const targetYear = this.year;
+  const asOfYear = asOfDate.getFullYear();
+
+  let elapsedMonths = 12;
+
+  if (targetYear > asOfYear) {
+    // Future year
+    elapsedMonths = 0;
+  } else if (targetYear === asOfYear) {
+    // Current year: months elapsed so far in the year (1 to 12)
+    const currentMonth = asOfDate.getMonth() + 1; // 1-12
+    elapsedMonths = currentMonth;
+
+    // If employee was hired this year or calculating from hire date
+    if (hireDate) {
+      const hDate = new Date(hireDate);
+      if (hDate.getFullYear() === targetYear) {
+        const hireMonth = hDate.getMonth() + 1;
+        // Month 1 is the employee's registration/hire month
+        elapsedMonths = Math.max(1, currentMonth - hireMonth + 1);
+      }
+    }
+  } else {
+    // Past year: all 12 months accrued
+    elapsedMonths = 12;
+  }
+
+  elapsedMonths = Math.min(12, Math.max(0, elapsedMonths));
+  this.annualLeave.accruedMonths = elapsedMonths;
+  const total = this.annualLeave.annualTotalEntitlement || 16;
+  const rate = total / 12;
+  this.annualLeave.monthlyAccrualRate = Number(rate.toFixed(2));
+
+  let accrued = 0;
+  if (elapsedMonths === 0) {
+    accrued = 0;
+  } else if (
+    customSchedule &&
+    Array.isArray(customSchedule) &&
+    customSchedule.length >= elapsedMonths &&
+    typeof customSchedule[elapsedMonths - 1] === 'number'
+  ) {
+    // Use HR-configured monthly schedule
+    accrued = Math.min(total, customSchedule[elapsedMonths - 1]);
+  } else {
+    // Pro-rata accrued days rounded to nearest half-day
+    accrued = Math.min(
+      total,
+      Math.round(rate * elapsedMonths * 2) / 2
+    );
+  }
+
+  this.annualLeave.annualAccruedDays = accrued;
+  this.recalculateBalances();
+};
+
+/**
  * Method to compute and synchronize remaining balances
  */
 leaveBalanceSchema.methods.recalculateBalances = function () {
   const accruedOrTotal =
-    this.annualLeave.annualAccruedDays !== undefined
+    this.enforceMonthlyAccrual !== false && this.annualLeave.annualAccruedDays !== undefined
       ? this.annualLeave.annualAccruedDays
       : this.annualLeave.annualTotalEntitlement;
 
@@ -139,38 +213,47 @@ leaveBalanceSchema.methods.recalculateBalances = function () {
 leaveBalanceSchema.statics.getOrCreateForEmployee = async function (employeeId, year = new Date().getFullYear()) {
   let balance = await this.findOne({ employee: employeeId, year });
   if (!balance) {
+    const config = await LeaveConfig.getActiveConfig();
+    const annualTotal = config.annualEntitlementDefault || 16;
+    const monthlyRate = Number((annualTotal / 12).toFixed(2));
+
     balance = new this({
       employee: employeeId,
       year,
       annualLeave: {
-        annualTotalEntitlement: 16,
-        annualAccruedDays: 16,
+        annualTotalEntitlement: annualTotal,
+        annualAccruedDays: annualTotal,
+        accruedMonths: 12,
+        monthlyAccrualRate: monthlyRate,
         annualUsedDays: 0,
-        annualRemainingDays: 16
+        annualRemainingDays: annualTotal
       },
       sickLeave: {
-        sickEntitlement: 15,
+        sickEntitlement: config.sickEntitlementDefault || 15,
         sickUsedDays: 0,
-        sickRemainingDays: 15
+        sickRemainingDays: config.sickEntitlementDefault || 15
       },
       casualLeave: {
-        casualEntitlement: 5,
+        casualEntitlement: config.casualEntitlementDefault || 5,
+        maxDaysPerMonth: config.casualMaxDaysPerMonth || 2,
         casualUsedDays: 0,
-        casualRemainingDays: 5
+        casualRemainingDays: config.casualEntitlementDefault || 5
       },
       maternityLeave: {
-        maternityEntitlement: 120,
+        maternityEntitlement: config.maternityEntitlementDefault || 120,
         maternityUsedDays: 0,
-        maternityRemainingDays: 120
+        maternityRemainingDays: config.maternityEntitlementDefault || 120
       },
       paternityLeave: {
-        paternityEntitlement: 10,
+        paternityEntitlement: config.paternityEntitlementDefault || 10,
         paternityUsedDays: 0,
-        paternityRemainingDays: 10
+        paternityRemainingDays: config.paternityEntitlementDefault || 10
       },
-      carriedForwardDays: 0
+      carriedForwardDays: 0,
+      enforceMonthlyAccrual: config.enforceMonthlyAccrual !== false
     });
-    balance.recalculateBalances();
+    const customSchedule = config?.isCustomScheduleActive ? config.customMonthlyAccrualSchedule : null;
+    balance.recalculateMonthlyAccrual(new Date(), null, customSchedule);
     await balance.save();
   }
   return balance;

@@ -17,7 +17,9 @@ import {
   FileText,
   LogOut,
   LogIn,
-  CheckCheck
+  CheckCheck,
+  Settings,
+  Edit3
 } from 'lucide-react';
 import { attendanceService } from '../../../services/hrService';
 import CameraCaptureModal from './CameraCaptureModal';
@@ -41,7 +43,7 @@ function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
   return Math.round(R * c);
 }
 
-export default function TodayPunchTab({ config, todayLog, onAttendanceChanged }) {
+export default function TodayPunchTab({ config, todayLog, onAttendanceChanged, onNavigateToConfig, canConfig }) {
   const { t, i18n } = useTranslation();
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -520,16 +522,49 @@ export default function TodayPunchTab({ config, todayLog, onAttendanceChanged })
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={getBrowserLocation}
-              disabled={gettingLocation}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer shrink-0"
-              title={t('hrPages.attendance.refreshGps')}
-            >
-              <RefreshCw className={`w-4 h-4 ${gettingLocation ? 'animate-spin text-[#00ced1]' : ''}`} />
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              {canConfig && onNavigateToConfig && (
+                <button
+                  type="button"
+                  onClick={onNavigateToConfig}
+                  className="px-3 py-2 rounded-xl border border-[#00ced1]/40 bg-[#00ced1]/10 hover:bg-[#00ced1]/20 text-[#00ced1] text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                  title="Edit Office Location & Geofence"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{t('hrPages.attendance.editOffice')}</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={getBrowserLocation}
+                disabled={gettingLocation}
+                className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                title={t('hrPages.attendance.refreshGps')}
+              >
+                <RefreshCw className={`w-4 h-4 ${gettingLocation ? 'animate-spin text-[#00ced1]' : ''}`} />
+              </button>
+            </div>
           </div>
+
+          {/* CEO / Admin Perimeter Notice & Quick Calibrate */}
+          {canConfig && proximityInfo.nearestOffice && !proximityInfo.isInside && (
+            <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 text-xs flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-amber-500" />
+                <span>{t('hrPages.attendance.ceoLocationNotice')}</span>
+              </div>
+              {onNavigateToConfig && (
+                <button
+                  type="button"
+                  onClick={onNavigateToConfig}
+                  className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-800 dark:text-amber-200 font-bold text-[11px] shrink-0 cursor-pointer"
+                >
+                  {t('hrPages.attendance.editOffice')}
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Selfie Snapshot & Camera Trigger */}
           <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between flex-wrap gap-3">

@@ -1,5 +1,7 @@
 import express from 'express';
 import {
+  getLeaveConfig,
+  updateLeaveConfig,
   getMyLeaveBalance,
   getAllLeaveBalances,
   getEmployeeLeaveBalances,
@@ -18,6 +20,15 @@ import { HR_ADMIN_ROLES, MANAGEMENT_ROLES } from '../constants/roles.js';
 const router = express.Router();
 
 router.use(protect);
+
+// ==========================================
+// LEAVE POLICY CONFIGURATION
+// ==========================================
+
+router
+  .route('/config')
+  .get(getLeaveConfig)
+  .put(authorizeRoles(...HR_ADMIN_ROLES), updateLeaveConfig);
 
 // ==========================================
 // LEAVE BALANCES

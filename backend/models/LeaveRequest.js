@@ -74,6 +74,14 @@ const leaveRequestSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
+    isAdvanceLeave: {
+      type: Boolean,
+      default: false
+    },
+    accruedDaysAtRequest: {
+      type: Number,
+      default: 0
+    },
     supportingAttachments: [
       {
         type: String,
