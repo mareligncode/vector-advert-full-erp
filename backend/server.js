@@ -31,6 +31,11 @@ import crmRoutes, {
   followUpRoutes,
   siteSurveyRoutes
 } from './routes/crmRoutes.js';
+import orderDesignRoutes, {
+  clientOrderRoutes,
+  designTaskRoutes,
+  designProofRoutes
+} from './routes/orderDesignRoutes.js';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './docs/swagger.js';
 import swaggerUiOptions from './docs/swaggerUiOptions.js';
@@ -88,6 +93,10 @@ app.use('/api/leads', leadRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/follow-ups', followUpRoutes);
 app.use('/api/site-surveys', siteSurveyRoutes);
+app.use('/api/orders-design', orderDesignRoutes);
+app.use('/api/client-orders', clientOrderRoutes);
+app.use('/api/design-tasks', designTaskRoutes);
+app.use('/api/design-proofs', designProofRoutes);
 
 // OpenAPI JSON spec and interactive Swagger UI
 app.get('/api-docs.json', (req, res) => {
