@@ -50,6 +50,7 @@ import productionWastageRoutes, {
   staffReturnJobRoutes,
   workshopRequisitionRoutes
 } from './routes/productionWastageRoutes.js';
+import siteInstallationRoutes from './routes/installationRoutes.js';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './docs/swagger.js';
 import swaggerUiOptions from './docs/swaggerUiOptions.js';
@@ -122,6 +123,7 @@ app.use('/api/production-requests', productionRequestRoutes);
 app.use('/api/production-wastage', productionWastageRoutes);
 app.use('/api/staff-returns', staffReturnJobRoutes);
 app.use('/api/store-requests', workshopRequisitionRoutes);
+app.use('/api/site-installations', siteInstallationRoutes);
 
 // OpenAPI JSON spec and interactive Swagger UI
 app.get('/api-docs.json', (req, res) => {
