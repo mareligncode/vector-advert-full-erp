@@ -10,6 +10,7 @@ import { hrLifecyclePaths } from './paths/hrLifecyclePaths.js';
 import { payrollPaths } from './paths/payrollPaths.js';
 import { inventoryPaths } from './paths/inventoryPaths.js';
 import { supplyChainPaths } from './paths/supplyChainPaths.js';
+import { operationsTags, operationsPaths } from './operationsSwagger.js';
 
 const PORT = process.env.PORT || 5000;
 
@@ -51,7 +52,8 @@ export const swaggerSpec = {
     { name: 'Store Requests & SIV', description: 'Material requisitions, Store Issue Vouchers, returns & spoilage waste' },
     { name: 'Procurement', description: 'Purchase requests, buyer assignments, price comparisons, Purchase Orders & auctions' },
     { name: 'Supplier Credits', description: 'Supplier master records, payable credit balances, settlements & tax rules' },
-    { name: 'Uploads & Evidence', description: 'Multer file uploads and the polymorphic Evidence attachment/note hub' }
+    { name: 'Uploads & Evidence', description: 'Multer file uploads and the polymorphic Evidence attachment/note hub' },
+    ...operationsTags
   ],
   security: [{ bearerAuth: [] }],
   components,
@@ -66,7 +68,8 @@ export const swaggerSpec = {
     ...hrLifecyclePaths,
     ...payrollPaths,
     ...inventoryPaths,
-    ...supplyChainPaths
+    ...supplyChainPaths,
+    ...operationsPaths
   }
 };
 

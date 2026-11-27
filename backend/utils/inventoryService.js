@@ -106,15 +106,28 @@ export async function generateCode(prefix, Model, fieldName = 'code') {
     .sort({ createdAt: -1 })
     .lean();
 
+  const getNestedVal = (obj, path) =>
+    path.split('.').reduce((acc, part) => (acc && acc[part] !== undefined ? acc[part] : undefined), obj);
+
+  const val = latest ? (latest[fieldName] || getNestedVal(latest, fieldName)) : undefined;
+
   let nextSequence = 1;
-  if (latest && latest[fieldName]) {
-    const match = latest[fieldName].match(searchPattern);
+  if (val) {
+    const match = String(val).match(searchPattern);
     if (match && match[1]) {
       nextSequence = parseInt(match[1], 10) + 1;
     }
   }
 
-  return `${prefix}-${currentYear}-${String(nextSequence).padStart(4, '0')}`;
+  let candidate = `${prefix}-${currentYear}-${String(nextSequence).padStart(4, '0')}`;
+  let exists = await Model.exists({ [fieldName]: candidate });
+  while (exists) {
+    nextSequence++;
+    candidate = `${prefix}-${currentYear}-${String(nextSequence).padStart(4, '0')}`;
+    exists = await Model.exists({ [fieldName]: candidate });
+  }
+
+  return candidate;
 }
 
 /**
