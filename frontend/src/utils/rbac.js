@@ -93,6 +93,13 @@ export const canViewAllLeave = (user) => hasAnyRole(user, MANAGEMENT_ROLES);
 export const canReviewLeave = (user) => hasAnyRole(user, MANAGEMENT_ROLES);
 export const canAdjustLeaveBalance = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
 export const canInitializeLeave = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
+export const canViewAllOvertime = (user) => hasAnyRole(user, MANAGEMENT_ROLES);
+export const canReviewOvertime = (user) => hasAnyRole(user, MANAGEMENT_ROLES);
+export const canConfigureOvertime = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
+export const canManageFieldVisits = (user) => hasAnyRole(user, MANAGEMENT_ROLES);
+export const canCreateFieldVisit = (user) => hasAnyRole(user, MANAGEMENT_ROLES);
+export const canEditFieldVisit = (user) => hasAnyRole(user, MANAGEMENT_ROLES);
+export const canDeleteFieldVisit = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
 
 export const DEPARTMENTS = [
   'Executive Leadership',

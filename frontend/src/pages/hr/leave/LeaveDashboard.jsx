@@ -110,6 +110,21 @@ export default function LeaveDashboard() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
+          {canAdjust && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('policy')}
+              className={`px-3.5 py-2.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                activeTab === 'policy'
+                  ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+              }`}
+            >
+              <Sliders className="w-4 h-4 text-purple-500 dark:text-purple-400" />
+              <span>{t('hrPages.leave.tabPolicy') || 'Policy & Rules'}</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={fetchLeaveData}
@@ -232,7 +247,7 @@ export default function LeaveDashboard() {
         )}
 
         {activeTab === 'balances' && canAdjust && (
-          <CompanyBalancesTab canAdjust={canAdjust} />
+          <CompanyBalancesTab canAdjust={canAdjust} onOpenPolicy={() => setActiveTab('policy')} />
         )}
 
         {activeTab === 'policy' && canAdjust && (

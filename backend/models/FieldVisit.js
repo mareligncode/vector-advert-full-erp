@@ -12,18 +12,21 @@ const fieldCheckInSchema = new mongoose.Schema(
       default: Date.now
     },
     location: {
-      lat: { type: Number, required: true },
-      long: { type: Number, required: true }
+      lat: { type: Number, default: null },
+      long: { type: Number, default: null }
     },
     distanceMeters: {
-      type: Number
+      type: Number,
+      default: null
     },
     selfie: {
-      type: String
+      type: String,
+      default: null
     },
     notes: {
       type: String,
-      trim: true
+      trim: true,
+      default: null
     }
   },
   { _id: true }
@@ -39,6 +42,10 @@ const fieldVisitSchema = new mongoose.Schema(
     visitDate: {
       type: Date,
       required: true
+    },
+    returnDate: {
+      type: Date,
+      default: null
     },
     visitStartTime: {
       type: String,
@@ -56,11 +63,11 @@ const fieldVisitSchema = new mongoose.Schema(
     location: {
       lat: {
         type: Number,
-        required: true
+        default: null
       },
       long: {
         type: Number,
-        required: true
+        default: null
       }
     },
     radiusMeters: {
@@ -75,11 +82,13 @@ const fieldVisitSchema = new mongoose.Schema(
     ],
     leader: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Employee'
+      ref: 'Employee',
+      default: null
     },
     visitReportNotes: {
       type: String,
-      trim: true
+      trim: true,
+      default: ''
     },
     visitStatus: {
       type: String,

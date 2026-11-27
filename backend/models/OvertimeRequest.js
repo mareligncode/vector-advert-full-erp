@@ -58,6 +58,25 @@ const overtimeRequestSchema = new mongoose.Schema(
       required: true,
       min: 0.5
     },
+    overtimeType: {
+      type: String,
+      enum: ['normal_day', 'night_shift', 'weekend', 'public_holiday'],
+      default: 'normal_day'
+    },
+    rateMultiplier: {
+      type: Number,
+      default: 1.25,
+      min: 1.0,
+      max: 5.0
+    },
+    hourlyRate: {
+      type: Number,
+      default: 0
+    },
+    estimatedPayout: {
+      type: Number,
+      default: 0
+    },
     requestReason: {
       type: String,
       required: true,

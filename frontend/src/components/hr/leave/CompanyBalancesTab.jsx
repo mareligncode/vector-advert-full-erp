@@ -12,12 +12,13 @@ import {
   Building,
   ArrowRight,
   X,
-  Layers
+  Layers,
+  Sliders
 } from 'lucide-react';
 import { leaveService } from '../../../services/hrService';
 import { getEmployeeFullName, getEmployeeInitial } from '../../../utils/rbac';
 
-export default function CompanyBalancesTab({ canAdjust }) {
+export default function CompanyBalancesTab({ canAdjust, onOpenPolicy }) {
   const { t } = useTranslation();
 
   const [balances, setBalances] = useState([]);
@@ -184,6 +185,18 @@ export default function CompanyBalancesTab({ canAdjust }) {
             >
               <Sparkles className="w-4 h-4" />
               <span>{t('hrPages.leave.initBalancesBtn')}</span>
+            </button>
+          )}
+
+          {canAdjust && onOpenPolicy && (
+            <button
+              type="button"
+              onClick={onOpenPolicy}
+              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-500/15 text-purple-600 dark:text-purple-400 hover:bg-purple-500/25 flex items-center gap-1.5 transition-all cursor-pointer border border-purple-500/30"
+              title={t('hrPages.leave.tabPolicy') || 'Policy & Rules'}
+            >
+              <Sliders className="w-4 h-4 text-purple-500" />
+              <span>{t('hrPages.leave.tabPolicy') || 'Policy & Rules'}</span>
             </button>
           )}
 

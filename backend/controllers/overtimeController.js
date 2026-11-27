@@ -1,4 +1,5 @@
 import OvertimeRequest from '../models/OvertimeRequest.js';
+import OvertimeConfig from '../models/OvertimeConfig.js';
 import Employee from '../models/Employee.js';
 import Attendance from '../models/Attendance.js';
 import { HR_ADMIN_ROLES, MANAGEMENT_ROLES, EXECUTIVE_ROLES, ROLES } from '../constants/roles.js';
@@ -16,8 +17,11 @@ export const createOvertimeRequest = async (req, res) => {
       startTime,
       endTime,
       totalHours,
+      overtimeType = 'normal_day',
+      rateMultiplier: customRate,
       requestReason,
       attendanceId,
+      employeeId,
       advanceApprovalRequired = true
     } = req.body;
 
@@ -28,21 +32,57 @@ export const createOvertimeRequest = async (req, res) => {
       });
     }
 
-    const employee = await Employee.findOne({ user: req.user._id });
-    if (!employee) {
+    let targetEmployee = null;
+    if (employeeId && req.user.roles.some((r) => HR_ADMIN_ROLES.includes(r))) {
+      targetEmployee = await Employee.findById(employeeId);
+    } else {
+      targetEmployee = await Employee.findOne({ user: req.user._id });
+    }
+
+    if (!targetEmployee) {
       return res.status(400).json({
         success: false,
-        message: 'No employee profile linked to your user account'
+        message: 'No employee profile linked to this request'
       });
     }
 
+    // Resolve rate multiplier from OvertimeConfig if not explicitly provided
+    const config = await OvertimeConfig.getActiveConfig();
+    let multiplier = customRate ? Number(customRate) : null;
+    if (!multiplier) {
+      switch (overtimeType) {
+        case 'night_shift':
+          multiplier = config.nightShiftMultiplier || 1.5;
+          break;
+        case 'weekend':
+          multiplier = config.weekendMultiplier || 2.0;
+          break;
+        case 'public_holiday':
+          multiplier = config.holidayMultiplier || 2.5;
+          break;
+        case 'normal_day':
+        default:
+          multiplier = config.dayShiftMultiplier || 1.25;
+          break;
+      }
+    }
+
+    // Calculate hourly basic rate and estimated payout
+    const monthlyBasic = targetEmployee.salary?.basic || 0;
+    const hourlyRate = monthlyBasic > 0 ? Number((monthlyBasic / (30 * 8)).toFixed(2)) : 0;
+    const estimatedPayout = Number((hourlyRate * multiplier * Number(totalHours)).toFixed(2));
+
     const overtime = await OvertimeRequest.create({
-      employee: employee._id,
+      employee: targetEmployee._id,
       attendance: attendanceId || null,
       requestDate: new Date(requestDate),
       startTime,
       endTime,
       totalHours: Number(totalHours),
+      overtimeType,
+      rateMultiplier: multiplier,
+      hourlyRate,
+      estimatedPayout,
       requestReason,
       advanceApprovalRequired,
       requestStatus: 'pending_manager',
@@ -432,6 +472,160 @@ export const decideOvertimeRequest = async (req, res) => {
     return res.status(400).json({
       success: false,
       message: `Invalid review stage or request state (current status: ${overtime.requestStatus})`
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Cancel an overtime request
+ * @route   POST /api/overtime/:id/cancel
+ * @access  Private (Requester or HR Admin)
+ */
+export const cancelOvertimeRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const overtime = await OvertimeRequest.findById(id).populate('employee');
+
+    if (!overtime) {
+      return res.status(404).json({
+        success: false,
+        message: 'Overtime request not found'
+      });
+    }
+
+    const isOwner =
+      overtime.employee &&
+      overtime.employee.user &&
+      overtime.employee.user.toString() === req.user._id.toString();
+    const isHR = req.user.roles.some((r) => HR_ADMIN_ROLES.includes(r));
+
+    if (!isOwner && !isHR) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to cancel this request'
+      });
+    }
+
+    if (['approved', 'rejected', 'cancelled'].includes(overtime.requestStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot cancel a request that is already ${overtime.requestStatus}`
+      });
+    }
+
+    overtime.requestStatus = 'cancelled';
+    await overtime.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Overtime request cancelled successfully',
+      data: overtime
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Get active overtime policy configuration
+ * @route   GET /api/overtime/config
+ * @access  Private
+ */
+export const getOvertimeConfig = async (req, res) => {
+  try {
+    const config = await OvertimeConfig.getActiveConfig();
+    return res.status(200).json({
+      success: true,
+      data: config
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Update overtime policy configuration
+ * @route   PUT /api/overtime/config
+ * @access  Private (HR/Admin)
+ */
+export const updateOvertimeConfig = async (req, res) => {
+  try {
+    const config = await OvertimeConfig.getActiveConfig();
+
+    const updatedConfig = await OvertimeConfig.findByIdAndUpdate(
+      config._id,
+      {
+        $set: {
+          ...req.body,
+          updatedBy: req.user._id
+        }
+      },
+      { returnDocument: 'after', runValidators: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Overtime policy configuration updated successfully',
+      data: updatedConfig
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Get overtime analytics & stats summary
+ * @route   GET /api/overtime/summary/me
+ * @access  Private
+ */
+export const getMyOvertimeSummary = async (req, res) => {
+  try {
+    const employee = await Employee.findOne({ user: req.user._id });
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: 'No employee profile linked to your user account'
+      });
+    }
+
+    const requests = await OvertimeRequest.find({ employee: employee._id });
+
+    let totalApprovedHours = 0;
+    let totalPendingHours = 0;
+    let totalEstimatedPayout = 0;
+    const hoursByType = {
+      normal_day: 0,
+      night_shift: 0,
+      weekend: 0,
+      public_holiday: 0
+    };
+
+    requests.forEach((r) => {
+      const hrs = Number(r.totalHours) || 0;
+      const type = r.overtimeType || 'normal_day';
+
+      if (r.requestStatus === 'approved') {
+        totalApprovedHours += hrs;
+        totalEstimatedPayout += Number(r.estimatedPayout) || 0;
+        if (hoursByType[type] !== undefined) {
+          hoursByType[type] += hrs;
+        }
+      } else if (['pending', 'pending_manager', 'pending_hr'].includes(r.requestStatus)) {
+        totalPendingHours += hrs;
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalApprovedHours,
+        totalPendingHours,
+        totalEstimatedPayout,
+        hoursByType,
+        totalRequestsCount: requests.length
+      }
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

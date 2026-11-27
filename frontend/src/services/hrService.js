@@ -259,8 +259,28 @@ export const overtimeService = {
     return res.data;
   },
 
-  decideRequest: async (id, decision, comments) => {
-    const res = await api.patch(`/overtime/${id}/decision`, { decision, comments });
+  decideRequest: async (id, decision, comments, options = {}) => {
+    const res = await api.patch(`/overtime/${id}/decision`, { decision, comments, ...options });
+    return res.data;
+  },
+
+  cancelRequest: async (id) => {
+    const res = await api.post(`/overtime/${id}/cancel`);
+    return res.data;
+  },
+
+  getMySummary: async () => {
+    const res = await api.get('/overtime/summary/me');
+    return res.data;
+  },
+
+  getConfig: async () => {
+    const res = await api.get('/overtime/config');
+    return res.data;
+  },
+
+  updateConfig: async (configData) => {
+    const res = await api.put('/overtime/config', configData);
     return res.data;
   }
 };
@@ -298,6 +318,16 @@ export const fieldVisitService = {
     const res = await api.post(`/field-visits/${id}/check-in`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
+    return res.data;
+  },
+
+  deleteVisit: async (id) => {
+    const res = await api.delete(`/field-visits/${id}`);
+    return res.data;
+  },
+
+  getMySummary: async () => {
+    const res = await api.get('/field-visits/summary/me');
     return res.data;
   }
 };

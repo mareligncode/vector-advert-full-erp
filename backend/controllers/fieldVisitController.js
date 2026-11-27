@@ -22,6 +22,7 @@ export const createFieldVisit = async (req, res) => {
     const {
       visitPurpose,
       visitDate,
+      returnDate,
       visitStartTime,
       visitEndTime,
       visitAddress,
@@ -32,31 +33,30 @@ export const createFieldVisit = async (req, res) => {
       visitReportNotes
     } = req.body;
 
-    if (!visitPurpose || !visitDate || !visitStartTime || !visitEndTime || !visitAddress || !location) {
+    if (!visitPurpose || !visitDate || !visitStartTime || !visitEndTime || !visitAddress) {
       return res.status(400).json({
         success: false,
-        message: 'visitPurpose, visitDate, visitStartTime, visitEndTime, visitAddress, and location (lat/long) are required'
+        message: 'visitPurpose, visitDate, visitStartTime, visitEndTime, and visitAddress are required'
       });
     }
 
-    if (typeof location.lat !== 'number' || typeof location.long !== 'number') {
-      return res.status(400).json({
-        success: false,
-        message: 'location must contain numeric lat and long coordinates'
-      });
+    let parsedLocation = { lat: null, long: null };
+    if (location && typeof location.lat === 'number' && typeof location.long === 'number') {
+      parsedLocation = { lat: location.lat, long: location.long };
     }
 
     const fieldVisit = await FieldVisit.create({
       visitPurpose,
       visitDate: new Date(visitDate),
+      returnDate: returnDate ? new Date(returnDate) : null,
       visitStartTime,
       visitEndTime,
       visitAddress,
-      location,
-      radiusMeters,
+      location: parsedLocation,
+      radiusMeters: Number(radiusMeters) || 300,
       employees: employees || [],
       leader: leader || null,
-      visitReportNotes,
+      visitReportNotes: visitReportNotes || '',
       visitStatus: 'scheduled'
     });
 
@@ -104,6 +104,7 @@ export const getFieldVisits = async (req, res) => {
       FieldVisit.find(query)
         .populate('leader', 'name employeeNumber jobTitle primaryPhone')
         .populate('employees', 'name employeeNumber jobTitle')
+        .populate('checkIns.employee', 'name employeeNumber jobTitle')
         .sort({ visitDate: -1 })
         .skip(skip)
         .limit(limitNum)
@@ -151,6 +152,7 @@ export const getMyFieldVisits = async (req, res) => {
       FieldVisit.find(query)
         .populate('leader', 'name employeeNumber jobTitle primaryPhone')
         .populate('employees', 'name employeeNumber jobTitle')
+        .populate('checkIns.employee', 'name employeeNumber jobTitle')
         .sort({ visitDate: -1 })
         .skip(skip)
         .limit(limitNum)
@@ -226,13 +228,32 @@ export const updateFieldVisit = async (req, res) => {
       });
     }
 
+    const updateData = { ...req.body };
+    if (updateData.visitDate) {
+      updateData.visitDate = new Date(updateData.visitDate);
+    }
+    if (updateData.returnDate !== undefined) {
+      updateData.returnDate = updateData.returnDate ? new Date(updateData.returnDate) : null;
+    }
+    if (updateData.location !== undefined) {
+      if (
+        updateData.location &&
+        typeof updateData.location.lat === 'number' &&
+        typeof updateData.location.long === 'number'
+      ) {
+        updateData.location = { lat: updateData.location.lat, long: updateData.location.long };
+      } else {
+        updateData.location = { lat: null, long: null };
+      }
+    }
+
     const updated = await FieldVisit.findByIdAndUpdate(
       id,
-      { $set: req.body },
+      { $set: updateData },
       { returnDocument: 'after', runValidators: true }
     )
-      .populate('leader', 'name employeeNumber jobTitle')
-      .populate('employees', 'name employeeNumber jobTitle');
+      .populate('leader', 'name employeeNumber jobTitle primaryPhone')
+      .populate('employees', 'name employeeNumber jobTitle primaryPhone');
 
     return res.status(200).json({
       success: true,
@@ -257,13 +278,6 @@ export const checkInFieldVisit = async (req, res) => {
     if (req.file) {
       const category = req.uploadCategory || 'field-visits';
       selfie = formatFileUrl(category, req.file.filename);
-    }
-
-    if (lat === undefined || long === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: 'GPS coordinates (lat and long) are required for field check-in'
-      });
     }
 
     const visit = await FieldVisit.findById(id);
@@ -294,31 +308,46 @@ export const checkInFieldVisit = async (req, res) => {
       });
     }
 
-    // Calculate distance to site
-    const distanceMeters = calculateDistanceMeters(
-      Number(lat),
-      Number(long),
-      visit.location.lat,
-      visit.location.long
-    );
+    let parsedLat = null;
+    let parsedLong = null;
+    let distanceMeters = null;
 
-    const allowedRadius = visit.radiusMeters || 300;
-    if (distanceMeters > allowedRadius) {
-      return res.status(400).json({
-        success: false,
-        message: `Field check-in failed: You are ${distanceMeters}m away from the visit site, which exceeds the allowed radius of ${allowedRadius}m.`,
-        distanceMeters,
-        allowedRadius
-      });
+    const hasCheckInCoords =
+      lat !== undefined &&
+      lat !== null &&
+      lat !== '' &&
+      long !== undefined &&
+      long !== null &&
+      long !== '' &&
+      !isNaN(Number(lat)) &&
+      !isNaN(Number(long));
+
+    if (hasCheckInCoords) {
+      parsedLat = Number(lat);
+      parsedLong = Number(long);
+
+      // If visit has target coordinates, calculate distance
+      if (
+        visit.location &&
+        typeof visit.location.lat === 'number' &&
+        typeof visit.location.long === 'number'
+      ) {
+        distanceMeters = calculateDistanceMeters(
+          parsedLat,
+          parsedLong,
+          visit.location.lat,
+          visit.location.long
+        );
+      }
     }
 
     const checkInRecord = {
       employee: selfEmployee._id,
       checkInTime: new Date(),
-      location: { lat: Number(lat), long: Number(long) },
+      location: { lat: parsedLat, long: parsedLong },
       distanceMeters,
       selfie: selfie || null,
-      notes: notes || null
+      notes: notes ? String(notes).trim() : null
     };
 
     visit.checkIns.push(checkInRecord);
@@ -330,14 +359,105 @@ export const checkInFieldVisit = async (req, res) => {
 
     await visit.save();
 
-    const createdRecord = visit.checkIns[visit.checkIns.length - 1];
+    const fullyPopulated = await FieldVisit.findById(visit._id)
+      .populate('leader', 'name employeeNumber jobTitle primaryPhone')
+      .populate('employees', 'name employeeNumber jobTitle primaryPhone')
+      .populate('checkIns.employee', 'name employeeNumber jobTitle');
+
+    const createdRecord = fullyPopulated.checkIns[fullyPopulated.checkIns.length - 1];
+
+    const message = distanceMeters !== null
+      ? `On-site field check-in successful (${distanceMeters}m from site target)`
+      : 'Field check-in recorded successfully';
 
     return res.status(200).json({
       success: true,
-      message: `On-site field check-in successful (${distanceMeters}m from site target)`,
+      message,
       distanceMeters,
-      visitStatus: visit.visitStatus,
-      checkIn: createdRecord
+      visitStatus: fullyPopulated.visitStatus,
+      checkIn: createdRecord,
+      data: fullyPopulated
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Delete a field visit assignment
+ * @route   DELETE /api/field-visits/:id
+ * @access  Private (Management/HR)
+ */
+export const deleteFieldVisit = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const visit = await FieldVisit.findByIdAndDelete(id);
+
+    if (!visit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Field visit not found'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Field visit assignment deleted successfully'
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Get field visit summary and statistics
+ * @route   GET /api/field-visits/summary/me
+ * @access  Private
+ */
+export const getMyFieldVisitSummary = async (req, res) => {
+  try {
+    const employee = await Employee.findOne({ user: req.user._id });
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: 'No employee profile linked to your user account'
+      });
+    }
+
+    const query = {
+      $or: [{ leader: employee._id }, { employees: employee._id }]
+    };
+
+    const myVisits = await FieldVisit.find(query);
+
+    let scheduledCount = 0;
+    let inProgressCount = 0;
+    let completedCount = 0;
+    let cancelledCount = 0;
+    let myCheckInsCount = 0;
+
+    myVisits.forEach((v) => {
+      if (v.visitStatus === 'scheduled') scheduledCount++;
+      else if (v.visitStatus === 'in_progress') inProgressCount++;
+      else if (v.visitStatus === 'completed') completedCount++;
+      else if (v.visitStatus === 'cancelled') cancelledCount++;
+
+      const checkedIn = v.checkIns?.some(
+        (c) => c.employee?.toString() === employee._id.toString()
+      );
+      if (checkedIn) myCheckInsCount++;
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalAssigned: myVisits.length,
+        scheduledCount,
+        inProgressCount,
+        completedCount,
+        cancelledCount,
+        myCheckInsCount
+      }
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
