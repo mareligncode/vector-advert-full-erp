@@ -81,9 +81,27 @@ const siteSurveySchema = new mongoose.Schema(
       trim: true
     },
     measurements: {
-      facadeWidthMeters: { type: Number, required: true, min: 0 },
-      facadeHeightMeters: { type: Number, required: true, min: 0 },
-      installationHeightFromGround: { type: Number, required: true, min: 0 },
+      facadeWidthMeters: {
+        type: Number,
+        min: 0,
+        required: function () {
+          return this.status === 'completed';
+        }
+      },
+      facadeHeightMeters: {
+        type: Number,
+        min: 0,
+        required: function () {
+          return this.status === 'completed';
+        }
+      },
+      installationHeightFromGround: {
+        type: Number,
+        min: 0,
+        required: function () {
+          return this.status === 'completed';
+        }
+      },
       maximumSignWidthAllowed: { type: Number, min: 0 },
       maximumSignHeightAllowed: { type: Number, min: 0 },
       fasciaDepthCm: { type: Number, min: 0 },
@@ -92,7 +110,9 @@ const siteSurveySchema = new mongoose.Schema(
     wallSurfaceType: {
       type: String,
       enum: WALL_SURFACE_TYPE_ENUM,
-      required: true
+      required: function () {
+        return this.status === 'completed';
+      }
     },
     wallConditionRating: {
       type: String,
@@ -114,7 +134,13 @@ const siteSurveySchema = new mongoose.Schema(
     },
     electricalInspection: {
       powerSourceAvailable: { type: Boolean, default: true },
-      powerSourceDistanceMeters: { type: Number, required: true, min: 0 },
+      powerSourceDistanceMeters: {
+        type: Number,
+        min: 0,
+        required: function () {
+          return this.status === 'completed';
+        }
+      },
       supplyVoltage: {
         type: String,
         enum: ['220V_single_phase', '380V_three_phase', 'none_needs_line_extension'],
@@ -137,7 +163,9 @@ const siteSurveySchema = new mongoose.Schema(
     accessEquipmentRequired: {
       type: String,
       enum: INSTALLATION_ACCESS_TYPE_ENUM,
-      required: true
+      required: function () {
+        return this.status === 'completed';
+      }
     },
     scaffoldingHeightMeters: {
       type: Number,

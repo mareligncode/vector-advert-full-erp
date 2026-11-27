@@ -25,6 +25,12 @@ import grvRoutes from './routes/grvRoutes.js';
 import storeRequestRoutes from './routes/storeRequestRoutes.js';
 import procurementRoutes from './routes/procurementRoutes.js';
 import supplierCreditRoutes from './routes/supplierCreditRoutes.js';
+import crmRoutes, {
+  leadRoutes,
+  clientRoutes,
+  followUpRoutes,
+  siteSurveyRoutes
+} from './routes/crmRoutes.js';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './docs/swagger.js';
 import swaggerUiOptions from './docs/swaggerUiOptions.js';
@@ -77,6 +83,11 @@ app.use('/api/grv', grvRoutes);
 app.use('/api/store-requests', storeRequestRoutes);
 app.use('/api/procurement', procurementRoutes);
 app.use('/api/supplier-credits', supplierCreditRoutes);
+app.use('/api/crm', crmRoutes);
+app.use('/api/leads', leadRoutes);
+app.use('/api/clients', clientRoutes);
+app.use('/api/follow-ups', followUpRoutes);
+app.use('/api/site-surveys', siteSurveyRoutes);
 
 // OpenAPI JSON spec and interactive Swagger UI
 app.get('/api-docs.json', (req, res) => {
