@@ -190,7 +190,7 @@ export const updateJobPosting = async (req, res) => {
 // @access  Private (HR / Management)
 export const updateJobPostingStatus = async (req, res) => {
   try {
-    const { status } = req.body;
+    const status = req.body.status || req.body.postingStatus;
     const allowedStatuses = ['draft', 'published', 'closed', 'on_hold', 'archived'];
 
     if (!allowedStatuses.includes(status)) {

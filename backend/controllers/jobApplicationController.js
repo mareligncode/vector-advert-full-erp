@@ -2,6 +2,7 @@ import JobApplication from '../models/JobApplication.js';
 import JobPosting from '../models/JobPosting.js';
 import Employee from '../models/Employee.js';
 import User from '../models/User.js';
+import Evidence from '../models/Evidence.js';
 import { ROLES } from '../constants/roles.js';
 import { deleteLocalFile, formatFileUrl } from '../utils/fileUtils.js';
 
@@ -12,15 +13,85 @@ export const submitJobApplication = async (req, res) => {
   try {
     const {
       jobPostingId,
-      applicantName,
-      applicantContact,
-      resume,
       portfolioLink,
       linkedInLink,
       coverLetter,
       yearsOfExperience,
       attachments
     } = req.body;
+
+    const category = req.uploadCategory || 'recruitment';
+    const uploadedFiles = Array.isArray(req.files)
+      ? req.files
+      : req.file
+      ? [req.file]
+      : [];
+
+    let resume = req.body.resume;
+    const primaryResumeFile =
+      uploadedFiles.find((f) => f.fieldname === 'resumeFile') || uploadedFiles[0];
+
+    if (primaryResumeFile) {
+      resume = formatFileUrl(category, primaryResumeFile.filename);
+    }
+
+    // Parse applicantName if sent as JSON string or individual fields in FormData
+    let parsedName = req.body.applicantName;
+    if (typeof parsedName === 'string') {
+      try {
+        parsedName = JSON.parse(parsedName);
+      } catch {}
+    }
+    if (!parsedName || typeof parsedName !== 'object') {
+      parsedName = {
+        first: req.body.firstName || req.body['applicantName.first'] || req.body.first || '',
+        middle: req.body.middleName || req.body['applicantName.middle'] || req.body.middle || '',
+        last: req.body.lastName || req.body['applicantName.last'] || req.body.last || ''
+      };
+    }
+
+    // Parse applicantContact if sent as JSON string or individual fields in FormData
+    let parsedContact = req.body.applicantContact;
+    if (typeof parsedContact === 'string') {
+      try {
+        parsedContact = JSON.parse(parsedContact);
+      } catch {}
+    }
+    if (!parsedContact || typeof parsedContact !== 'object') {
+      parsedContact = {
+        email: req.body.email || req.body['applicantContact.email'] || '',
+        phoneNumber: req.body.phoneNumber || req.body.phone || req.body['applicantContact.phoneNumber'] || '',
+        telegramUsername: req.body.telegramUsername || req.body['applicantContact.telegramUsername'] || ''
+      };
+    }
+
+    if (!jobPostingId) {
+      return res.status(400).json({
+        success: false,
+        message: 'jobPostingId is required'
+      });
+    }
+
+    if (!parsedName.first || !parsedName.last) {
+      return res.status(400).json({
+        success: false,
+        message: 'Applicant first and last names are required'
+      });
+    }
+
+    if (!parsedContact.email || !parsedContact.phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Applicant email and phone number are required'
+      });
+    }
+
+    if (!resume) {
+      return res.status(400).json({
+        success: false,
+        message: 'Resume document/CV (file upload or URL) is required'
+      });
+    }
 
     // Validate job posting exists and is open for applications
     const job = await JobPosting.findById(jobPostingId);
@@ -38,17 +109,21 @@ export const submitJobApplication = async (req, res) => {
       });
     }
 
-    if (job.applicationDeadline && new Date(job.applicationDeadline) < new Date()) {
-      return res.status(400).json({
-        success: false,
-        message: 'The deadline for applying to this job posting has passed'
-      });
+    if (job.applicationDeadline) {
+      const deadlineEnd = new Date(job.applicationDeadline);
+      deadlineEnd.setHours(23, 59, 59, 999);
+      if (deadlineEnd < new Date()) {
+        return res.status(400).json({
+          success: false,
+          message: 'The deadline for applying to this job posting has passed'
+        });
+      }
     }
 
     // Check if duplicate application with same email for this job
     const existingApplication = await JobApplication.findOne({
       jobPosting: jobPostingId,
-      'applicantContact.email': applicantContact?.email?.toLowerCase()
+      'applicantContact.email': parsedContact.email.toLowerCase()
     });
 
     if (existingApplication) {
@@ -58,18 +133,72 @@ export const submitJobApplication = async (req, res) => {
       });
     }
 
+    const fileAttachments = uploadedFiles.map((f) => ({
+      fileName: f.filename,
+      originalName: f.originalname,
+      fileUrl: formatFileUrl(category, f.filename),
+      fileType: f.mimetype,
+      fileSize: f.size,
+      uploadedAt: new Date(),
+      uploadedBy: req.user?._id || null,
+      description: f.fieldname === 'resumeFile' ? 'Primary Resume / CV' : 'Supporting Application Document'
+    }));
+
+    const parsedBodyAttachments = Array.isArray(attachments) ? attachments : [];
+
     const application = await JobApplication.create({
       jobPosting: jobPostingId,
-      applicantName,
-      applicantContact,
+      applicantName: parsedName,
+      applicantContact: parsedContact,
       resume,
-      portfolioLink,
-      linkedInLink,
-      coverLetter,
+      portfolioLink: portfolioLink || null,
+      linkedInLink: linkedInLink || null,
+      coverLetter: coverLetter || '',
       yearsOfExperience: Number(yearsOfExperience) || 0,
-      attachments: Array.isArray(attachments) ? attachments : [],
+      attachments: [...fileAttachments, ...parsedBodyAttachments],
       applicationStatus: 'submitted'
     });
+
+    // Save all uploaded documents (and external resume link if provided) into the centralized Evidence table
+    const evidenceAttachments = uploadedFiles.map((f) => ({
+      title: f.fieldname === 'resumeFile' ? `Resume / CV: ${f.originalname}` : f.originalname,
+      description:
+        f.fieldname === 'resumeFile'
+          ? 'Primary Resume / CV submitted via Public Careers Portal'
+          : 'Supporting document submitted via Public Careers Portal',
+      fileUrl: formatFileUrl(category, f.filename),
+      fileName: f.originalname,
+      mimeType: f.mimetype,
+      fileSize: f.size,
+      uploadedBy: req.user?._id || null,
+      status: 'pending'
+    }));
+
+    if (evidenceAttachments.length === 0 && resume) {
+      evidenceAttachments.push({
+        title: 'Resume / CV Link',
+        description: 'External Resume / CV URL submitted via Public Careers Portal',
+        fileUrl: resume,
+        fileName: 'Resume Link',
+        uploadedBy: req.user?._id || null,
+        status: 'pending'
+      });
+    }
+
+    if (evidenceAttachments.length > 0) {
+      await Evidence.findOneAndUpdate(
+        { entityType: 'JobApplication', entityId: application._id },
+        {
+          $setOnInsert: {
+            entityType: 'JobApplication',
+            entityId: application._id,
+            entityOwner: req.user?._id || null
+          },
+          $push: { attachments: { $each: evidenceAttachments } }
+        },
+        { upsert: true, returnDocument: 'after' }
+      );
+    }
 
     res.status(201).json({
       success: true,

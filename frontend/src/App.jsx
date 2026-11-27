@@ -33,6 +33,9 @@ import TrainingList from './pages/hr/training/TrainingList';
 import ProfessionalUpgradeList from './pages/hr/professional-upgrades/ProfessionalUpgradeList';
 import PlanList from './pages/hr/plans/PlanList';
 
+// Public Career & Talent Application Page
+import PublicCareersPage from './pages/public/PublicCareersPage';
+
 export default function App() {
   return (
     <ThemeProvider>
@@ -53,6 +56,22 @@ export default function App() {
                 <main className="flex-1 min-w-0 flex flex-col h-full min-h-0 overflow-hidden relative">
                   <Routes>
                     {/* Public Auth Routes */}
+                    <Route
+                      path="/careers"
+                      element={
+                        <div className="flex-1 w-full h-full min-h-0 overflow-y-auto">
+                          <PublicCareersPage />
+                        </div>
+                      }
+                    />
+                    <Route
+                      path="/careers/:id"
+                      element={
+                        <div className="flex-1 w-full h-full min-h-0 overflow-y-auto">
+                          <PublicCareersPage />
+                        </div>
+                      }
+                    />
                     <Route
                       path="/login"
                       element={

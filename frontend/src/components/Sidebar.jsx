@@ -141,7 +141,7 @@ export default function Sidebar() {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
 
-  if (!isAuthenticated) return null;
+  if (!isAuthenticated || location.pathname.startsWith('/careers')) return null;
 
   return (
     <>

@@ -100,6 +100,10 @@ export const canManageFieldVisits = (user) => hasAnyRole(user, MANAGEMENT_ROLES)
 export const canCreateFieldVisit = (user) => hasAnyRole(user, MANAGEMENT_ROLES);
 export const canEditFieldVisit = (user) => hasAnyRole(user, MANAGEMENT_ROLES);
 export const canDeleteFieldVisit = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
+export const canManageRecruitment = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
+export const canPostJob = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
+export const canManageApplications = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
+export const canConvertApplicant = (user) => hasAnyRole(user, HR_ADMIN_ROLES);
 
 export const DEPARTMENTS = [
   'Executive Leadership',

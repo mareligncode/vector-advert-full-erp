@@ -30,7 +30,8 @@ const attachmentSchema = new mongoose.Schema(
     uploadedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true
+      required: false,
+      default: null
     },
     // Verification workflow per attachment
     status: {
@@ -95,11 +96,12 @@ const evidenceSchema = new mongoose.Schema(
       required: true,
       refPath: 'entityType'
     },
-    // The user who created/owns the parent entity
+    // The user who created/owns the parent entity (optional for public submissions like JobApplication)
     entityOwner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: false,
+      default: null,
       index: true
     },
     attachments: [attachmentSchema],

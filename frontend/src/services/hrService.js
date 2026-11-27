@@ -366,6 +366,16 @@ export const recruitmentService = {
     return res.data;
   },
 
+  submitApplication: async (formDataOrData) => {
+    const res = await api.post('/recruitment/applications', formDataOrData);
+    return res.data;
+  },
+
+  deleteJobApplication: async (id) => {
+    const res = await api.delete(`/recruitment/applications/${id}`);
+    return res.data;
+  },
+
   getJobApplications: async (params = {}) => {
     const res = await api.get('/recruitment/applications', { params });
     return res.data;

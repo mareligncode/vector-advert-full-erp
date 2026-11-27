@@ -37,18 +37,18 @@ const router = express.Router();
 router
   .route('/jobs')
   .get(optionalProtect, getJobPostings)
-  .post(protect, authorizeRoles(...MANAGEMENT_ROLES), createJobPosting);
+  .post(protect, authorizeRoles(...HR_ADMIN_ROLES), createJobPosting);
 
 router
   .route('/jobs/:id')
   .get(optionalProtect, getJobPostingById)
-  .put(protect, authorizeRoles(...MANAGEMENT_ROLES), updateJobPosting)
-  .delete(protect, authorizeRoles(...EXECUTIVE_ROLES), deleteJobPosting);
+  .put(protect, authorizeRoles(...HR_ADMIN_ROLES), updateJobPosting)
+  .delete(protect, authorizeRoles(...HR_ADMIN_ROLES), deleteJobPosting);
 
 router.patch(
   '/jobs/:id/status',
   protect,
-  authorizeRoles(...MANAGEMENT_ROLES),
+  authorizeRoles(...HR_ADMIN_ROLES),
   updateJobPostingStatus
 );
 
@@ -58,7 +58,7 @@ router.patch(
 router.get(
   '/interviews',
   protect,
-  authorizeRoles(...MANAGEMENT_ROLES),
+  authorizeRoles(...HR_ADMIN_ROLES),
   getAllInterviews
 );
 
@@ -67,18 +67,22 @@ router.get(
    ========================================================================== */
 router
   .route('/applications')
-  .post(submitJobApplication) // Public job application portal
-  .get(protect, authorizeRoles(...MANAGEMENT_ROLES), getJobApplications);
+  .post(
+    setUploadCategory('recruitment'),
+    upload.any(),
+    submitJobApplication
+  ) // Public job application portal (supports multiple documents)
+  .get(protect, authorizeRoles(...HR_ADMIN_ROLES), getJobApplications);
 
 router
   .route('/applications/:id')
-  .get(protect, authorizeRoles(...MANAGEMENT_ROLES), getJobApplicationById)
+  .get(protect, authorizeRoles(...HR_ADMIN_ROLES), getJobApplicationById)
   .delete(protect, authorizeRoles(...HR_ADMIN_ROLES), deleteJobApplication);
 
 router.patch(
   '/applications/:id/status',
   protect,
-  authorizeRoles(...MANAGEMENT_ROLES),
+  authorizeRoles(...HR_ADMIN_ROLES),
   updateApplicationStatus
 );
 
