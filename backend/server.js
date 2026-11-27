@@ -52,6 +52,7 @@ import productionWastageRoutes, {
 } from './routes/productionWastageRoutes.js';
 import siteInstallationRoutes from './routes/installationRoutes.js';
 import machineMaintenanceRoutes, { repairRouter as machineRepairRoutes } from './routes/machineMaintenanceRoutes.js';
+import feedbackRouter, { complaintRouter, warrantyRouter } from './routes/postSalesRoutes.js';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './docs/swagger.js';
 import swaggerUiOptions from './docs/swaggerUiOptions.js';
@@ -127,6 +128,9 @@ app.use('/api/store-requests', workshopRequisitionRoutes);
 app.use('/api/site-installations', siteInstallationRoutes);
 app.use('/api/machine-maintenance', machineMaintenanceRoutes);
 app.use('/api/machine-repairs', machineRepairRoutes);
+app.use('/api/customer-feedback', feedbackRouter);
+app.use('/api/customer-complaints', complaintRouter);
+app.use('/api/warranty-claims', warrantyRouter);
 
 // OpenAPI JSON spec and interactive Swagger UI
 app.get('/api-docs.json', (req, res) => {
