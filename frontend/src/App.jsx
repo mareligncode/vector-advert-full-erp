@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
@@ -37,6 +37,40 @@ import PlanList from './pages/hr/plans/PlanList';
 import PublicCareersPage from './pages/public/PublicCareersPage';
 
 export default function App() {
+  const [pausedMessage, setPausedMessage] = useState(null);
+
+  useEffect(() => {
+    const handlePaused = (e) => {
+      setPausedMessage(
+        e.detail ||
+          'The system encountered an unusual problem. There may be unauthorized or malicious activity detected, or the server contract has been paused.'
+      );
+    };
+    window.addEventListener('vector:system-paused', handlePaused);
+    return () => window.removeEventListener('vector:system-paused', handlePaused);
+  }, []);
+
+  if (pausedMessage) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-[#070b12] text-white p-6">
+        <div className="max-w-md w-full rounded-3xl bg-[#0e1626] border border-slate-800 p-8 text-center space-y-5 shadow-2xl">
+          <div className="w-16 h-16 rounded-2xl bg-rose-500/15 text-rose-500 flex items-center justify-center mx-auto text-2xl font-black">
+            !
+          </div>
+          <h1 className="text-xl font-black text-rose-400">System Access Suspended</h1>
+          <p className="text-sm text-slate-300 leading-relaxed">{pausedMessage}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="px-6 py-2.5 rounded-xl bg-[#00ced1] hover:bg-[#00b5b8] text-slate-950 font-black text-xs cursor-pointer transition-all"
+          >
+            Check Status &amp; Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <ThemeProvider>
       <AuthProvider>

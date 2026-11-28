@@ -1,0 +1,10 @@
+{
+  "name": "vector-erp-control-microservice",
+  "version": "1.0.0",
+  "description": "Standalone Option-1 Master Toggle Control Microservice for Vector Advert ERP",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

@@ -513,8 +513,8 @@ export const payrollService = {
     return res.data;
   },
 
-  approveRunStage: async (id, stage, comments) => {
-    const res = await api.post(`/payroll/runs/${id}/approve`, { stage, comments });
+  approveRunStage: async (id, stage, decision = 'approved', comments = '') => {
+    const res = await api.post(`/payroll/runs/${id}/approve`, { stage, decision, comments });
     return res.data;
   },
 
@@ -544,6 +544,11 @@ export const payrollService = {
   },
 
   getPayslipHtmlUrl: (id) => `/api/payroll/payslips/${id}/html`,
+
+  getPayslipHtml: async (id) => {
+    const res = await api.get(`/payroll/payslips/${id}/html`, { responseType: 'text' });
+    return res.data;
+  },
 
   getLoans: async (params = {}) => {
     const res = await api.get('/payroll/loans', { params });
@@ -704,8 +709,8 @@ export const planService = {
     return res.data;
   },
 
-  updateApproval: async (id, approvalStatus, comments) => {
-    const res = await api.patch(`/plans/${id}/approval`, { approvalStatus, comments });
+  updateApproval: async (id, status, note) => {
+    const res = await api.patch(`/plans/${id}/approval`, { status, note });
     return res.data;
   },
 

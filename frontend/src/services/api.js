@@ -22,10 +22,17 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle unauthenticated 401
+// Response interceptor to handle unauthenticated 401 and Control Gate 503
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response && error.response.status === 503 && error.response.data?.code === 'SYSTEM_PAUSED') {
+      window.dispatchEvent(
+        new CustomEvent('vector:system-paused', {
+          detail: error.response.data.message
+        })
+      );
+    }
     if (error.response && error.response.status === 401) {
       // Clear token if unauthorized, except on login/register endpoints
       const url = error.config?.url || '';

@@ -220,8 +220,9 @@ export const getMyClearance = async (req, res) => {
       .populate('completedBy', 'email roles');
 
     if (!clearance) {
-      return res.status(404).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
+        data: null,
         message: 'No clearance record found for your account'
       });
     }

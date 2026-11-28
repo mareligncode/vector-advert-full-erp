@@ -57,6 +57,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './docs/swagger.js';
 import swaggerUiOptions from './docs/swaggerUiOptions.js';
 import { initTelegramBot } from './utils/telegramService.js';
+import { controlGateMiddleware } from './middleware/controlGateMiddleware.js';
 
 dotenv.config();
 
@@ -83,6 +84,10 @@ app.use(
 
 // Serve static uploaded files from backend/uploads
 app.use('/uploads', express.static(uploadsDir));
+
+// Option 1 Control Microservice Gate (Master Toggle)
+app.use('/api', controlGateMiddleware);
+///////////////////////////////////////
 
 // Routes
 app.use('/api/auth', authRoutes);

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vector ERP — Master Control Switch</title>
+  <style>
+    :root {
+      --bg: #070b12;
+      --card: #0e1626;
+      --border: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #00ced1;
+      --green: #10b981;
+      --red: #f43f5e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #0f172a, var(--bg));
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      width: 100%;
+      max-width: 480px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);
+    }
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .brand { font-size: 18px; font-weight: 900; letter-spacing: -0.02em; }
+    .brand span { color: var(--accent); }
+    .badge {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge.live { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+    .badge.paused { background: rgba(244, 63, 94, 0.15); color: var(--red); border: 1px solid rgba(244,63,94,0.3); }
+
+    .toggle-box {
+      background: #152238;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .toggle-info h2 { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+    .toggle-info p { font-size: 12px; color: var(--muted); }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 68px;
+      height: 36px;
+      flex-shrink: 0;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: var(--red);
+      transition: 0.3s;
+      border-radius: 999px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 28px;
+      width: 28px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--green); }
+    input:checked + .slider:before { transform: translateX(32px); }
+
+    .field { margin-bottom: 16px; }
+    label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+    input[type="password"], textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #070b12;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+    input:focus, textarea:focus { border-color: var(--accent); }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      background: var(--accent);
+      color: #070b12;
+      font-weight: 900;
+      font-size: 13px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; }
+    .meta { margin-top: 16px; font-size: 11px; color: var(--muted); text-align: center; }
+    .error { margin-top: 10px; font-size: 12px; color: var(--red); text-align: center; font-weight: 700; display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div class="brand">VECTOR <span>CONTROL</span></div>
+      <div id="statusBadge" class="badge live">SYSTEM LIVE</div>
+    </div>
+
+    <div class="toggle-box">
+      <div class="toggle-info">
+        <h2 id="toggleTitle">Application Online</h2>
+        <p id="toggleSub">All ERP modules & APIs are active</p>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="masterToggle" checked />
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="field">
+      <label for="secretKey">Master Control Secret Key</label>
+      <input type="password" id="secretKey" placeholder="Enter control key (default: vector-master-key-2026)" />
+    </div>
+
+    <div class="field">
+      <label for="maintenanceMsg">Maintenance Message (Shown when OFF)</label>
+      <textarea id="maintenanceMsg" rows="2"></textarea>
+    </div>
+
+    <button class="btn" id="saveMsgBtn">Update Message & Sync</button>
+    <div id="errorBox" class="error"></div>
+    <div id="updatedAt" class="meta">Connecting...</div>
+  </div>
+
+  <script>
+    const toggleEl = document.getElementById('masterToggle');
+    const badgeEl = document.getElementById('statusBadge');
+    const titleEl = document.getElementById('toggleTitle');
+    const subEl = document.getElementById('toggleSub');
+    const keyEl = document.getElementById('secretKey');
+    const msgEl = document.getElementById('maintenanceMsg');
+    const errEl = document.getElementById('errorBox');
+    const updatedEl = document.getElementById('updatedAt');
+    const saveBtn = document.getElementById('saveMsgBtn');
+
+    keyEl.value = localStorage.getItem('vector_control_key') || 'vector-master-key-2026';
+    keyEl.addEventListener('input', () => localStorage.setItem('vector_control_key', keyEl.value));
+
+    function renderState(data) {
+      const enabled = Boolean(data.systemEnabled);
+      toggleEl.checked = enabled;
+      badgeEl.textContent = enabled ? 'SYSTEM LIVE' : 'SYSTEM PAUSED';
+      badgeEl.className = 'badge ' + (enabled ? 'live' : 'paused');
+      titleEl.textContent = enabled ? 'Application Online' : 'Application Paused';
+      subEl.textContent = enabled
+        ? 'All ERP modules & APIs are active'
+        : 'Users see Maintenance Screen (503)';
+      if (data.message && document.activeElement !== msgEl) {
+        msgEl.value = data.message;
+      }
+      updatedEl.textContent = 'Last updated: ' + new Date(data.updatedAt).toLocaleString();
+      errEl.style.display = 'none';
+    }
+
+    async function loadStatus() {
+      try {
+        const res = await fetch('/api/control/status');
+        const data = await res.json();
+        renderState(data);
+      } catch (e) {
+        errEl.textContent = 'Failed to reach control server';
+        errEl.style.display = 'block';
+      }
+    }
+
+    async function pushToggle(systemEnabled) {
+      try {
+        errEl.style.display = 'none';
+        const res = await fetch('/api/control/toggle', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-control-key': keyEl.value.trim()
+          },
+          body: JSON.stringify({
+            systemEnabled,
+            message: msgEl.value.trim()
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errEl.textContent = data.message || 'Toggle failed';
+          errEl.style.display = 'block';
+          await loadStatus();
+          return;
+        }
+        renderState(data);
+      } catch (e) {
+        errEl.textContent = 'Network error toggling state';
+        errEl.style.display = 'block';
+      }
+    }
+
+    toggleEl.addEventListener('change', (e) => pushToggle(e.target.checked));
+    saveBtn.addEventListener('click', () => pushToggle(toggleEl.checked));
+
+    loadStatus();
+  </script>
+</body>
+</html>

@@ -113,7 +113,7 @@ const planSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['yearly', 'half yearly', 'half_yearly', 'quarterly', 'monthly', 'weekly', 'daily'],
+      enum: ['yearly', 'half yearly', 'half_yearly', 'quarterly', 'monthly', 'weekly', 'daily', 'custom'],
       required: [true, 'Plan type is required'],
       lowercase: true,
       trim: true
@@ -123,11 +123,41 @@ const planSchema = new mongoose.Schema(
       required: [true, 'Department is required'],
       trim: true
     },
+    periodLabel: {
+      type: String,
+      trim: true
+    },
     keyGoal: {
       type: String,
       trim: true
     },
+    taskDetail: {
+      type: String,
+      trim: true
+    },
+    activity: {
+      type: String,
+      trim: true
+    },
     expectedOutput: {
+      type: String,
+      trim: true
+    },
+    correctiveAction: {
+      type: String,
+      trim: true
+    },
+    progress: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100
+    },
+    supportTeamText: {
+      type: String,
+      trim: true
+    },
+    remark: {
       type: String,
       trim: true
     },
